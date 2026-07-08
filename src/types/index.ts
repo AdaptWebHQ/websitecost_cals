@@ -53,6 +53,7 @@ export interface FeatureCategory {
   sortOrder: number;
   isActive: boolean;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 /** How a feature's price is calculated */
@@ -87,6 +88,7 @@ export interface Industry {
   recommendedPackageId: string;
   isActive: boolean;
   createdAt: Date;
+  updatedAt: Date;
 }
 
 // ============================================================================
@@ -127,7 +129,7 @@ export type CalculationStatus = 'draft' | 'completed' | 'converted';
 export interface SelectedFeature {
   featureId: string;
   featureName: string;
-  categoryName: string;
+  categoryName?: string;
   pricingType: PricingType;
   unitPrice: number;
   calculatedPrice: number;
@@ -136,10 +138,11 @@ export interface SelectedFeature {
 /** A completed cost calculation/estimate */
 export interface Calculation {
   id: string;
-  userId: string;
-  sessionId: string;
+  userId?: string | null;
+  sessionId?: string | null;
   businessName: string;
   businessEmail: string;
+  businessPhone?: string;
   packageId: string;
   packageName: string;
   industryId: string;
@@ -147,13 +150,17 @@ export interface Calculation {
   websiteType: string;
   pages: number;
   selectedFeatures: SelectedFeature[];
+  basePrice?: number;
+  featuresPrice?: number;
+  rushMarkup?: number;
   subtotal: number;
+  netTotal?: number;
   gstAmount: number;
   total: number;
-  estimatedDays: number;
-  rushDelivery: boolean;
-  rushDeliveryCharge: number;
-  recommendedTechStack: string[];
+  estimatedDays?: number;
+  isRushDelivery?: boolean;
+  rushDeliveryCharge?: number;
+  recommendedTechStack?: string[];
   pdfUrl?: string;
   status: CalculationStatus;
   createdAt: Date;
@@ -177,18 +184,18 @@ export type InquiryStatus =
 /** An inquiry/lead linked to a calculation */
 export interface Inquiry {
   id: string;
-  calculationId: string;
-  userId: string;
+  calculationId?: string | null;
+  userId?: string | null;
   name: string;
-  company: string;
+  companyName: string;
   email: string;
   phone: string;
   budget: string;
   message: string;
-  source: string;
+  source?: string | null;
   status: InquiryStatus;
-  assignedTo: string;
-  followUpDate: Date | null;
+  assignedTo?: string | null;
+  followUpDate?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

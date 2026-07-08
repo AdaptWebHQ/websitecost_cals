@@ -16,13 +16,15 @@ export function cn(...inputs: ClassValue[]) {
 // ============================================================================
 
 /** Format a number as Indian currency (₹1,23,456) */
-export function formatCurrency(amount: number, symbol: string = '₹'): string {
-  return `${symbol}${amount.toLocaleString('en-IN')}`;
+export function formatCurrency(amount: number | null | undefined, symbol: string = '₹'): string {
+  const value = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
+  return `${symbol}${value.toLocaleString('en-IN')}`;
 }
 
 /** Format number with Indian comma grouping */
-export function formatNumber(num: number): string {
-  return num.toLocaleString('en-IN');
+export function formatNumber(num: number | null | undefined): string {
+  const value = typeof num === 'number' && !isNaN(num) ? num : 0;
+  return value.toLocaleString('en-IN');
 }
 
 /** Calculate percentage of a value relative to a total */
