@@ -113,9 +113,9 @@ export async function createCalculationAction(
 
     const docRef = await adminDb.collection(COLLECTIONS.CALCULATIONS).add(newCalculation);
 
-    revalidatePath('/dashboard/admin/calculations');
+    revalidatePath('/admin/calculations');
     if (user) {
-      revalidatePath('/dashboard/public/estimates');
+      revalidatePath('/public/estimates');
     }
 
     return {
@@ -147,7 +147,7 @@ export async function deleteCalculationAction(id: string): Promise<ApiResponse<v
     }
 
     await calcRef.delete();
-    revalidatePath('/dashboard/admin/calculations');
+    revalidatePath('/admin/calculations');
 
     return { success: true };
   } catch (error: unknown) {

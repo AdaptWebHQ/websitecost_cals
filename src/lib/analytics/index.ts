@@ -15,6 +15,9 @@ export const MOCK_DASHBOARD_STATS: DashboardStats = {
   averageProjectValue: 48500, // INR
   revenuePipeline: 873000, // INR
   averageQuoteValue: 32400, // INR
+  convertedLeads: 18,
+  hotLeads: 42,
+  coldLeads: 24,
 };
 
 export const MOCK_MONTHLY_CALCULATIONS: MonthlyData[] = [
@@ -98,6 +101,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     const inquiries = inquiriesSnap.docs.map((doc) => doc.data());
     const bookedProjects = inquiries.filter((l) => l.status === 'booked').length;
     
+    const convertedLeads = bookedProjects;
+    const hotLeads = inquiries.filter((l) => ['contacted', 'proposal_sent', 'negotiation'].includes(l.status)).length;
+    const coldLeads = inquiries.filter((l) => ['new', 'inquired'].includes(l.status)).length;
+    
     // Calculate conversion rate (Leads -> Booked)
     const conversionRate = totalLeads > 0 ? Math.round((bookedProjects / totalLeads) * 100) : 0;
 
@@ -133,6 +140,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       averageProjectValue: averageProjectValue || MOCK_DASHBOARD_STATS.averageProjectValue,
       revenuePipeline: pipeline || MOCK_DASHBOARD_STATS.revenuePipeline,
       averageQuoteValue: averageQuoteValue || MOCK_DASHBOARD_STATS.averageQuoteValue,
+      convertedLeads,
+      hotLeads,
+      coldLeads,
     };
   } catch (error) {
     // Quiet fallback

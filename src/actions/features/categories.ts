@@ -48,7 +48,7 @@ export async function createCategoryAction(
 
     const docRef = await adminDb.collection(COLLECTIONS.FEATURE_CATEGORIES).add(newCategory);
     
-    revalidatePath('/dashboard/admin/feature-categories');
+    revalidatePath('/admin/feature-categories');
     
     return {
       success: true,
@@ -114,7 +114,7 @@ export async function updateCategoryAction(
 
     await categoryRef.update(updatedFields);
 
-    revalidatePath('/dashboard/admin/feature-categories');
+    revalidatePath('/admin/feature-categories');
 
     const currentDoc = await categoryRef.get();
     const currentData = currentDoc.data();
@@ -165,7 +165,7 @@ export async function deleteCategoryAction(id: string): Promise<ApiResponse<void
 
     await categoryRef.delete();
     
-    revalidatePath('/dashboard/admin/feature-categories');
+    revalidatePath('/admin/feature-categories');
     
     return { success: true };
   } catch (error: unknown) {
@@ -189,7 +189,7 @@ export async function toggleCategoryActiveAction(
       updatedAt: new Date(),
     });
     
-    revalidatePath('/dashboard/admin/feature-categories');
+    revalidatePath('/admin/feature-categories');
     return { success: true };
   } catch (error: unknown) {
     console.error('Error toggling category status:', error);
@@ -216,7 +216,7 @@ export async function reorderCategoriesAction(
     });
 
     await batch.commit();
-    revalidatePath('/dashboard/admin/feature-categories');
+    revalidatePath('/admin/feature-categories');
 
     return { success: true };
   } catch (error: unknown) {

@@ -237,6 +237,9 @@ export interface DashboardStats {
   averageProjectValue: number;
   revenuePipeline: number;
   averageQuoteValue: number;
+  convertedLeads: number;
+  hotLeads: number;
+  coldLeads: number;
 }
 
 /** Generic data point for charts */

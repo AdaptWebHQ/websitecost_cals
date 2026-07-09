@@ -10,7 +10,7 @@ const COOKIE_TOKEN = 'webcost_session_token';
 const COOKIE_ROLE = 'webcost_user_role';
 
 /** Set HTTP-only session cookies with Firebase ID Token and User Role */
-export async function setSession(idToken: string): Promise<{ success: boolean; error?: string; user?: User }> {
+export async function setSession(idToken: string, isRegistering = false): Promise<{ success: boolean; error?: string; user?: User }> {
   try {
     const cookieStore = await cookies();
     
@@ -25,11 +25,12 @@ export async function setSession(idToken: string): Promise<{ success: boolean; e
       decodedToken.uid,
       decodedToken.email || '',
       decodedToken.name || 'Anonymous User',
-      decodedToken.picture
+      decodedToken.picture,
+      isRegistering
     );
 
     if (!user) {
-      return { success: false, error: 'User profile not found' };
+      return { success: false, error: 'Account not found. Please register first.' };
     }
 
     if (!user.isActive) {

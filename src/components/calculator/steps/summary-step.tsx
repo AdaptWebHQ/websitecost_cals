@@ -123,7 +123,7 @@ export default function SummaryStep({
           <Button
             onClick={() => {
               reset();
-              router.push('/dashboard/public/estimates');
+              router.push('/public/estimates');
             }}
             className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-11 w-full gap-2 font-semibold"
           >
@@ -133,7 +133,7 @@ export default function SummaryStep({
           <Button
             onClick={() => {
               reset();
-              router.push('/dashboard/public/calculator');
+              router.push('/public/calculator');
             }}
             variant="outline"
             className="border-slate-800 text-slate-300 rounded-xl h-11 w-full hover:bg-slate-900/30"

@@ -48,7 +48,7 @@ export async function createPackageAction(
 
     const docRef = await adminDb.collection(COLLECTIONS.PACKAGES).add(newPackage);
     
-    revalidatePath('/dashboard/admin/packages');
+    revalidatePath('/admin/packages');
     
     return {
       success: true,
@@ -114,7 +114,7 @@ export async function updatePackageAction(
 
     await packageRef.update(updatedFields);
 
-    revalidatePath('/dashboard/admin/packages');
+    revalidatePath('/admin/packages');
 
     const currentDoc = await packageRef.get();
     const currentData = currentDoc.data();
@@ -151,7 +151,7 @@ export async function deletePackageAction(id: string): Promise<ApiResponse<void>
 
     await packageRef.delete();
     
-    revalidatePath('/dashboard/admin/packages');
+    revalidatePath('/admin/packages');
     
     return { success: true };
   } catch (error: unknown) {
@@ -175,7 +175,7 @@ export async function togglePackageActiveAction(
       updatedAt: new Date(),
     });
     
-    revalidatePath('/dashboard/admin/packages');
+    revalidatePath('/admin/packages');
     return { success: true };
   } catch (error: unknown) {
     console.error('Error toggling package active state:', error);
@@ -202,7 +202,7 @@ export async function reorderPackagesAction(
     });
 
     await batch.commit();
-    revalidatePath('/dashboard/admin/packages');
+    revalidatePath('/admin/packages');
 
     return { success: true };
   } catch (error: unknown) {

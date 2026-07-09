@@ -5,7 +5,6 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
 import { contactFormSchema, inquiryUpdateSchema, type ContactFormData, type InquiryUpdateData } from '@/schemas';
-import { sendEmailNotification } from '@/lib/email';
 import { getServerUser } from '@/actions/auth';
 import { revalidatePath } from 'next/cache';
 import type { ApiResponse, Inquiry, InquiryActivity, InquiryStatus } from '@/types';
@@ -55,29 +54,10 @@ export async function createInquiryAction(
     };
     await adminDb.collection(COLLECTIONS.INQUIRY_ACTIVITIES).add(initialActivity);
 
-    // Send email alert to admin/staff dynamically using price config email
-    const priceConfigDoc = await adminDb.collection(COLLECTIONS.PRICE_CONFIG).doc('global').get();
-    const adminEmail = priceConfigDoc.data()?.companyEmail || process.env.ADMIN_NOTIFY_EMAIL || 'admin@webcostpro.com';
+    // Note: Email dispatch is now handled asynchronously by the `onInquiryCreated`
+    // Firebase Cloud Function trigger to avoid blocking client submission response.
 
-    const emailSubject = `New CRM Lead Inquiry: ${company} (${name})`;
-    const emailHtml = `
-      <h2>New Calculator Lead Received</h2>
-      <p><strong>Name:</strong> ${name}</p>
-      <p><strong>Company:</strong> ${company}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Phone:</strong> ${phone}</p>
-      <p><strong>Budget:</strong> ${budget}</p>
-      <p><strong>Message:</strong></p>
-      <blockquote style="background:#f1f5f9;padding:10px 15px;border-left:4px solid #6366f1;">
-        ${message}
-      </blockquote>
-      ${calculationId ? `<p><strong>Linked Calculation ID:</strong> <a href="/dashboard/admin/calculations/${calculationId}">${calculationId}</a></p>` : ''}
-      <p><a href="/dashboard/admin/inquiries/${inquiryId}">Open Lead in CRM Portal</a></p>
-    `;
-
-    await sendEmailNotification(adminEmail, emailSubject, emailHtml);
-
-    revalidatePath('/dashboard/admin/inquiries');
+    revalidatePath('/admin/inquiries');
 
     return {
       success: true,
@@ -173,8 +153,8 @@ export async function updateInquiryStatusAction(
       await batch.commit();
     }
 
-    revalidatePath('/dashboard/admin/inquiries');
-    revalidatePath(`/dashboard/admin/inquiries/${id}`);
+    revalidatePath('/admin/inquiries');
+    revalidatePath(`/admin/inquiries/${id}`);
 
     const currentDoc = await inqRef.get();
     const currentData = currentDoc.data();
@@ -235,7 +215,7 @@ export async function addInquiryNoteAction(
       updatedAt: now,
     });
 
-    revalidatePath(`/dashboard/admin/inquiries/${inquiryId}`);
+    revalidatePath(`/admin/inquiries/${inquiryId}`);
 
     return {
       success: true,

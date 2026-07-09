@@ -31,7 +31,7 @@ export async function updatePriceConfigAction(
 
     await docRef.set(updatedFields, { merge: true });
 
-    revalidatePath('/dashboard/admin/price-config');
+    revalidatePath('/admin/price-config');
 
     return {
       success: true,

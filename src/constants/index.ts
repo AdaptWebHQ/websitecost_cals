@@ -41,24 +41,23 @@ export const CALCULATOR_STEPS: {
 // ============================================================================
 
 export const ADMIN_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard/admin', icon: 'LayoutDashboard' },
-  { label: 'Packages', href: '/dashboard/admin/packages', icon: 'Package' },
-  { label: 'Feature Categories', href: '/dashboard/admin/feature-categories', icon: 'FolderTree' },
-  { label: 'Features', href: '/dashboard/admin/features', icon: 'Puzzle' },
-  { label: 'Industries', href: '/dashboard/admin/industries', icon: 'Building2' },
-  { label: 'Price Config', href: '/dashboard/admin/price-config', icon: 'IndianRupee' },
-  { label: 'Calculations', href: '/dashboard/admin/calculations', icon: 'Calculator' },
-  { label: 'Inquiries', href: '/dashboard/admin/inquiries', icon: 'MessageSquare' },
-  { label: 'Reports', href: '/dashboard/admin/reports', icon: 'BarChart3' },
-  { label: 'Settings', href: '/dashboard/admin/settings', icon: 'Settings' },
-  { label: 'Profile', href: '/dashboard/admin/profile', icon: 'UserCircle' },
+  { label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
+  { label: 'Packages', href: '/admin/packages', icon: 'Package' },
+  { label: 'Features', href: '/admin/features', icon: 'FolderTree' },
+  { label: 'Industries', href: '/admin/industries', icon: 'Building2' },
+  { label: 'Price Config', href: '/admin/price-config', icon: 'IndianRupee' },
+  { label: 'Calculations', href: '/admin/calculations', icon: 'Calculator' },
+  { label: 'Inquiries', href: '/admin/inquiries', icon: 'MessageSquare' },
+  { label: 'Reports', href: '/admin/reports', icon: 'BarChart3' },
+  { label: 'Settings', href: '/admin/settings', icon: 'Settings' },
+  { label: 'Profile', href: '/admin/profile', icon: 'UserCircle' },
 ];
 
 export const PUBLIC_NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard/public', icon: 'LayoutDashboard' },
-  { label: 'Calculator', href: '/dashboard/public/calculator', icon: 'Calculator' },
-  { label: 'My Estimates', href: '/dashboard/public/estimates', icon: 'FileText' },
-  { label: 'Profile', href: '/dashboard/public/profile', icon: 'UserCircle' },
+  { label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
+  { label: 'Calculator', href: '/public/calculator', icon: 'Calculator' },
+  { label: 'My Estimates', href: '/public/estimates', icon: 'FileText' },
+  { label: 'Profile', href: '/public/profile', icon: 'UserCircle' },
 ];
 
 // ============================================================================

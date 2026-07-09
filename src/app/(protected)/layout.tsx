@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/auth-store';
+import { useAuth } from '@/context/auth-context';
 import Sidebar from '@/components/shared/sidebar';
 import Header from '@/components/shared/header';
 
@@ -12,12 +12,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, isLoading, initializeAuth } = useAuthStore();
-
-  useEffect(() => {
-    const unsubscribe = initializeAuth();
-    return () => unsubscribe();
-  }, [initializeAuth]);
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !user) {

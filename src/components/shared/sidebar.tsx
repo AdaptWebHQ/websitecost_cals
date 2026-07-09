@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuthStore } from '@/store/auth-store';
+import { useAuth } from '@/context/auth-context';
 import { ADMIN_NAV_ITEMS, PUBLIC_NAV_ITEMS } from '@/constants';
 import * as Icons from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,7 @@ interface SidebarProps {
 
 export default function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
-  const { user } = useAuthStore();
+  const { user } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const role = user?.role || 'public';

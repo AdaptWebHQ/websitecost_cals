@@ -1,23 +1,17 @@
-import { getServerUser } from '@/actions/auth';
-import { getCalculations } from '@/lib/calculations';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { Calculator, FileText, ChevronRight, Clock, TrendingUp, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import type { User, Calculation } from '@/types';
 
-export const revalidate = 0;
+interface PublicDashboardProps {
+  user: User;
+  calculations: Calculation[];
+}
 
-export default async function PublicDashboardPage() {
-  const user = await getServerUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  const calculations = await getCalculations(user.id);
+export default function PublicDashboard({ user, calculations }: PublicDashboardProps) {
   const recentCalculations = calculations.slice(0, 5);
 
   // Quick stats
@@ -29,18 +23,24 @@ export default async function PublicDashboardPage() {
   return (
     <div className="space-y-8 pb-12">
       {/* Welcome Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Welcome back, <span className="text-indigo-400">{user.name.split(' ')[0]}</span> 👋
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="px-2 py-0.5 bg-[#3a4a5f]/40 text-[#adc6ff] rounded font-mono text-[10px] uppercase tracking-widest font-semibold border border-[#adc6ff]/15">
+              Client Portal
+            </span>
+            <div className="h-px w-12 bg-white/20"></div>
+          </div>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-white mb-2">
+            Welcome back, <span className="text-[#adc6ff]">{user.name.split(' ')[0]}</span> 👋
           </h1>
-          <p className="text-sm text-slate-400 mt-1.5">
-            Here&apos;s a quick snapshot of your quotation activity.
+          <p className="text-sm text-slate-450 font-normal leading-relaxed">
+            Configure, manage, and inspect your custom project estimations.
           </p>
         </div>
         <Link href="/dashboard/public/calculator">
-          <Button className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 rounded-xl h-11 px-5 shadow-lg shadow-indigo-600/20 font-semibold">
-            <Calculator className="w-4 h-4" />
+          <Button className="bg-primary text-on-primary-fixed px-6 py-4.5 rounded-xl font-bold hover:opacity-90 active:scale-95 transition-all shadow-lg subtle-glow flex items-center gap-2 border border-primary/20">
+            <Calculator className="w-4.5 h-4.5" />
             New Estimate
           </Button>
         </Link>

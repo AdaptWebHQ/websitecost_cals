@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { getServerUser } from '@/actions/auth';
 import { Calculator, Compass, Users, Target } from 'lucide-react';
+import ThemeToggle from '@/components/shared/theme-toggle';
 
 export const revalidate = 3600; // Cache for 1 hour
 
@@ -9,7 +10,7 @@ export default async function AboutPage() {
   const user = await getServerUser();
 
   const dashboardUrl = user 
-    ? (user.role === 'admin' || user.role === 'super_admin' ? '/dashboard/admin' : '/dashboard/public')
+    ? (user.role === 'admin' || user.role === 'super_admin' ? '/admin' : '/public')
     : '/login';
 
   return (
@@ -36,6 +37,7 @@ export default async function AboutPage() {
           </nav>
 
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Link href={dashboardUrl}>
               <Button variant="ghost" className="text-slate-300 hover:text-white text-xs font-semibold">
                 {user ? 'Enter Dashboard' : 'Sign In'}

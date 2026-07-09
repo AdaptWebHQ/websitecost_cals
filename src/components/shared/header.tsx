@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/auth-store';
+import { useAuth } from '@/context/auth-context';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -11,16 +11,18 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Bell, LogOut, Search, User, Settings, ShieldAlert } from 'lucide-react';
+import { Bell, LogOut, Search, User, Settings, ShieldAlert, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { capitalize } from '@/lib/utils';
 import { useTitleStore } from '@/store/title-store';
+import { useTheme } from '@/context/theme-context';
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout } = useAuth();
   const { title } = useTitleStore();
+  const { theme, toggleTheme } = useTheme();
 
   // Derive title from URL pathname
   const segments = pathname.split('/').filter(Boolean);
@@ -65,6 +67,21 @@ export default function Header() {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
         </Button>
 
+        {/* Theme Toggle Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleTheme}
+          className="text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl cursor-pointer"
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-5 h-5 text-gold animate-scale-up" />
+          ) : (
+            <Moon className="w-5 h-5 text-slate-400 animate-scale-up" />
+          )}
+        </Button>
+
         {/* User Account Dropdown */}
         {user && (
           <DropdownMenu>
@@ -99,7 +116,7 @@ export default function Header() {
               
               {/* Profile Route Link */}
               <DropdownMenuItem 
-                onClick={() => router.push(user.role === 'admin' || user.role === 'super_admin' ? '/dashboard/admin/profile' : '/dashboard/public/profile')}
+                onClick={() => router.push(user.role === 'admin' || user.role === 'super_admin' ? '/admin/profile' : '/public/profile')}
                 className="hover:bg-slate-800 hover:text-white cursor-pointer py-2.5"
               >
                 <User className="mr-2 h-4 w-4 text-slate-400" />
@@ -108,7 +125,7 @@ export default function Header() {
 
               {/* Settings Route Link */}
               <DropdownMenuItem 
-                onClick={() => router.push(user.role === 'admin' || user.role === 'super_admin' ? '/dashboard/admin/settings' : '/dashboard/public/settings')}
+                onClick={() => router.push(user.role === 'admin' || user.role === 'super_admin' ? '/admin/settings' : '/public/settings')}
                 className="hover:bg-slate-800 hover:text-white cursor-pointer py-2.5"
               >
                 <Settings className="mr-2 h-4 w-4 text-slate-400" />

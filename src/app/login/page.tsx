@@ -2,14 +2,14 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuthStore } from '@/store/auth-store';
+import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { Shield, Sparkles } from 'lucide-react';
 
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loginWithGoogle, isLoading, error, setError } = useAuthStore();
+  const { user, loginWithGoogle, isLoading, error, setError } = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
 
   // Clear errors on load
@@ -27,11 +27,9 @@ function LoginFormContent() {
 
   const handleGoogleSignIn = async () => {
     setAuthError(null);
-    const success = await loginWithGoogle();
-    if (!success) {
-      // Sync local error with store error
-      const storeError = useAuthStore.getState().error;
-      setAuthError(storeError || 'Authentication failed. Please check your credentials or access rights.');
+    const res = await loginWithGoogle();
+    if (!res.success) {
+      setAuthError(res.error || 'Authentication failed. Please check your credentials or access rights.');
     }
   };
 

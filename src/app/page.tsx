@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getPackages } from '@/lib/packages';
 import { Button } from '@/components/ui/button';
 import { getServerUser } from '@/actions/auth';
+import ThemeToggle from '@/components/shared/theme-toggle';
 import { 
   Calculator, 
   Sparkles, 
@@ -21,7 +22,7 @@ export default async function LandingPage() {
   ]);
 
   const dashboardUrl = user 
-    ? (user.role === 'admin' || user.role === 'super_admin' ? '/dashboard/admin' : '/dashboard/public')
+    ? (user.role === 'admin' || user.role === 'super_admin' ? '/admin' : '/public')
     : '/login';
 
   return (
@@ -48,6 +49,7 @@ export default async function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             {user ? (
               <Link href={dashboardUrl}>
                 <Button className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-10 px-5 gap-2 text-sm font-semibold shadow-lg shadow-indigo-600/15">
@@ -90,7 +92,7 @@ export default async function LandingPage() {
         </p>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center gap-4">
-          <Link href={user ? "/dashboard/public/calculator" : "/login"}>
+          <Link href={user ? "/public/calculator" : "/login"}>
             <Button className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-2xl h-14 px-8 text-base font-bold shadow-xl shadow-indigo-500/20 gap-3">
               <Calculator className="w-5 h-5" />
               Launch Cost Calculator
@@ -270,7 +272,7 @@ export default async function LandingPage() {
                     </div>
 
                     <div className="mt-8">
-                      <Link href={user ? "/dashboard/public/calculator" : "/login"}>
+                      <Link href={user ? "/public/calculator" : "/login"}>
                         <Button 
                           className={`w-full rounded-2xl h-11 text-sm font-bold transition-all ${
                             isFeatured 
@@ -299,7 +301,7 @@ export default async function LandingPage() {
             Create an account to lock in your quotation prices, save drafts, download custom PDFs, and request quick follow-ups.
           </p>
           <div className="mt-8">
-            <Link href={user ? "/dashboard/public/calculator" : "/register"}>
+            <Link href={user ? "/public/calculator" : "/register"}>
               <Button className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-12 px-6 gap-2 text-sm font-semibold shadow-lg shadow-indigo-600/20">
                 Create Free Account
                 <ArrowRight className="w-4 h-4" />

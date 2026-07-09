@@ -1,12 +1,3 @@
-import {
-  getDashboardStats,
-  getMonthlyCalculations,
-  getLeadStatusDistribution,
-  getIndustryDistribution,
-  getPackagePopularity,
-  getFeatureUsage,
-  getConversionFunnel,
-} from '@/lib/analytics';
 import StatCard from '@/components/shared/stat-card';
 import MonthlyCalculationsChart from '@/components/charts/monthly-calculations-chart';
 import LeadStatusChart from '@/components/charts/lead-status-chart';
@@ -16,97 +7,84 @@ import FeatureUsageChart from '@/components/charts/feature-usage-chart';
 import RevenueChart from '@/components/charts/revenue-chart';
 import ConversionFunnelChart from '@/components/charts/conversion-funnel-chart';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
 import { TrendingUp, Users, FileBarChart, Target } from 'lucide-react';
 
-export const revalidate = 60; // Revalidate dashboard data every 60 seconds
+interface AdminDashboardProps {
+  stats: {
+    totalCalculations: number;
+    totalLeads: number;
+    convertedLeads: number;
+    hotLeads: number;
+    coldLeads: number;
+  };
+  monthlyData: any[];
+  leadStatus: any[];
+  industryDist: any[];
+  packagePopularity: any[];
+  featureUsage: any[];
+  conversionFunnel: any[];
+}
 
-export default async function AdminDashboardPage() {
-  // Fetch statistics and chart data in parallel on the server
-  const [
-    stats,
-    monthlyData,
-    leadStatus,
-    industryDist,
-    packagePopularity,
-    featureUsage,
-    conversionFunnel,
-  ] = await Promise.all([
-    getDashboardStats(),
-    getMonthlyCalculations(),
-    getLeadStatusDistribution(),
-    getIndustryDistribution(),
-    getPackagePopularity(),
-    getFeatureUsage(),
-    getConversionFunnel(),
-  ]);
-
+export default function AdminDashboard({
+  stats,
+  monthlyData,
+  leadStatus,
+  industryDist,
+  packagePopularity,
+  featureUsage,
+  conversionFunnel,
+}: AdminDashboardProps) {
   return (
     <div className="space-y-8 pb-12">
       {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
-          Dashboard Analytics
-        </h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Real-time summary of calculator activities, inquiries, and revenue metrics.
-        </p>
-      </div>
+      <header className="flex flex-col md:flex-row justify-between items-end md:items-center gap-6">
+        <div className="max-w-2xl">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="px-2 py-0.5 bg-[#3a4a5f]/40 text-[#adc6ff] rounded font-mono text-[10px] uppercase tracking-widest font-semibold border border-[#adc6ff]/15">
+              Pricing Control
+            </span>
+            <div className="h-px w-12 bg-white/20"></div>
+          </div>
+          <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-white mb-2">
+            Dashboard Analytics
+          </h1>
+          <p className="font-body-lg text-slate-450 text-sm md:text-base leading-relaxed">
+            Design, manage, and scale your service pricing tiers with surgical precision. All modifications reflect instantly across your global sales platforms.
+          </p>
+        </div>
+      </header>
 
       {/* 1. Statistics Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard
           label="Total Calculations"
           value={stats.totalCalculations}
           iconName="Calculator"
-          trend={{ value: '12% up', isPositive: true }}
           description="Lifetime calculator runs"
         />
         <StatCard
-          label="Today's Runs"
-          value={stats.todayCalculations}
-          iconName="Clock"
-          trend={{ value: stats.todayCalculations > 5 ? 'High' : 'Stable', isPositive: stats.todayCalculations > 5 }}
-          description="Runs in the last 24h"
-        />
-        <StatCard
-          label="Total Leads"
+          label="Total Inquiries"
           value={stats.totalLeads}
           iconName="MessageSquare"
-          trend={{ value: '8.4%', isPositive: true }}
-          description="Inquiry form completions"
+          description="Contact forms submitted"
         />
         <StatCard
-          label="Booked Projects"
-          value={stats.bookedProjects}
+          label="Converted Leads"
+          value={stats.convertedLeads}
           iconName="CheckSquare"
-          trend={{ value: '18% rate', isPositive: true }}
-          description="Converted sales"
+          description="Booked client projects"
         />
         <StatCard
-          label="Conversion Rate"
-          value={`${stats.conversionRate}%`}
-          iconName="TrendingUp"
-          trend={{ value: '2.5% increase', isPositive: true }}
-          description="Leads converted to Booked"
+          label="Hot Leads"
+          value={stats.hotLeads}
+          iconName="Flame"
+          description="Actively nurtured leads"
         />
         <StatCard
-          label="Average Project Value"
-          value={formatCurrency(stats.averageProjectValue)}
-          iconName="BadgeDollarSign"
-          description="Based on booked values"
-        />
-        <StatCard
-          label="Revenue Pipeline"
-          value={formatCurrency(stats.revenuePipeline)}
-          iconName="Coins"
-          description="Value of active leads"
-        />
-        <StatCard
-          label="Average Quote Value"
-          value={formatCurrency(stats.averageQuoteValue)}
-          iconName="FileBarChart"
-          description="Estimated cost average"
+          label="Cold Leads"
+          value={stats.coldLeads}
+          iconName="Snowflake"
+          description="Uncontacted or new leads"
         />
       </div>
 

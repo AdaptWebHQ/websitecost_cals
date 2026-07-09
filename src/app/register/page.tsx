@@ -2,14 +2,14 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuthStore } from '@/store/auth-store';
+import { useAuth } from '@/context/auth-context';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Sparkles } from 'lucide-react';
 
 function RegisterFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loginWithGoogle, isLoading, error, setError } = useAuthStore();
+  const { user, loginWithGoogle, isLoading, error, setError } = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
 
   // Clear errors on load
@@ -27,10 +27,9 @@ function RegisterFormContent() {
 
   const handleGoogleSignUp = async () => {
     setAuthError(null);
-    const success = await loginWithGoogle();
-    if (!success) {
-      const storeError = useAuthStore.getState().error;
-      setAuthError(storeError || 'Registration failed. Please try again.');
+    const res = await loginWithGoogle(true);
+    if (!res.success) {
+      setAuthError(res.error || 'Registration failed. Please try again.');
     }
   };
 

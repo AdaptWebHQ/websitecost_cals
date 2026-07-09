@@ -1,5 +1,5 @@
 import { getPackages } from '@/lib/packages';
-import PackagesClientPage from './packages-client';
+import PackagesClientPage from '@/components/admin/packages-client';
 
 export const revalidate = 0; // Fetch dynamic data on every request
 

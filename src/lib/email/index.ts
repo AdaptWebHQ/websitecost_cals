@@ -1,40 +1,29 @@
-import { Resend } from 'resend';
+import { adminDb } from "@/firebase/admin";
 
-const resendApiKey = process.env.RESEND_API_KEY;
-
-// Initialize Resend dynamically to support graceful fallback
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
-
-/** Send an email notification. Fails silently with a warning if credentials are empty to avoid crash. */
+/**
+ * Send an email notification by writing a document to the Firestore `mail` collection.
+ * This triggers the Firebase "Trigger Email" cloud extension/function.
+ */
 export async function sendEmailNotification(
   to: string,
   subject: string,
   html: string
 ): Promise<boolean> {
   try {
-    if (!resend) {
-      console.warn(`[Mail service fallback] Skipping email dispatch to: ${to}. Subject: ${subject}`);
-      return true;
-    }
-
-    // Default sender domain provided by Resend sandbox
-    const fromAddress = process.env.EMAIL_FROM || 'WebCost Pro <onboarding@resend.dev>';
-
-    const response = await resend.emails.send({
-      from: fromAddress,
-      to,
-      subject,
-      html,
+    // Schema matching the Firebase Trigger Email Extension expectations:
+    // https://extensions.dev/extensions/firebase/firestore-send-email
+    await adminDb.collection("mail").add({
+      to: to,
+      message: {
+        subject: subject,
+        html: html,
+      },
     });
 
-    if (response.error) {
-      console.error('Resend Dispatch Error:', response.error);
-      return false;
-    }
-
+    console.log(`✅ Email dispatch triggered via Firestore 'mail' collection for: ${to}`);
     return true;
   } catch (error) {
-    console.error('Email Dispatch Exception:', error);
+    console.error("❌ Error queuing email in Firestore 'mail' collection:", error);
     return false;
   }
 }

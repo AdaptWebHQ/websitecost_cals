@@ -18,8 +18,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  // 2. Protect dashboard routes
-  if (pathname.startsWith('/dashboard')) {
+  // 2. Protect dashboard, admin, and public routes
+  if (pathname.startsWith('/dashboard') || pathname.startsWith('/admin') || pathname.startsWith('/public')) {
     if (!isAuthenticated) {
       // Redirect unauthenticated users to login
       const loginUrl = new URL('/login', request.url);
@@ -27,27 +27,22 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Role-based routing under '/dashboard' path itself
-    if (pathname === '/dashboard') {
-      if (role === 'admin' || role === 'super_admin') {
-        return NextResponse.redirect(new URL('/dashboard/admin', request.url));
-      }
-      return NextResponse.redirect(new URL('/dashboard/public', request.url));
+    // Unify entry points to '/dashboard'
+    if (pathname === '/admin' || pathname === '/public') {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    // Protect admin routes
-    if (pathname.startsWith('/dashboard/admin')) {
+    // Protect admin sub-routes
+    if (pathname.startsWith('/admin/')) {
       if (role !== 'admin' && role !== 'super_admin') {
-        // Forbidden: redirect public users trying to access admin dashboard
-        return NextResponse.redirect(new URL('/dashboard/public', request.url));
+        return NextResponse.redirect(new URL('/dashboard', request.url));
       }
     }
 
-    // Protect public dashboard routes
-    if (pathname.startsWith('/dashboard/public')) {
+    // Protect public sub-routes
+    if (pathname.startsWith('/public/')) {
       if (role === 'admin' || role === 'super_admin') {
-        // Redirect admins trying to access public dashboard to admin dashboard
-        return NextResponse.redirect(new URL('/dashboard/admin', request.url));
+        return NextResponse.redirect(new URL('/dashboard', request.url));
       }
     }
   }
@@ -56,5 +51,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/register'],
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/public/:path*', '/login', '/register'],
 };

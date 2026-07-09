@@ -1,6 +1,6 @@
 import { getIndustries } from '@/lib/industries';
 import { getPackages } from '@/lib/packages';
-import IndustriesClientPage from './industries-client';
+import IndustriesClientPage from '@/components/admin/industries-client';
 
 export const revalidate = 0; // Fetch dynamic data on every request
 

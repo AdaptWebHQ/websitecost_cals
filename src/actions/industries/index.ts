@@ -48,7 +48,7 @@ export async function createIndustryAction(
 
     const docRef = await adminDb.collection(COLLECTIONS.INDUSTRIES).add(newIndustry);
     
-    revalidatePath('/dashboard/admin/industries');
+    revalidatePath('/admin/industries');
     
     return {
       success: true,
@@ -114,7 +114,7 @@ export async function updateIndustryAction(
 
     await industryRef.update(updatedFields);
 
-    revalidatePath('/dashboard/admin/industries');
+    revalidatePath('/admin/industries');
 
     const currentDoc = await industryRef.get();
     const currentData = currentDoc.data();
@@ -151,7 +151,7 @@ export async function deleteIndustryAction(id: string): Promise<ApiResponse<void
 
     await industryRef.delete();
     
-    revalidatePath('/dashboard/admin/industries');
+    revalidatePath('/admin/industries');
     
     return { success: true };
   } catch (error: unknown) {
@@ -175,7 +175,7 @@ export async function toggleIndustryActiveAction(
       updatedAt: new Date(),
     });
     
-    revalidatePath('/dashboard/admin/industries');
+    revalidatePath('/admin/industries');
     return { success: true };
   } catch (error: unknown) {
     console.error('Error toggling industry status:', error);

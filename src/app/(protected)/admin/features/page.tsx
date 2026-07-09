@@ -1,6 +1,6 @@
 import { getFeatures } from '@/lib/features';
 import { getFeatureCategories } from '@/lib/features/categories';
-import FeaturesClientPage from './features-client';
+import CategoriesClientPage from '@/components/admin/categories-client';
 
 export const revalidate = 0; // Fetch dynamic data on every request
 
@@ -10,5 +10,5 @@ export default async function AdminFeaturesPage() {
     getFeatureCategories(),
   ]);
 
-  return <FeaturesClientPage initialFeatures={features} categories={categories} />;
+  return <CategoriesClientPage initialCategories={categories} initialFeatures={features} />;
 }

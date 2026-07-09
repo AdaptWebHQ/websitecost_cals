@@ -49,7 +49,7 @@ export async function createFeatureAction(
 
     const docRef = await adminDb.collection(COLLECTIONS.FEATURES).add(newFeature);
     
-    revalidatePath('/dashboard/admin/features');
+    revalidatePath('/admin/features');
     
     return {
       success: true,
@@ -116,7 +116,7 @@ export async function updateFeatureAction(
 
     await featureRef.update(updatedFields);
 
-    revalidatePath('/dashboard/admin/features');
+    revalidatePath('/admin/features');
 
     const currentDoc = await featureRef.get();
     const currentData = currentDoc.data();
@@ -153,7 +153,7 @@ export async function deleteFeatureAction(id: string): Promise<ApiResponse<void>
 
     await featureRef.delete();
     
-    revalidatePath('/dashboard/admin/features');
+    revalidatePath('/admin/features');
     
     return { success: true };
   } catch (error: unknown) {
@@ -177,7 +177,7 @@ export async function toggleFeatureActiveAction(
       updatedAt: new Date(),
     });
     
-    revalidatePath('/dashboard/admin/features');
+    revalidatePath('/admin/features');
     return { success: true };
   } catch (error: unknown) {
     console.error('Error toggling feature status:', error);
@@ -204,7 +204,7 @@ export async function reorderFeaturesAction(
     });
 
     await batch.commit();
-    revalidatePath('/dashboard/admin/features');
+    revalidatePath('/admin/features');
 
     return { success: true };
   } catch (error: unknown) {
