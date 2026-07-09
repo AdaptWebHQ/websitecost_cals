@@ -8,13 +8,11 @@ export const INQUIRY_STATUSES: Record<
   InquiryStatus,
   { label: string; color: string; bgColor: string; order: number }
 > = {
-  new: { label: 'New', color: 'text-blue-600', bgColor: 'bg-blue-100', order: 0 },
-  inquired: { label: 'Inquired', color: 'text-purple-600', bgColor: 'bg-purple-100', order: 1 },
-  contacted: { label: 'Contacted', color: 'text-yellow-600', bgColor: 'bg-yellow-100', order: 2 },
-  proposal_sent: { label: 'Proposal Sent', color: 'text-orange-600', bgColor: 'bg-orange-100', order: 3 },
-  negotiation: { label: 'Negotiation', color: 'text-indigo-600', bgColor: 'bg-indigo-100', order: 4 },
-  booked: { label: 'Booked', color: 'text-green-600', bgColor: 'bg-green-100', order: 5 },
-  lost: { label: 'Lost', color: 'text-red-600', bgColor: 'bg-red-100', order: 6 },
+  new: { label: 'New', color: 'text-blue-500', bgColor: 'bg-blue-500/10 border-blue-500/20', order: 0 },
+  contacted: { label: 'Contacted', color: 'text-amber-500', bgColor: 'bg-amber-500/10 border-amber-500/20', order: 1 },
+  proposal_sent: { label: 'Proposal Sent', color: 'text-purple-500', bgColor: 'bg-purple-500/10 border-purple-500/20', order: 2 },
+  converted: { label: 'Converted', color: 'text-emerald-500', bgColor: 'bg-emerald-500/10 border-emerald-500/20', order: 3 },
+  lost: { label: 'Lost', color: 'text-rose-500', bgColor: 'bg-rose-500/10 border-rose-500/20', order: 4 },
 };
 
 // ============================================================================

@@ -30,7 +30,7 @@ export default function StatCard({
   return (
     <Card
       className={cn(
-        'relative overflow-hidden bg-slate-900/60 border-slate-800/85 backdrop-blur-md p-6 rounded-2xl transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_20px_-5px_rgba(77,142,255,0.15)] group',
+        'relative overflow-hidden bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800/85 backdrop-blur-md p-6 rounded-2xl transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_20px_-5px_rgba(77,142,255,0.15)] group shadow-sm dark:shadow-none',
         className
       )}
     >
@@ -42,12 +42,12 @@ export default function StatCard({
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 font-mono">
             {label}
           </p>
-          <h3 className="text-3xl font-bold tracking-tight text-white group-hover:text-primary transition-colors">
+          <h3 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white group-hover:text-primary transition-colors">
             {value}
           </h3>
         </div>
 
-        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-800/80 border border-slate-800/50 text-slate-400 group-hover:text-primary group-hover:border-primary/30 transition-all duration-300">
+        <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-800/50 text-slate-500 dark:text-slate-400 group-hover:text-primary group-hover:border-primary/30 transition-all duration-300">
           <Icon className="w-5.5 h-5.5 transition-transform duration-300 group-hover:scale-110" />
         </div>
       </div>

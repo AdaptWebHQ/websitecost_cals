@@ -25,8 +25,8 @@ export default async function AdminCalculationsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">Quotation Logs</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Quotation Logs</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Historical log of every calculation generated on the public cost estimator.
         </p>
       </div>
@@ -37,16 +37,16 @@ export default async function AdminCalculationsPage() {
         data={calculations}
         emptyMessage="No calculation runs logged in the database yet."
         renderRow={(calc) => (
-          <TableRow key={calc.id} className="hover:bg-slate-900/20 border-slate-800/60">
-            <TableCell className="font-semibold text-white py-4 pl-6">
+          <TableRow key={calc.id} className="hover:bg-muted/40 border-border">
+            <TableCell className="font-semibold text-foreground py-4 pl-6">
               <div className="flex flex-col">
                 <span>{calc.businessName}</span>
-                <span className="text-xs text-slate-500 font-normal mt-0.5">
+                <span className="text-xs text-muted-foreground font-normal mt-0.5">
                   {calc.businessEmail}
                 </span>
               </div>
             </TableCell>
-            <TableCell className="text-slate-300 font-medium">
+            <TableCell className="text-muted-foreground font-medium">
               <div className="flex flex-col">
                 <span>{calc.industryName}</span>
                 <span className="text-xs text-indigo-400 font-normal mt-0.5 capitalize">
@@ -54,17 +54,17 @@ export default async function AdminCalculationsPage() {
                 </span>
               </div>
             </TableCell>
-            <TableCell className="text-slate-300 font-medium">
+            <TableCell className="text-muted-foreground font-medium">
               <Badge variant="outline" className="border-indigo-500/20 text-indigo-400 bg-indigo-500/5 hover:bg-transparent">
                 {calc.packageName}
               </Badge>
             </TableCell>
-            <TableCell className="text-slate-300 font-medium">{calc.pages} Pages</TableCell>
+            <TableCell className="text-muted-foreground font-medium">{calc.pages} Pages</TableCell>
             <TableCell className="text-emerald-400 font-bold">{formatCurrency(calc.total)}</TableCell>
-            <TableCell className="text-slate-400">{formatDate(calc.createdAt)}</TableCell>
+            <TableCell className="text-muted-foreground">{formatDate(calc.createdAt)}</TableCell>
             <TableCell className="text-right py-4 pr-6">
               <div className="flex items-center justify-end gap-2">
-                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white rounded-lg">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground rounded-lg">
                   <Eye className="w-4 h-4" />
                 </Button>
                 {calc.pdfUrl && (

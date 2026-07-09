@@ -139,6 +139,13 @@ export const calculatorSubmissionSchema = z.object({
   pages: z.coerce.number().min(1).max(200),
   selectedFeatureIds: z.array(z.string()),
   rushDelivery: z.boolean().default(false),
+  customFeatures: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string().min(1),
+      price: z.coerce.number().min(0),
+    })
+  ).optional().default([]),
 });
 
 export type CalculatorSubmissionData = z.infer<typeof calculatorSubmissionSchema>;
@@ -162,15 +169,14 @@ export type ContactFormData = z.infer<typeof contactFormSchema>;
 export const inquiryUpdateSchema = z.object({
   status: z.enum([
     'new',
-    'inquired',
     'contacted',
     'proposal_sent',
-    'negotiation',
-    'booked',
+    'converted',
     'lost',
   ]),
-  assignedTo: z.string().optional(),
-  followUpDate: z.string().optional(),
+  temperature: z.enum(['hot', 'cold']).optional(),
+  assignedTo: z.string().optional().nullable(),
+  followUpDate: z.string().optional().nullable(),
   note: z.string().optional(),
 });
 

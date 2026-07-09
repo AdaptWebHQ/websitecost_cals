@@ -171,14 +171,14 @@ export interface Calculation {
 // Inquiry / Lead Types
 // ============================================================================
 
+export type LeadTemperature = 'hot' | 'cold';
+
 /** CRM lead status — follows the pipeline flow */
 export type InquiryStatus =
   | 'new'
-  | 'inquired'
   | 'contacted'
   | 'proposal_sent'
-  | 'negotiation'
-  | 'booked'
+  | 'converted'
   | 'lost';
 
 /** An inquiry/lead linked to a calculation */
@@ -194,6 +194,7 @@ export interface Inquiry {
   message: string;
   source?: string | null;
   status: InquiryStatus;
+  temperature?: LeadTemperature | null;
   assignedTo?: string | null;
   followUpDate?: Date | null;
   createdAt: Date;

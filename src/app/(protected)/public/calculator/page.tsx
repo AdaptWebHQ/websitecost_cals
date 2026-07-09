@@ -18,11 +18,11 @@ export default async function PublicCalculatorPage() {
   ]);
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold tracking-tight text-white">Quotation Cost Estimator</h1>
-        <p className="text-sm text-slate-400 mt-1">
+      <div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Quotation Cost Estimator</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           Configure page count and custom modules to calculate a budget approximation instantly.
         </p>
       </div>

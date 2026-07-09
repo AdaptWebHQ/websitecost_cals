@@ -145,8 +145,8 @@ export default function FeaturesClientPage({ initialFeatures, categories }: Feat
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Quotation Features</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Quotation Features</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Manage extra services/additions that users can add during quotation calculation.
           </p>
         </div>
@@ -165,24 +165,24 @@ export default function FeaturesClientPage({ initialFeatures, categories }: Feat
         data={features}
         emptyMessage="No features configured yet. Get started by clicking Add Feature."
         renderRow={(feat) => (
-          <TableRow key={feat.id} className="hover:bg-slate-900/20 border-slate-800/60">
-            <TableCell className="font-semibold text-white py-4 pl-6">
+          <TableRow key={feat.id} className="hover:bg-muted/40 border-border">
+            <TableCell className="font-semibold text-foreground py-4 pl-6">
               <div className="flex flex-col">
                 <span>{feat.name}</span>
-                <span className="text-xs text-slate-500 font-normal mt-0.5 max-w-sm truncate">
+                <span className="text-xs text-muted-foreground font-normal mt-0.5 max-w-sm truncate">
                   {feat.description || 'No description provided.'}
                 </span>
               </div>
             </TableCell>
-            <TableCell className="text-slate-300 font-medium">
-              <Badge variant="outline" className="border-slate-800 text-slate-400 hover:bg-transparent">
+            <TableCell className="text-muted-foreground font-medium">
+              <Badge variant="outline" className="border-border text-muted-foreground hover:bg-transparent">
                 {categoryMap[feat.categoryId] || 'Unknown Category'}
               </Badge>
             </TableCell>
-            <TableCell className="text-slate-300 capitalize">
+            <TableCell className="text-muted-foreground capitalize">
               {feat.pricingType === 'per_page' ? 'Per Page Rate' : feat.pricingType === 'percentage' ? 'Percentage of Package' : 'Fixed Cost'}
             </TableCell>
-            <TableCell className="text-slate-300 font-semibold">
+            <TableCell className="text-muted-foreground font-semibold">
               {feat.pricingType === 'percentage' ? `${feat.price}%` : formatCurrency(feat.price)}
             </TableCell>
             <TableCell>
@@ -191,7 +191,7 @@ export default function FeaturesClientPage({ initialFeatures, categories }: Feat
                   Active
                 </Badge>
               ) : (
-                <Badge className="bg-slate-800 text-slate-500 border-slate-800 hover:bg-transparent">
+                <Badge className="bg-slate-500/5 text-slate-400 border-slate-500/10 hover:bg-transparent">
                   Inactive
                 </Badge>
               )}
@@ -207,7 +207,7 @@ export default function FeaturesClientPage({ initialFeatures, categories }: Feat
                   onClick={() => openEditModal(feat)}
                   variant="ghost"
                   size="icon"
-                  className="text-slate-400 hover:text-white rounded-lg"
+                  className="text-muted-foreground hover:text-foreground rounded-lg"
                 >
                   <Edit className="w-4 h-4" />
                 </Button>
@@ -228,42 +228,42 @@ export default function FeaturesClientPage({ initialFeatures, categories }: Feat
       {/* Custom Modal Dialog */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <Card className="bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl w-full max-w-lg p-6 relative animate-scale-up">
+          <Card className="bg-popover border border-border shadow-2xl rounded-2xl w-full max-w-lg p-6 relative animate-scale-up text-popover-foreground">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-450 hover:text-white"
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
             >
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-lg font-bold text-white mb-4">
+            <h2 className="text-lg font-bold text-foreground mb-4">
               {editingFeature ? 'Edit Quotation Feature' : 'Create Quotation Feature'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               {errorMsg && (
-                <p className="text-xs text-red-450 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg">
+                <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg">
                   {errorMsg}
                 </p>
               )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-slate-450 text-xs">Feature Name</Label>
+                  <Label className="text-muted-foreground text-xs">Feature Name</Label>
                   <Input
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Booking Engine"
-                    className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-slate-450 text-xs">Feature Category</Label>
+                  <Label className="text-muted-foreground text-xs">Feature Category</Label>
                   <select
                     value={categoryId}
                     onChange={(e) => setCategoryId(e.target.value)}
-                    className="w-full h-10 bg-slate-950/60 border border-slate-800 text-white rounded-xl px-3 text-sm focus:outline-none focus:border-indigo-500"
+                    className="w-full h-10 bg-background border border-border text-foreground rounded-xl px-3 text-sm focus:outline-none focus:border-indigo-500"
                   >
                     {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id} className="bg-slate-950 text-white">
+                      <option key={cat.id} value={cat.id} className="bg-popover text-foreground">
                         {cat.name}
                       </option>
                     ))}
@@ -272,50 +272,50 @@ export default function FeaturesClientPage({ initialFeatures, categories }: Feat
               </div>
 
               <div className="space-y-1">
-                <Label className="text-slate-450 text-xs">Description</Label>
+                <Label className="text-muted-foreground text-xs">Description</Label>
                 <textarea
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Explain what value addition this module offers..."
-                  className="w-full bg-slate-950/60 border border-slate-800 text-white rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 resize-none leading-normal"
+                  className="w-full bg-background border border-border text-foreground rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 resize-none leading-normal"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-slate-450 text-xs">Pricing Model</Label>
+                  <Label className="text-muted-foreground text-xs">Pricing Model</Label>
                   <select
                     value={pricingType}
                     onChange={(e) => setPricingType(e.target.value as any)}
-                    className="w-full h-10 bg-slate-950/60 border border-slate-800 text-white rounded-xl px-3 text-sm focus:outline-none focus:border-indigo-500"
+                    className="w-full h-10 bg-background border border-border text-foreground rounded-xl px-3 text-sm focus:outline-none focus:border-indigo-500"
                   >
-                    <option value="fixed" className="bg-slate-950 text-white">Fixed Cost</option>
-                    <option value="per_page" className="bg-slate-950 text-white">Per Page Rate</option>
-                    <option value="percentage" className="bg-slate-950 text-white">Percentage of Base</option>
+                    <option value="fixed" className="bg-popover text-foreground">Fixed Cost</option>
+                    <option value="per_page" className="bg-popover text-foreground">Per Page Rate</option>
+                    <option value="percentage" className="bg-popover text-foreground">Percentage of Base</option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-slate-450 text-xs">Rate / Value (INR or %)</Label>
+                  <Label className="text-muted-foreground text-xs">Rate / Value (INR or %)</Label>
                   <Input
                     required
                     type="number"
                     value={price}
                     onChange={(e) => setPrice(Number(e.target.value))}
-                    className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-slate-450 text-xs">Display Position Order</Label>
+                  <Label className="text-muted-foreground text-xs">Display Position Order</Label>
                   <Input
                     required
                     type="number"
                     value={sortOrder}
                     onChange={(e) => setSortOrder(Number(e.target.value))}
-                    className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                   />
                 </div>
               </div>
@@ -326,27 +326,27 @@ export default function FeaturesClientPage({ initialFeatures, categories }: Feat
                     type="checkbox"
                     checked={defaultSelected}
                     onChange={(e) => setDefaultSelected(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-850 bg-slate-950 accent-indigo-500 text-white"
+                    className="w-4 h-4 rounded border-border bg-background accent-indigo-500 text-foreground"
                   />
-                  <span className="text-sm text-slate-300">Selected by Default</span>
+                  <span className="text-sm text-foreground">Selected by Default</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={isActive}
                     onChange={(e) => setIsActive(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-850 bg-slate-950 accent-indigo-500 text-white"
+                    className="w-4 h-4 rounded border-border bg-background accent-indigo-500 text-foreground"
                   />
-                  <span className="text-sm text-slate-300">Active Feature</span>
+                  <span className="text-sm text-foreground">Active Feature</span>
                 </label>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-800/60">
+              <div className="flex justify-end gap-3 pt-4 border-t border-border">
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setIsModalOpen(false)}
-                  className="text-slate-400 hover:text-white rounded-xl h-10 px-5"
+                  className="text-muted-foreground hover:text-foreground rounded-xl h-10 px-5"
                 >
                   Cancel
                 </Button>

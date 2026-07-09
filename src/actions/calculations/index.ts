@@ -36,6 +36,7 @@ export async function createCalculationAction(
       businessName,
       businessEmail,
       businessPhone,
+      customFeatures,
     } = validated.data;
 
     // Fetch related records in parallel on the server
@@ -64,10 +65,10 @@ export async function createCalculationAction(
     let selectedFeatures: Feature[] = [];
     if (selectedFeatureIds.length > 0) {
       const featuresSnap = await adminDb
-        .collection(COLLECTIONS.FEATURES)
-        .where('__name__', 'in', selectedFeatureIds)
-        .get();
-        
+         .collection(COLLECTIONS.FEATURES)
+         .where('__name__', 'in', selectedFeatureIds)
+         .get();
+         
       selectedFeatures = featuresSnap.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -80,7 +81,8 @@ export async function createCalculationAction(
       selectedFeatures,
       pages,
       rushDelivery,
-      priceConfig
+      priceConfig,
+      customFeatures
     );
 
     const now = new Date();

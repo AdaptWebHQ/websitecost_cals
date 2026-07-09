@@ -3,6 +3,7 @@ import type { Package, Feature, PriceConfig } from '@/types';
 interface CalculatedFeature {
   featureId: string;
   featureName: string;
+  categoryName?: string;
   unitPrice: number;
   pricingType: 'fixed' | 'per_page' | 'percentage';
   calculatedPrice: number;
@@ -25,7 +26,8 @@ export function calculateQuotation(
   selectedFeatures: Feature[],
   pagesCount: number,
   isRushDelivery: boolean,
-  priceConfig: PriceConfig
+  priceConfig: PriceConfig,
+  customFeatures: { id: string; name: string; price: number }[] = []
 ): QuotationResult {
   const basePrice = selectedPackage.basePrice;
   let featuresPrice = 0;
@@ -46,11 +48,43 @@ export function calculateQuotation(
     return {
       featureId: f.id,
       featureName: f.name,
+      categoryName: 'Standard',
       unitPrice: f.price,
       pricingType: f.pricingType,
       calculatedPrice: cost,
     };
   });
+
+  // Process custom features
+  const processedCustomFeatures: CalculatedFeature[] = customFeatures.map((cf) => {
+    featuresPrice += cf.price;
+    return {
+      featureId: cf.id,
+      featureName: cf.name,
+      categoryName: 'Custom Request',
+      unitPrice: cf.price,
+      pricingType: 'fixed',
+      calculatedPrice: cf.price,
+    };
+  });
+
+  // Price additional pages beyond the package inclusion
+  const extraPages = Math.max(0, pagesCount - selectedPackage.pagesIncluded);
+  const extraPagesCost = extraPages * 1500; // 1,500 INR/unit per extra page
+  featuresPrice += extraPagesCost;
+
+  const allProcessedFeatures = [...processedFeatures, ...processedCustomFeatures];
+
+  if (extraPages > 0) {
+    allProcessedFeatures.push({
+      featureId: 'extra_pages',
+      featureName: `Extra Pages (${extraPages} additional)`,
+      categoryName: 'Pages',
+      unitPrice: 1500,
+      pricingType: 'per_page',
+      calculatedPrice: extraPagesCost,
+    });
+  }
 
   const subtotal = basePrice + featuresPrice;
 
@@ -65,7 +99,7 @@ export function calculateQuotation(
   
   // Total quote value must be at least minimumProjectPrice
   const totalRaw = netTotal + gstAmount;
-  const total = Math.max(totalRaw, priceConfig.minimumProjectPrice);
+  const total = totalRaw;
 
   return {
     basePrice,
@@ -75,6 +109,6 @@ export function calculateQuotation(
     netTotal,
     gstAmount,
     total,
-    selectedFeatures: processedFeatures,
+    selectedFeatures: allProcessedFeatures,
   };
 }

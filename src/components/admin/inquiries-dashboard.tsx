@@ -1,0 +1,803 @@
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import { 
+  collection, 
+  query, 
+  onSnapshot, 
+  orderBy, 
+} from 'firebase/firestore';
+import { db } from '@/firebase/client';
+import { COLLECTIONS } from '@/constants';
+import type { Inquiry, InquiryActivity, InquiryStatus, LeadTemperature } from '@/types';
+import { 
+  updateInquiryStatusAction, 
+  updateInquiryTemperatureAction, 
+  deleteInquiryAction,
+  addInquiryNoteAction
+} from '@/actions/inquiries';
+import { 
+  Search, 
+  Flame, 
+  Snowflake, 
+  CheckCircle2, 
+  MessageSquare, 
+  Trash2, 
+  Eye, 
+  X, 
+  ChevronLeft, 
+  ChevronRight, 
+  ArrowUpDown, 
+  RefreshCw, 
+  Calendar, 
+  Building2, 
+  User, 
+  Mail, 
+  Phone, 
+  Clock, 
+  ExternalLink,
+  Plus
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const formatDate = (date: Date | any) => {
+  if (!date) return 'N/A';
+  const d = date instanceof Date ? date : new Date(date);
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+export default function InquiriesDashboard() {
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [activities, setActivities] = useState<InquiryActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Search & Filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [tempFilter, setTempFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [budgetFilter, setBudgetFilter] = useState<string>('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Pagination & Sorting state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+  const [sortField, setSortField] = useState<'companyName' | 'budget' | 'createdAt'>('createdAt');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  // Drawer note state
+  const [newNote, setNewNote] = useState('');
+  const [submittingNote, setSubmittingNote] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    
+    const inquiriesQuery = query(
+      collection(db, COLLECTIONS.INQUIRIES), 
+      orderBy('createdAt', 'desc')
+    );
+    
+    const unsubscribeInquiries = onSnapshot(inquiriesQuery, (snapshot) => {
+      const inqList: Inquiry[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        inqList.push({
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
+          followUpDate: data.followUpDate?.toDate ? data.followUpDate.toDate() : data.followUpDate ? new Date(data.followUpDate) : null,
+        } as Inquiry);
+      });
+      setInquiries(inqList);
+      setLoading(false);
+
+      if (selectedInquiry) {
+        const updatedSelected = inqList.find(i => i.id === selectedInquiry.id);
+        if (updatedSelected) setSelectedInquiry(updatedSelected);
+      }
+    }, (error) => {
+      console.error("Firestore Inquiries error:", error);
+      setLoading(false);
+    });
+
+    const activitiesQuery = query(
+      collection(db, COLLECTIONS.INQUIRY_ACTIVITIES),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribeActivities = onSnapshot(activitiesQuery, (snapshot) => {
+      const actList: InquiryActivity[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        actList.push({
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
+        } as InquiryActivity);
+      });
+      setActivities(actList);
+    });
+
+    return () => {
+      unsubscribeInquiries();
+      unsubscribeActivities();
+    };
+  }, [selectedInquiry?.id]);
+
+  const handleRefresh = () => {
+    setLoading(true);
+    setTimeout(() => setLoading(false), 500);
+  };
+
+  const handleStatusChange = async (id: string, newStatus: InquiryStatus) => {
+    try {
+      await updateInquiryStatusAction(id, { status: newStatus });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleTempChange = async (id: string, newTemp: LeadTemperature) => {
+    try {
+      await updateInquiryTemperatureAction(id, newTemp);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this inquiry? This will also remove its audit trail.")) {
+      try {
+        await deleteInquiryAction(id);
+        if (selectedInquiry?.id === id) {
+          setDrawerOpen(false);
+          setSelectedInquiry(null);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleAddNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedInquiry || !newNote.trim()) return;
+
+    setSubmittingNote(true);
+    try {
+      const res = await addInquiryNoteAction(selectedInquiry.id, newNote);
+      if (res.success) {
+        setNewNote('');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmittingNote(false);
+    }
+  };
+
+  const filteredInquiries = useMemo(() => {
+    return inquiries
+      .filter((inq) => {
+        const matchesSearch = 
+          inq.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          inq.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          inq.email.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesTemp = tempFilter === 'all' || inq.temperature === tempFilter;
+        const matchesStatus = statusFilter === 'all' || inq.status === statusFilter;
+        
+        let matchesBudget = true;
+        if (budgetFilter !== 'all') {
+          const budgetNum = parseInt(inq.budget.replace(/[^0-9]/g, ''), 10) || 0;
+          if (budgetFilter === '50,000') matchesBudget = budgetNum < 100000;
+          else if (budgetFilter === '1,00,000') matchesBudget = budgetNum >= 100000 && budgetNum <= 250000;
+          else if (budgetFilter === '2,50,000') matchesBudget = budgetNum > 250000;
+        }
+
+        let matchesDate = true;
+        if (startDate || endDate) {
+          const inqTime = new Date(inq.createdAt).getTime();
+          if (startDate) {
+            const start = new Date(startDate).getTime();
+            if (inqTime < start) matchesDate = false;
+          }
+          if (endDate) {
+            const end = new Date(endDate).setHours(23, 59, 59, 999);
+            if (inqTime > end) matchesDate = false;
+          }
+        }
+
+        return matchesSearch && matchesTemp && matchesStatus && matchesBudget && matchesDate;
+      })
+      .sort((a, b) => {
+        let valA: any = a[sortField];
+        let valB: any = b[sortField];
+
+        if (sortField === 'budget') {
+          const parseVal = (str: string) => parseInt(str.replace(/[^0-9]/g, ''), 10) || 0;
+          valA = parseVal(valA);
+          valB = parseVal(valB);
+        } else if (sortField === 'createdAt') {
+          valA = new Date(valA).getTime();
+          valB = new Date(valB).getTime();
+        } else {
+          valA = String(valA).toLowerCase();
+          valB = String(valB).toLowerCase();
+        }
+
+        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+  }, [inquiries, searchTerm, tempFilter, statusFilter, budgetFilter, startDate, endDate, sortField, sortDirection]);
+
+  const paginatedInquiries = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredInquiries.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredInquiries, currentPage]);
+
+  const totalPages = Math.ceil(filteredInquiries.length / itemsPerPage) || 1;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, tempFilter, statusFilter, budgetFilter, startDate, endDate]);
+
+  const kpiData = useMemo(() => {
+    const total = inquiries.length;
+    const hot = inquiries.filter(i => i.temperature === 'hot').length;
+    const cold = inquiries.filter(i => i.temperature === 'cold').length;
+    const converted = inquiries.filter(i => i.status === 'converted').length;
+    return { total, hot, cold, converted };
+  }, [inquiries]);
+
+  const selectedInquiryActivities = useMemo(() => {
+    if (!selectedInquiry) return [];
+    return activities.filter(act => act.inquiryId === selectedInquiry.id);
+  }, [activities, selectedInquiry]);
+
+  const selectedInquiryNotes = useMemo(() => {
+    return selectedInquiryActivities.filter(act => act.action === 'Admin Comment Added');
+  }, [selectedInquiryActivities]);
+
+  const requestSort = (field: 'companyName' | 'budget' | 'createdAt') => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  return (
+    <div className="space-y-8 min-h-screen text-foreground font-sans pb-12 relative">
+      {/* Background Soft Glow */}
+      <div className="absolute top-[-5%] left-[10%] w-[35%] h-[35%] bg-cyan-500/5 rounded-full blur-[130px] pointer-events-none -z-20" />
+
+      {/* Top Title/Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            CRM Lead Management
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Track inquiries, manage temperatures, and optimize conversions for AdaptWeb.
+          </p>
+        </div>
+        <button 
+          onClick={handleRefresh}
+          className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-card border border-border hover:border-cyan-500/30 text-foreground transition-all shadow-sm cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
+      </div>
+
+      {/* KPI Bento Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Inquiries */}
+        <div className="p-5 rounded-3xl glass-bento ambient-glow-purple border border-border/50 shadow-sm relative overflow-hidden group haptic-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-muted-foreground tracking-wide uppercase">Total Inquiries</span>
+            <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20">
+              <Building2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <h2 className="text-3xl font-extrabold tracking-tight">{kpiData.total}</h2>
+            <p className="text-xs text-muted-foreground mt-1">Inquiries logged from calculator</p>
+          </div>
+        </div>
+
+        {/* Hot Leads */}
+        <div className="p-5 rounded-3xl glass-bento ambient-glow-amber border border-border/50 shadow-sm relative overflow-hidden group haptic-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-amber-500 tracking-wide uppercase">🔥 Hot Leads</span>
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+              <Flame className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <h2 className="text-3xl font-extrabold tracking-tight">{kpiData.hot}</h2>
+            <p className="text-xs text-muted-foreground mt-1">Immediate follow-up required</p>
+          </div>
+        </div>
+
+        {/* Cold Leads */}
+        <div className="p-5 rounded-3xl glass-bento ambient-glow-cyan border border-border/50 shadow-sm relative overflow-hidden group haptic-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-cyan-500 tracking-wide uppercase">❄️ Cold Leads</span>
+            <div className="p-2.5 rounded-xl bg-cyan-500/10 text-cyan-500 border border-cyan-500/20">
+              <Snowflake className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <h2 className="text-3xl font-extrabold tracking-tight">{kpiData.cold}</h2>
+            <p className="text-xs text-muted-foreground mt-1">Requires nurturing campaign</p>
+          </div>
+        </div>
+
+        {/* Converted Leads */}
+        <div className="p-5 rounded-3xl glass-bento ambient-glow-emerald border border-border/50 shadow-sm relative overflow-hidden group haptic-shadow">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-emerald-500 tracking-wide uppercase">✅ Converted</span>
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <h2 className="text-3xl font-extrabold tracking-tight">{kpiData.converted}</h2>
+            <p className="text-xs text-muted-foreground mt-1">Closed won paying customers</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter and Table Container */}
+      <div className="rounded-3xl border border-border/50 bg-card p-6 space-y-6 shadow-sm">
+        {/* Filters Panel */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search company, contact, email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-background border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-all"
+            />
+          </div>
+
+          <select
+            value={tempFilter}
+            onChange={(e) => setTempFilter(e.target.value)}
+            className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer"
+          >
+            <option value="all">All Temperatures</option>
+            <option value="hot">🔥 Hot Lead</option>
+            <option value="cold">❄️ Cold Lead</option>
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer"
+          >
+            <option value="all">All Statuses</option>
+            <option value="new">🆕 New</option>
+            <option value="contacted">📞 Contacted</option>
+            <option value="proposal_sent">✉️ Proposal Sent</option>
+            <option value="converted">✅ Converted</option>
+            <option value="lost">❌ Lost</option>
+          </select>
+
+          <select
+            value={budgetFilter}
+            onChange={(e) => setBudgetFilter(e.target.value)}
+            className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer"
+          >
+            <option value="all">All Budgets</option>
+            <option value="50,000">Below ₹1,00,000</option>
+            <option value="1,00,000">₹1,00,000 - ₹2,50,000</option>
+            <option value="2,50,000">₹2,50,000+</option>
+          </select>
+        </div>
+
+        {/* Date Ranges Row */}
+        <div className="flex flex-wrap items-center gap-4 border-t border-border/40 pt-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-cyan-500" />
+            <span>Date Range:</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="bg-background border border-border rounded-xl px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-cyan-500/50"
+            />
+            <span className="text-xs">to</span>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="bg-background border border-border rounded-xl px-3 py-1.5 text-xs text-foreground focus:outline-none focus:border-cyan-500/50"
+            />
+          </div>
+          {(startDate || endDate || searchTerm || tempFilter !== 'all' || statusFilter !== 'all' || budgetFilter !== 'all') && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setTempFilter('all');
+                setStatusFilter('all');
+                setBudgetFilter('all');
+                setStartDate('');
+                setEndDate('');
+              }}
+              className="ml-auto text-xs text-[#06b6d4] hover:text-[#06b6d4]/80 underline underline-offset-4 cursor-pointer"
+            >
+              Reset All Filters
+            </button>
+          )}
+        </div>
+
+        {/* Table / Loading */}
+        {loading ? (
+          <div className="space-y-4 py-8">
+            <div className="h-10 bg-muted rounded-xl animate-pulse" />
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-16 bg-muted/50 rounded-xl border border-border animate-pulse" />
+            ))}
+          </div>
+        ) : filteredInquiries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-center py-16 px-4 space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center text-muted-foreground shadow-inner">
+              <Building2 className="w-8 h-8 opacity-40" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold">No inquiries yet</h3>
+              <p className="text-sm text-muted-foreground max-w-sm">
+                Customer inquiries submitted from the Website Calculator will appear here.
+              </p>
+            </div>
+            <button 
+              onClick={handleRefresh}
+              className="px-4 py-2 text-xs font-semibold rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white transition-all shadow-md cursor-pointer"
+            >
+              Refresh Data
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto border border-border rounded-2xl relative">
+            <table className="w-full border-collapse text-left text-sm text-foreground">
+              <thead className="bg-muted sticky top-0 border-b border-border z-10">
+                <tr>
+                  <th onClick={() => requestSort('companyName')} className="px-6 py-4 font-semibold select-none cursor-pointer hover:text-cyan-500 transition-colors pl-6">
+                    <div className="flex items-center gap-1.5">
+                      Company / Name
+                      <ArrowUpDown className="w-3 h-3 opacity-60" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-semibold">Primary Contact</th>
+                  <th onClick={() => requestSort('budget')} className="px-6 py-4 font-semibold select-none cursor-pointer hover:text-cyan-500 transition-colors">
+                    <div className="flex items-center gap-1.5">
+                      Est. Budget
+                      <ArrowUpDown className="w-3 h-3 opacity-60" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-semibold">Lead Temperature</th>
+                  <th className="px-6 py-4 font-semibold">Lead Status</th>
+                  <th onClick={() => requestSort('createdAt')} className="px-6 py-4 font-semibold select-none cursor-pointer hover:text-cyan-500 transition-colors">
+                    <div className="flex items-center gap-1.5">
+                      Inquiry Date
+                      <ArrowUpDown className="w-3 h-3 opacity-60" />
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-right pr-6">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/55">
+                {paginatedInquiries.map((inq) => (
+                  <tr 
+                    key={inq.id} 
+                    className="hover:bg-muted/30 transition-colors group border-b border-border/40"
+                  >
+                    <td className="px-6 py-4.5 pl-6">
+                      <div className="flex flex-col">
+                        <span className="font-semibold group-hover:text-cyan-500 transition-colors">
+                          {inq.companyName}
+                        </span>
+                        <span className="text-xs text-muted-foreground mt-0.5">
+                          {inq.phone}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4.5">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{inq.name}</span>
+                        <span className="text-xs text-muted-foreground mt-0.5">{inq.email}</span>
+                      </div>
+                    </td>
+
+                    <td className="px-6 py-4.5 font-semibold">
+                      {inq.budget}
+                    </td>
+
+                    <td className="px-6 py-4.5">
+                      <select
+                        value={inq.temperature || 'cold'}
+                        onChange={(e) => handleTempChange(inq.id, e.target.value as LeadTemperature)}
+                        className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border focus:outline-none transition-all cursor-pointer ${
+                          inq.temperature === 'hot' 
+                            ? 'bg-gradient-to-r from-orange-500/10 to-red-500/10 border-red-500/20 text-orange-400' 
+                            : 'bg-background border-border text-muted-foreground'
+                        }`}
+                      >
+                        <option value="cold">❄️ Cold Lead</option>
+                        <option value="hot">🔥 Hot Lead</option>
+                      </select>
+                    </td>
+
+                    <td className="px-6 py-4.5">
+                      <select
+                        value={inq.status}
+                        onChange={(e) => handleStatusChange(inq.id, e.target.value as InquiryStatus)}
+                        className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border focus:outline-none transition-all cursor-pointer ${
+                          inq.status === 'new' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+                          inq.status === 'contacted' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                          inq.status === 'proposal_sent' ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' :
+                          inq.status === 'converted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                          'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                        }`}
+                      >
+                        <option value="new">🆕 New</option>
+                        <option value="contacted">📞 Contacted</option>
+                        <option value="proposal_sent">✉️ Proposal</option>
+                        <option value="converted">✅ Converted</option>
+                        <option value="lost">❌ Lost</option>
+                      </select>
+                    </td>
+
+                    <td className="px-6 py-4.5 text-muted-foreground text-xs">
+                      {formatDate(inq.createdAt)}
+                    </td>
+
+                    <td className="px-6 py-4.5 text-right pr-6">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedInquiry(inq);
+                            setDrawerOpen(true);
+                          }}
+                          title="View Details"
+                          className="p-1.5 rounded-lg border border-border bg-background text-muted-foreground hover:text-[#06b6d4] hover:border-[#06b6d4]/40 transition-all shadow-sm cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(inq.id)}
+                          title="Delete Lead"
+                          className="p-1.5 rounded-lg border border-border bg-background text-muted-foreground hover:text-red-400 hover:border-red-500/30 transition-all shadow-sm cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {!loading && filteredInquiries.length > 0 && (
+          <div className="flex items-center justify-between border-t border-border/40 pt-4 text-sm text-muted-foreground">
+            <div>
+              Showing <span className="font-semibold text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+              <span className="font-semibold text-foreground">
+                {Math.min(currentPage * itemsPerPage, filteredInquiries.length)}
+              </span>{' '}
+              of <span className="font-semibold text-foreground">{filteredInquiries.length}</span> leads
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                className="p-2 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground transition-all cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-xs font-semibold px-2">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                className="p-2 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground transition-all cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Right Drawer Panel (Framer Motion) */}
+      <AnimatePresence>
+        {drawerOpen && selectedInquiry && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDrawerOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs z-45"
+            />
+
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed right-0 top-0 bottom-0 w-full max-w-xl bg-card border-l border-border/80 shadow-2xl p-6 overflow-y-auto z-50 flex flex-col gap-6"
+            >
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-border/40">
+                <div>
+                  <span className="text-xs font-bold text-[#06b6d4] tracking-widest uppercase font-mono">Lead Workspace</span>
+                  <h3 className="text-lg font-bold mt-1">{selectedInquiry.companyName}</h3>
+                </div>
+                <button 
+                  onClick={() => setDrawerOpen(false)}
+                  className="p-1.5 rounded-lg border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Contact Info Card */}
+              <div className="rounded-2xl border border-border/50 bg-muted/30 p-4 space-y-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-500">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground block">Primary Contact</span>
+                    <span className="text-sm font-semibold">{selectedInquiry.name}</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/30 text-xs">
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-cyan-500" /> Email
+                    </span>
+                    <a href={`mailto:${selectedInquiry.email}`} className="font-semibold text-foreground hover:text-cyan-500 transition-colors block truncate">{selectedInquiry.email}</a>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-cyan-500" /> Phone
+                    </span>
+                    <a href={`tel:${selectedInquiry.phone}`} className="font-semibold text-foreground hover:text-cyan-500 transition-colors block truncate">{selectedInquiry.phone}</a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Calculation info if linked */}
+              {selectedInquiry.calculationId && (
+                <div className="rounded-2xl border border-border/50 bg-muted/30 p-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-semibold text-foreground">Linked Estimation Quote</span>
+                    <Link 
+                      href={`/admin/calculations?id=${selectedInquiry.calculationId}`} 
+                      className="text-xs text-cyan-500 hover:text-cyan-400 font-semibold flex items-center gap-1"
+                    >
+                      View Calc Details
+                      <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-xs pt-1">
+                    <div>
+                      <span className="text-muted-foreground block mb-0.5">Budget Bracket</span>
+                      <span className="font-bold text-foreground">{selectedInquiry.budget}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block mb-0.5">Quote Reference</span>
+                      <span className="font-mono text-muted-foreground block truncate">{selectedInquiry.calculationId}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Requirements Message */}
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Requirements / Message</span>
+                <div className="p-4 rounded-2xl border border-border/50 bg-background text-sm leading-relaxed text-foreground whitespace-pre-line">
+                  {selectedInquiry.message || "No description provided."}
+                </div>
+              </div>
+
+              {/* Internal Notes Section */}
+              <div className="space-y-4 pt-2 border-t border-border/40">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Internal CRM Notes</span>
+                
+                <form onSubmit={handleAddNote} className="space-y-3">
+                  <textarea
+                    placeholder="Type an internal note or sales follow-up details..."
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    rows={3}
+                    className="w-full bg-background border border-border rounded-xl p-3 text-sm focus:outline-none focus:border-cyan-500/50 resize-none"
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={submittingNote || !newNote.trim()}
+                      className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold disabled:opacity-50 transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Sales Note
+                    </button>
+                  </div>
+                </form>
+
+                {/* Notes History list */}
+                <div className="space-y-3.5">
+                  {selectedInquiryNotes.length > 0 ? (
+                    selectedInquiryNotes.map((note) => (
+                      <div key={note.id} className="p-3.5 rounded-xl border border-border/40 bg-muted/20 space-y-1.5">
+                        <p className="text-xs text-foreground leading-relaxed whitespace-pre-line">{note.note}</p>
+                        <div className="flex justify-between items-center text-[10px] text-muted-foreground">
+                          <span className="font-semibold">{note.createdBy || 'System'}</span>
+                          <span>{formatDate(note.createdAt)}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-4">No internal notes added yet.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Activity Logs Timeline */}
+              <div className="space-y-4 pt-4 border-t border-border/40">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Activity Logs</span>
+                
+                <div className="space-y-4">
+                  {selectedInquiryActivities.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center">No logs generated.</p>
+                  ) : (
+                    <div className="relative pl-4 border-l border-border/50 space-y-4 text-xs">
+                      {selectedInquiryActivities.map((act) => (
+                        <div key={act.id} className="relative">
+                          {/* Dot indicator */}
+                          <div className="absolute -left-[20.5px] top-1.5 w-2 h-2 rounded-full bg-cyan-500 border border-card" />
+                          <div className="font-semibold text-foreground">{act.action}</div>
+                          {act.note && <div className="text-muted-foreground mt-0.5">{act.note}</div>}
+                          <div className="text-[10px] text-muted-foreground mt-1 flex justify-between">
+                            <span>By {act.createdBy}</span>
+                            <span>{formatDate(act.createdAt)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

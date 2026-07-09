@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import DataTable from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
-import { TableRow, TableCell } from '@/components/ui/table';
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -311,8 +311,8 @@ export default function CategoriesClientPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Feature Categories & Features</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Feature Categories & Features</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Configure logical divisions of website features and manage specific items under each section.
           </p>
         </div>
@@ -337,13 +337,13 @@ export default function CategoriesClientPage({
 
           return (
             <React.Fragment key={cat.id}>
-              <TableRow className="hover:bg-slate-900/10 border-slate-800/40 transition-colors">
+              <TableRow className="hover:bg-muted/40 border-border transition-colors">
                 <TableCell className="py-4 pl-6">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => toggleExpandCategory(cat.id)}
-                    className="w-8 h-8 rounded-lg text-slate-500 hover:text-white transition-colors"
+                    className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {isExpanded ? (
                       <ChevronDown className="w-4 h-4 text-indigo-400" />
@@ -352,34 +352,34 @@ export default function CategoriesClientPage({
                     )}
                   </Button>
                 </TableCell>
-                <TableCell className="py-4 text-slate-400">
-                  <div className="w-10 h-10 rounded-xl bg-slate-900/30 border border-slate-800/60 flex items-center justify-center shadow-inner">
+                <TableCell className="py-4 text-muted-foreground">
+                  <div className="w-10 h-10 rounded-xl bg-muted border border-border flex items-center justify-center shadow-inner">
                     <IconComponent className="w-4.5 h-4.5 text-indigo-400" />
                   </div>
                 </TableCell>
-                <TableCell className="font-medium text-white">
+                <TableCell className="font-medium text-foreground">
                   <div className="flex flex-col">
                     <span className="flex items-center gap-2.5 text-sm font-semibold">
                       {cat.name}
-                      <Badge className="bg-slate-800/60 text-slate-400 hover:bg-slate-800/60 text-[10px] font-normal px-2 py-0.5 rounded-md border border-slate-800/40">
+                      <Badge className="bg-muted text-muted-foreground hover:bg-muted text-[10px] font-normal px-2 py-0.5 rounded-md border border-border">
                         {catFeatures.length} {catFeatures.length === 1 ? 'item' : 'items'}
                       </Badge>
                     </span>
-                    <span className="text-xs text-slate-450 font-normal mt-0.5 max-w-sm truncate">
+                    <span className="text-xs text-muted-foreground font-normal mt-0.5 max-w-sm truncate">
                       {cat.description || 'No description provided.'}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="text-slate-350 font-medium text-xs">Position #{cat.sortOrder}</TableCell>
+                <TableCell className="text-muted-foreground font-medium text-xs">Position #{cat.sortOrder}</TableCell>
                 <TableCell>
                   {cat.isActive ? (
-                    <Badge className="bg-emerald-500/5 text-emerald-450 border border-emerald-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
+                    <Badge className="bg-emerald-500/5 text-emerald-400 border border-emerald-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 inline-block"></span>
                       Active
                     </Badge>
                   ) : (
-                    <Badge className="bg-slate-800/20 text-slate-500 border border-slate-800/50 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-500 mr-1.5 inline-block"></span>
+                    <Badge className="bg-slate-500/5 text-slate-400 border border-slate-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 inline-block"></span>
                       Inactive
                     </Badge>
                   )}
@@ -399,7 +399,7 @@ export default function CategoriesClientPage({
                       onClick={() => openEditCategoryModal(cat)}
                       variant="ghost"
                       size="icon"
-                      className="text-slate-450 hover:text-white hover:bg-slate-800/40 rounded-lg w-8.5 h-8.5 border border-transparent hover:border-slate-800/60"
+                      className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg w-8.5 h-8.5 border border-transparent hover:border-border"
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -407,7 +407,7 @@ export default function CategoriesClientPage({
                       onClick={() => handleDeleteCategory(cat.id)}
                       variant="ghost"
                       size="icon"
-                      className="text-red-450 hover:text-red-400 hover:bg-red-500/10 rounded-lg w-8.5 h-8.5 border border-transparent hover:border-red-500/10"
+                      className="text-red-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg w-8.5 h-8.5 border border-transparent hover:border-red-500/10"
                     >
                       <Trash className="w-4 h-4" />
                     </Button>
@@ -417,20 +417,20 @@ export default function CategoriesClientPage({
 
               {/* Expandable sub-list of features inside the category */}
               {isExpanded && (
-                <TableRow className="bg-slate-950/20 hover:bg-slate-950/20 border-slate-800/30">
+                <TableRow className="bg-muted/10 hover:bg-muted/10 border-border">
                   <TableCell colSpan={columns.length} className="p-5 pl-14">
-                    <div className="relative pl-6 border-l border-slate-800/80 space-y-4">
+                    <div className="relative pl-6 border-l border-border space-y-4">
                       {/* Features Sub-Header */}
                       <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-450 flex items-center gap-1.5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
                           Associated Features: <span className="text-indigo-400 font-semibold lowercase capitalize pl-1">{cat.name}</span>
                         </h4>
                       </div>
 
                       {catFeatures.length === 0 ? (
-                        <div className="text-center py-8 border border-dashed border-slate-800/40 rounded-xl bg-slate-950/20">
-                          <p className="text-xs text-slate-500">No specific features registered inside this category yet.</p>
+                        <div className="text-center py-8 border border-dashed border-border rounded-xl bg-muted/5">
+                          <p className="text-xs text-muted-foreground">No specific features registered inside this category yet.</p>
                           <Button
                             onClick={() => openAddFeatureModal(cat.id)}
                             variant="ghost"
@@ -442,25 +442,25 @@ export default function CategoriesClientPage({
                           </Button>
                         </div>
                       ) : (
-                        <div className="overflow-hidden border border-slate-800/60 rounded-xl bg-slate-950/30 shadow-sm">
-                          <table className="w-full text-left text-xs border-collapse">
-                            <thead>
-                              <tr className="border-b border-slate-800 text-slate-450 font-medium bg-slate-900/30">
-                                <th className="p-3 w-8"></th>
-                                <th className="p-3">Feature Details</th>
-                                <th className="p-3">Pricing Formula</th>
-                                <th className="p-3">Default Selected</th>
-                                <th className="p-3">Status</th>
-                                <th className="p-3 text-right">Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
+                        <div className="overflow-hidden border border-border rounded-xl bg-muted/20 shadow-sm">
+                          <Table className="w-full text-left text-xs border-collapse">
+                            <TableHeader className="bg-muted/30 border-b border-border">
+                              <TableRow className="hover:bg-transparent border-border text-muted-foreground font-medium">
+                                <TableHead className="p-3 w-8"></TableHead>
+                                <TableHead className="p-3">Feature Details</TableHead>
+                                <TableHead className="p-3">Pricing Formula</TableHead>
+                                <TableHead className="p-3">Default Selected</TableHead>
+                                <TableHead className="p-3">Status</TableHead>
+                                <TableHead className="p-3 text-right">Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
                               {catFeatures
                                 .sort((a, b) => a.sortOrder - b.sortOrder)
                                 .map((feat, index) => {
                                   const isDraggingOverThis = draggedIndex !== null && draggedCatId === feat.categoryId && draggedIndex !== index;
                                   return (
-                                    <tr 
+                                    <TableRow 
                                       key={feat.id} 
                                       draggable
                                       onDragStart={(e) => {
@@ -502,34 +502,34 @@ export default function CategoriesClientPage({
                                         setDraggedIndex(null);
                                         setDraggedCatId(null);
                                       }}
-                                      className={`border-b border-slate-850/40 hover:bg-slate-900/10 text-slate-350 transition-all ${
+                                      className={`border-b border-border hover:bg-muted/30 text-foreground transition-all ${
                                         isDraggingOverThis ? 'border-t-2 border-t-indigo-500' : ''
                                       }`}
                                     >
-                                      <td className="p-3 text-slate-600 cursor-grab active:cursor-grabbing w-8">
-                                        <GripVertical className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300" />
-                                      </td>
-                                      <td className="p-3 font-medium text-slate-200">
+                                      <TableCell className="p-3 text-muted-foreground cursor-grab active:cursor-grabbing w-8">
+                                        <GripVertical className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                                      </TableCell>
+                                      <TableCell className="p-3 font-medium text-foreground">
                                         <div className="flex flex-col">
                                           <span className="text-sm font-semibold">{feat.name}</span>
-                                          <span className="text-[10px] text-slate-500 font-normal mt-0.5">
+                                          <span className="text-[10px] text-muted-foreground font-normal mt-0.5">
                                             {feat.description || 'No description.'}
                                           </span>
                                         </div>
-                                      </td>
-                                      <td className="p-3 font-medium text-indigo-400 text-sm">
+                                      </TableCell>
+                                      <TableCell className="p-3 font-medium text-indigo-400 text-sm">
                                         {formatPrice(feat.price, feat.pricingType)}
-                                      </td>
-                                      <td className="p-3">
+                                      </TableCell>
+                                      <TableCell className="p-3">
                                         {feat.defaultSelected ? (
                                           <Badge className="bg-indigo-500/5 text-indigo-400 border border-indigo-500/10 hover:bg-transparent rounded-lg text-[10px]">
                                             Pre-selected
                                           </Badge>
                                         ) : (
-                                          <span className="text-slate-550 font-normal text-[11px]">Optional</span>
+                                          <span className="text-muted-foreground font-normal text-[11px]">Optional</span>
                                         )}
-                                      </td>
-                                      <td className="p-3">
+                                      </TableCell>
+                                      <TableCell className="p-3">
                                         <button
                                           onClick={() => handleToggleFeatureActive(feat.id, feat.isActive)}
                                           className="text-slate-400 hover:text-white transition-colors cursor-pointer"
@@ -541,14 +541,14 @@ export default function CategoriesClientPage({
                                             <ToggleLeft className="w-8 h-8 text-slate-550" />
                                           )}
                                         </button>
-                                      </td>
-                                      <td className="p-3 text-right">
+                                      </TableCell>
+                                      <TableCell className="p-3 text-right">
                                         <div className="flex items-center justify-end gap-1">
                                           <Button
                                             onClick={() => openEditFeatureModal(feat)}
                                             variant="ghost"
                                             size="icon"
-                                            className="text-slate-450 hover:text-white hover:bg-slate-800/40 rounded-lg w-7.5 h-7.5 border border-transparent hover:border-slate-800/40"
+                                            className="text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-lg w-7.5 h-7.5 border border-transparent hover:border-slate-800/40"
                                           >
                                             <Edit className="w-3.5 h-3.5" />
                                           </Button>
@@ -556,17 +556,17 @@ export default function CategoriesClientPage({
                                             onClick={() => handleDeleteFeature(feat.id)}
                                             variant="ghost"
                                             size="icon"
-                                            className="text-red-450 hover:text-red-400 hover:bg-red-500/10 rounded-lg w-7.5 h-7.5 border border-transparent hover:border-red-500/10"
+                                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg w-7.5 h-7.5 border border-transparent hover:border-red-500/10"
                                           >
                                             <Trash className="w-3.5 h-3.5" />
                                           </Button>
                                         </div>
-                                      </td>
-                                    </tr>
+                                      </TableCell>
+                                    </TableRow>
                                   );
                                 })}
-                            </tbody>
-                          </table>
+                            </TableBody>
+                          </Table>
                         </div>
                       )}
                     </div>
@@ -580,9 +580,9 @@ export default function CategoriesClientPage({
 
       {/* --- Category Modal --- */}
       <Dialog open={isCategoryModalOpen} onOpenChange={setIsCategoryModalOpen}>
-        <DialogContent className="bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl w-full max-w-lg sm:max-w-lg max-h-[85vh] overflow-y-auto p-6 relative">
+        <DialogContent className="bg-popover border border-border shadow-2xl rounded-2xl w-full max-w-lg sm:max-w-lg max-h-[85vh] overflow-y-auto p-6 relative text-popover-foreground">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-white">
+            <DialogTitle className="text-lg font-bold text-foreground">
               {editingCategory ? 'Edit Feature Category' : 'Create Feature Category'}
             </DialogTitle>
           </DialogHeader>
@@ -593,44 +593,44 @@ export default function CategoriesClientPage({
               </p>
             )}
             <div className="space-y-1">
-              <Label className="text-slate-400 text-xs">Category Name</Label>
+              <Label className="text-muted-foreground text-xs">Category Name</Label>
               <Input
                 required
                 value={catName}
                 onChange={(e) => setCatName(e.target.value)}
                 placeholder="e.g. Core Design & Layout"
-                className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-slate-400 text-xs">Description</Label>
+              <Label className="text-muted-foreground text-xs">Description</Label>
               <Textarea
                 rows={2}
                 value={catDescription}
                 onChange={(e) => setCatDescription(e.target.value)}
                 placeholder="Describe what features will be listed in this section..."
-                className="bg-slate-950/60 border-slate-800 text-white rounded-xl"
+                className="bg-background border-border text-foreground rounded-xl"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Lucide Icon Key</Label>
+                <Label className="text-muted-foreground text-xs">Lucide Icon Key</Label>
                 <Input
                   required
                   value={catIcon}
                   onChange={(e) => setCatIcon(e.target.value)}
                   placeholder="e.g. Palette, Cpu, Shield, Globe"
-                  className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Display Order Position</Label>
+                <Label className="text-muted-foreground text-xs">Display Order Position</Label>
                 <Input
                   required
                   type="number"
                   value={catSortOrder}
                   onChange={(e) => setCatSortOrder(Number(e.target.value))}
-                  className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                 />
               </div>
             </div>
@@ -641,17 +641,17 @@ export default function CategoriesClientPage({
                 checked={catIsActive}
                 onCheckedChange={(checked) => setCatIsActive(!!checked)}
               />
-              <Label htmlFor="catIsActive" className="text-sm font-medium text-slate-350 cursor-pointer select-none">
+              <Label htmlFor="catIsActive" className="text-sm font-medium text-foreground cursor-pointer select-none">
                 Active Category
               </Label>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800/60">
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsCategoryModalOpen(false)}
-                className="text-slate-400 hover:text-white rounded-xl h-10 px-5"
+                className="text-muted-foreground hover:text-foreground rounded-xl h-10 px-5"
               >
                 Cancel
               </Button>
@@ -676,9 +676,9 @@ export default function CategoriesClientPage({
 
       {/* --- Feature Modal --- */}
       <Dialog open={isFeatureModalOpen} onOpenChange={setIsFeatureModalOpen}>
-        <DialogContent className="bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl w-full max-w-lg sm:max-w-lg max-h-[85vh] overflow-y-auto p-6 relative">
+        <DialogContent className="bg-popover border border-border shadow-2xl rounded-2xl w-full max-w-lg sm:max-w-lg max-h-[85vh] overflow-y-auto p-6 relative text-popover-foreground">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-white">
+            <DialogTitle className="text-lg font-bold text-foreground">
               {editingFeature ? 'Edit Feature' : 'Create Feature'}
             </DialogTitle>
           </DialogHeader>
@@ -690,71 +690,71 @@ export default function CategoriesClientPage({
             )}
             
             <div className="space-y-1">
-              <Label className="text-slate-400 text-xs">Parent Category</Label>
+              <Label className="text-muted-foreground text-xs">Parent Category</Label>
               <Input
                 disabled
                 value={categories.find((c) => c.id === featureCategoryId)?.name || ''}
-                className="bg-slate-950/20 border-slate-800/50 text-slate-500 rounded-xl h-10 text-sm cursor-not-allowed"
+                className="bg-muted border-border text-muted-foreground rounded-xl h-10 text-sm cursor-not-allowed"
               />
             </div>
 
             <div className="space-y-1">
-              <Label className="text-slate-400 text-xs">Feature Name</Label>
+              <Label className="text-muted-foreground text-xs">Feature Name</Label>
               <Input
                 required
                 value={featureName}
                 onChange={(e) => setFeatureName(e.target.value)}
                 placeholder="e.g. Multi-language Support"
-                className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
               />
             </div>
 
             <div className="space-y-1">
-              <Label className="text-slate-400 text-xs">Description</Label>
+              <Label className="text-muted-foreground text-xs">Description</Label>
               <Textarea
                 rows={2}
                 value={featureDescription}
                 onChange={(e) => setFeatureDescription(e.target.value)}
                 placeholder="Describe what client requirements this feature satisfies..."
-                className="bg-slate-950/60 border-slate-800 text-white rounded-xl"
+                className="bg-background border-border text-foreground rounded-xl"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Pricing Formula</Label>
+                <Label className="text-muted-foreground text-xs">Pricing Formula</Label>
                 <select
                   value={featurePricingType}
                   onChange={(e) => setFeaturePricingType(e.target.value as PricingType)}
-                  className="w-full h-10 px-3 bg-slate-950/60 border border-slate-800 text-white rounded-xl text-sm focus:outline-none focus:border-indigo-500/50 transition-colors"
+                  className="w-full h-10 px-3 bg-background border border-border text-foreground rounded-xl text-sm focus:outline-none focus:border-indigo-500/50 transition-colors"
                 >
-                  <option value="fixed">Fixed Cost (INR)</option>
-                  <option value="per_page">Per Page (INR)</option>
-                  <option value="percentage">Percentage Markup (%)</option>
+                  <option value="fixed" className="bg-popover text-foreground">Fixed Cost (INR)</option>
+                  <option value="per_page" className="bg-popover text-foreground">Per Page (INR)</option>
+                  <option value="percentage" className="bg-popover text-foreground">Percentage Markup (%)</option>
                 </select>
               </div>
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Rate Value</Label>
+                <Label className="text-muted-foreground text-xs">Rate Value</Label>
                 <Input
                   required
                   type="number"
                   value={featurePrice}
                   onChange={(e) => setFeaturePrice(Number(e.target.value))}
                   placeholder="e.g. 5000"
-                  className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Sort Order Position</Label>
+                <Label className="text-muted-foreground text-xs">Sort Order Position</Label>
                 <Input
                   required
                   type="number"
                   value={featureSortOrder}
                   onChange={(e) => setFeatureSortOrder(Number(e.target.value))}
-                  className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                 />
               </div>
             </div>
@@ -766,7 +766,7 @@ export default function CategoriesClientPage({
                   checked={featureDefaultSelected}
                   onCheckedChange={(checked) => setFeatureDefaultSelected(!!checked)}
                 />
-                <Label htmlFor="featDefaultSelected" className="text-sm font-medium text-slate-350 cursor-pointer select-none">
+                <Label htmlFor="featDefaultSelected" className="text-sm font-medium text-foreground cursor-pointer select-none">
                   Pre-selected
                 </Label>
               </div>
@@ -777,18 +777,18 @@ export default function CategoriesClientPage({
                   checked={featureIsActive}
                   onCheckedChange={(checked) => setFeatureIsActive(!!checked)}
                 />
-                <Label htmlFor="featIsActive" className="text-sm font-medium text-slate-350 cursor-pointer select-none">
+                <Label htmlFor="featIsActive" className="text-sm font-medium text-foreground cursor-pointer select-none">
                   Active Feature
                 </Label>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800/60">
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsFeatureModalOpen(false)}
-                className="text-slate-400 hover:text-white rounded-xl h-10 px-5"
+                className="text-muted-foreground hover:text-foreground rounded-xl h-10 px-5"
               >
                 Cancel
               </Button>

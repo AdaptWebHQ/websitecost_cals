@@ -5,8 +5,8 @@ export default function AdminReportsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">Exportable Reports</h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Exportable Reports</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Generate and download spreadsheet reports summarizing calculator usage and lead metrics.
         </p>
       </div>

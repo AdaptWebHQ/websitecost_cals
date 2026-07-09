@@ -68,16 +68,16 @@ export default function ReportExporter() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
-        <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between">
+        <Card className="bg-card border-border backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between">
           <div>
             <CardHeader className="p-0 pb-3 flex flex-row items-center gap-3">
               <FileSpreadsheet className="w-8 h-8 text-emerald-400" />
               <div>
-                <CardTitle className="text-white text-base font-bold">Calculation Submissions</CardTitle>
-                <CardDescription className="text-slate-500 text-xs font-normal mt-0.5">Excel / CSV Spreadsheet format</CardDescription>
+                <CardTitle className="text-foreground text-base font-bold">Calculation Submissions</CardTitle>
+                <CardDescription className="text-muted-foreground text-xs font-normal mt-0.5">Excel / CSV Spreadsheet format</CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="p-0 text-slate-400 text-sm mt-2 leading-relaxed font-normal">
+            <CardContent className="p-0 text-muted-foreground text-sm mt-2 leading-relaxed font-normal">
               Export every calculator run with raw user fields, selected features lists, individual price components, and totals.
             </CardContent>
           </div>
@@ -102,16 +102,16 @@ export default function ReportExporter() {
           </div>
         </Card>
 
-        <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between">
+        <Card className="bg-card border-border backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between">
           <div>
             <CardHeader className="p-0 pb-3 flex flex-row items-center gap-3">
               <BarChart2 className="w-8 h-8 text-indigo-400" />
               <div>
-                <CardTitle className="text-white text-base font-bold">Lead CRM Summary</CardTitle>
-                <CardDescription className="text-slate-500 text-xs font-normal mt-0.5">Excel / CSV CRM Pipeline report</CardDescription>
+                <CardTitle className="text-foreground text-base font-bold">Lead CRM Summary</CardTitle>
+                <CardDescription className="text-muted-foreground text-xs font-normal mt-0.5">Excel / CSV CRM Pipeline report</CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="p-0 text-slate-400 text-sm mt-2 leading-relaxed font-normal">
+            <CardContent className="p-0 text-muted-foreground text-sm mt-2 leading-relaxed font-normal">
               Download every expert consultation request, client budget range, status details, and inquiry note in a structured CSV report.
             </CardContent>
           </div>

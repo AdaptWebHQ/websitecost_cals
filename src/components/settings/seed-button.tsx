@@ -31,16 +31,16 @@ export default function SeedButton() {
   };
 
   return (
-    <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between">
+    <Card className="bg-card border-border backdrop-blur-md rounded-2xl p-6 flex flex-col justify-between">
       <div>
         <CardHeader className="p-0 pb-3 flex flex-row items-center gap-3">
           <Database className="w-8 h-8 text-indigo-400 animate-pulse" />
           <div>
-            <CardTitle className="text-white text-base font-bold">Database Seed Tools</CardTitle>
-            <CardDescription className="text-slate-500 text-xs font-normal mt-0.5">Populate default master data</CardDescription>
+            <CardTitle className="text-foreground text-base font-bold">Database Seed Tools</CardTitle>
+            <CardDescription className="text-muted-foreground text-xs font-normal mt-0.5">Populate default master data</CardDescription>
           </div>
         </CardHeader>
-        <CardContent className="p-0 text-slate-400 text-sm mt-2 leading-relaxed font-normal">
+        <CardContent className="p-0 text-muted-foreground text-sm mt-2 leading-relaxed font-normal">
           Seeds packages, core feature categories, customizable modules, industry segments, and default pricing configurations in one batch.
         </CardContent>
 

@@ -57,6 +57,22 @@ export async function setSession(idToken: string, isRegistering = false): Promis
       path: '/',
       maxAge,
     });
+
+    // 5. Send automated emails via Nodemailer for public users
+    if (user.role === 'public' && user.email) {
+      try {
+        const { sendWelcomeEmail, sendSecurityAlertEmail } = await import('@/lib/email');
+        if (isRegistering) {
+          await sendWelcomeEmail(user);
+        } else {
+          const loginTime = new Date().toLocaleString();
+          await sendSecurityAlertEmail(user, loginTime);
+        }
+      } catch (mailError) {
+        console.error('Failed to send automated auth email:', mailError);
+      }
+    }
+
     return { success: true, user };
   } catch (error) {
     console.error('Failed to set session session cookies:', error);

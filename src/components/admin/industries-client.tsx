@@ -135,8 +135,8 @@ export default function IndustriesClientPage({ initialIndustries, packages }: In
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Industries</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Industries</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Define industry verticals (e.g. Healthcare, Real Estate, Salon) and their baseline pricing offsets.
           </p>
         </div>
@@ -155,27 +155,27 @@ export default function IndustriesClientPage({ initialIndustries, packages }: In
         data={industries}
         emptyMessage="No industries configured yet. Click Add Industry above."
         renderRow={(ind) => (
-          <TableRow key={ind.id} className="hover:bg-slate-900/10 border-slate-800/40 transition-colors">
-            <TableCell className="font-semibold text-white py-4 pl-6 text-sm">
+          <TableRow key={ind.id} className="hover:bg-muted/40 border-border transition-colors">
+            <TableCell className="font-semibold text-foreground py-4 pl-6 text-sm">
               {ind.name}
             </TableCell>
-            <TableCell className="text-slate-355 font-medium text-xs">
+            <TableCell className="text-muted-foreground font-medium text-xs">
               {formatCurrency(ind.basePrice)}
             </TableCell>
-            <TableCell className="text-slate-355 font-medium text-xs">
-              <Badge variant="outline" className="border-slate-800/60 text-slate-400 hover:bg-transparent rounded-lg">
+            <TableCell className="text-muted-foreground font-medium text-xs">
+              <Badge variant="outline" className="border-border text-muted-foreground hover:bg-transparent rounded-lg">
                 {packageMap[ind.recommendedPackageId] || 'Custom'}
               </Badge>
             </TableCell>
             <TableCell>
               {ind.isActive ? (
-                <Badge className="bg-emerald-500/5 text-emerald-450 border border-emerald-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
+                <Badge className="bg-emerald-500/5 text-emerald-400 border border-emerald-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 inline-block"></span>
                   Active
                 </Badge>
               ) : (
-                <Badge className="bg-slate-800/20 text-slate-500 border border-slate-800/50 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-500 mr-1.5 inline-block"></span>
+                <Badge className="bg-slate-500/5 text-slate-400 border border-slate-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 inline-block"></span>
                   Inactive
                 </Badge>
               )}
@@ -186,7 +186,7 @@ export default function IndustriesClientPage({ initialIndustries, packages }: In
                   onClick={() => openEditModal(ind)}
                   variant="ghost"
                   size="icon"
-                  className="text-slate-400 hover:text-white rounded-lg"
+                  className="text-muted-foreground hover:text-foreground rounded-lg"
                 >
                   <Edit className="w-4 h-4" />
                 </Button>
@@ -206,9 +206,9 @@ export default function IndustriesClientPage({ initialIndustries, packages }: In
 
       {/* shadcn Dialog Component */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl w-full max-w-lg p-6 relative">
+        <DialogContent className="bg-popover border border-border shadow-2xl rounded-2xl w-full max-w-lg p-6 relative text-popover-foreground">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-white">
+            <DialogTitle className="text-lg font-bold text-foreground">
               {editingIndustry ? 'Edit Industry Vertical' : 'Create Industry Vertical'}
             </DialogTitle>
           </DialogHeader>
@@ -219,36 +219,36 @@ export default function IndustriesClientPage({ initialIndustries, packages }: In
               </p>
             )}
             <div className="space-y-1">
-              <Label className="text-slate-400 text-xs">Industry Name</Label>
+              <Label className="text-muted-foreground text-xs">Industry Name</Label>
               <Input
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Healthcare & Medical"
-                className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Base Markup Price (INR)</Label>
+                <Label className="text-muted-foreground text-xs">Base Markup Price (INR)</Label>
                 <Input
                   required
                   type="number"
                   value={basePrice}
                   onChange={(e) => setBasePrice(Number(e.target.value))}
-                  className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Recommended Package</Label>
+                <Label className="text-muted-foreground text-xs">Recommended Package</Label>
                 <select
                   value={recommendedPackageId}
                   onChange={(e) => setRecommendedPackageId(e.target.value)}
-                  className="w-full h-10 bg-slate-950/60 border border-slate-800 text-white rounded-xl px-3 text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full h-10 bg-background border border-border text-foreground rounded-xl px-3 text-sm focus:outline-none focus:border-indigo-500"
                 >
                   {packages.map((pkg) => (
-                    <option key={pkg.id} value={pkg.id} className="bg-slate-950 text-white">
+                    <option key={pkg.id} value={pkg.id} className="bg-popover text-foreground">
                       {pkg.name}
                     </option>
                   ))}
@@ -262,17 +262,17 @@ export default function IndustriesClientPage({ initialIndustries, packages }: In
                 checked={isActive}
                 onCheckedChange={(checked) => setIsActive(!!checked)}
               />
-              <Label htmlFor="isActive" className="text-sm font-medium text-slate-300 cursor-pointer select-none">
+              <Label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer select-none">
                 Active Industry Vertical
               </Label>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800/60">
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-white rounded-xl h-10 px-5"
+                className="text-muted-foreground hover:text-foreground rounded-xl h-10 px-5"
               >
                 Cancel
               </Button>

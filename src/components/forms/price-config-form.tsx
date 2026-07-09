@@ -89,15 +89,15 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
       )}
 
       {/* 1. Global Pricing Offsets */}
-      <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur-md rounded-2xl p-6">
-        <h2 className="text-lg font-bold text-white mb-4">Calculation Rates & Settings</h2>
+      <Card className="bg-card border-border backdrop-blur-md rounded-2xl p-6">
+        <h2 className="text-lg font-bold text-foreground mb-4">Calculation Rates & Settings</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="gstPercentage">GST Percentage (%)</Label>
             <Input
               id="gstPercentage"
               type="number"
-              className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-11"
+              className="bg-background border-border text-foreground rounded-xl h-11"
               {...register('gstPercentage', { valueAsNumber: true })}
             />
             {errors.gstPercentage && <p className="text-xs text-red-400">{errors.gstPercentage.message}</p>}
@@ -108,7 +108,7 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
             <Input
               id="minimumProjectPrice"
               type="number"
-              className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-11"
+              className="bg-background border-border text-foreground rounded-xl h-11"
               {...register('minimumProjectPrice', { valueAsNumber: true })}
             />
             {errors.minimumProjectPrice && <p className="text-xs text-red-400">{errors.minimumProjectPrice.message}</p>}
@@ -119,7 +119,7 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
             <Input
               id="rushDeliveryPercentage"
               type="number"
-              className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-11"
+              className="bg-background border-border text-foreground rounded-xl h-11"
               {...register('rushDeliveryPercentage', { valueAsNumber: true })}
             />
             {errors.rushDeliveryPercentage && <p className="text-xs text-red-400">{errors.rushDeliveryPercentage.message}</p>}
@@ -130,7 +130,7 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
             <Input
               id="quotationValidityDays"
               type="number"
-              className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-11"
+              className="bg-background border-border text-foreground rounded-xl h-11"
               {...register('quotationValidityDays', { valueAsNumber: true })}
             />
             {errors.quotationValidityDays && <p className="text-xs text-red-400">{errors.quotationValidityDays.message}</p>}
@@ -143,22 +143,22 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
             checked={isCalculatorEnabledValue}
             onCheckedChange={(checked) => setValue('isCalculatorEnabled', !!checked)}
           />
-          <Label htmlFor="isCalculatorEnabled" className="text-sm font-medium text-slate-300">
+          <Label htmlFor="isCalculatorEnabled" className="text-sm font-medium text-foreground">
             Enable Public Quotation Calculator (Toggle SaaS online/offline state)
           </Label>
         </div>
       </Card>
 
       {/* 2. Company Details */}
-      <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur-md rounded-2xl p-6">
-        <h2 className="text-lg font-bold text-white mb-4">Company Metadata (shown in Quotation PDFs)</h2>
+      <Card className="bg-card border-border backdrop-blur-md rounded-2xl p-6">
+        <h2 className="text-lg font-bold text-foreground mb-4">Company Metadata (shown in Quotation PDFs)</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label htmlFor="companyName">Company Registered Name</Label>
             <Input
               id="companyName"
               placeholder="e.g. Acme Technologies Private Limited"
-              className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-11"
+              className="bg-background border-border text-foreground rounded-xl h-11"
               {...register('companyName')}
             />
             {errors.companyName && <p className="text-xs text-red-400">{errors.companyName.message}</p>}
@@ -169,7 +169,7 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
             <Input
               id="companyEmail"
               placeholder="e.g. quotes@acme.com"
-              className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-11"
+              className="bg-background border-border text-foreground rounded-xl h-11"
               {...register('companyEmail')}
             />
             {errors.companyEmail && <p className="text-xs text-red-400">{errors.companyEmail.message}</p>}
@@ -180,7 +180,7 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
             <Input
               id="companyPhone"
               placeholder="e.g. +91 98765 43210"
-              className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-11"
+              className="bg-background border-border text-foreground rounded-xl h-11"
               {...register('companyPhone')}
             />
             {errors.companyPhone && <p className="text-xs text-red-400">{errors.companyPhone.message}</p>}
@@ -191,7 +191,7 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
             <Input
               id="companyAddress"
               placeholder="e.g. BKC, Mumbai, Maharashtra, 400051"
-              className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-11"
+              className="bg-background border-border text-foreground rounded-xl h-11"
               {...register('companyAddress')}
             />
             {errors.companyAddress && <p className="text-xs text-red-400">{errors.companyAddress.message}</p>}

@@ -37,11 +37,11 @@ export default function Header() {
   };
 
   return (
-    <header className="h-16 border-b border-slate-800 bg-slate-900 px-6 flex items-center justify-between z-10">
+    <header className="h-16 border-b border-sidebar-border bg-sidebar px-6 flex items-center justify-between z-10">
       
       {/* Title */}
       <div className="flex items-center gap-2">
-        <h2 className="text-lg font-bold text-white tracking-wide">{displayTitle}</h2>
+        <h2 className="text-lg font-bold text-sidebar-foreground tracking-wide">{displayTitle}</h2>
       </div>
 
       {/* Right Controls */}
@@ -49,11 +49,11 @@ export default function Header() {
         
         {/* Mock Search */}
         <div className="relative hidden md:block w-64">
-          <Search className="absolute left-3 top-2.5 w-4.5 h-4.5 text-slate-500" />
+          <Search className="absolute left-3 top-2.5 w-4.5 h-4.5 text-muted-foreground" />
           <input
             type="text"
             placeholder="Quick search..."
-            className="w-full h-9 bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 text-sm text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
+            className="w-full h-9 bg-background border border-sidebar-border rounded-xl pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-indigo-500/50 transition-colors"
           />
         </div>
 
@@ -61,7 +61,7 @@ export default function Header() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl"
+          className="relative text-slate-400 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-xl"
         >
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
@@ -72,7 +72,7 @@ export default function Header() {
           variant="ghost"
           size="icon"
           onClick={toggleTheme}
-          className="text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl cursor-pointer"
+          className="text-slate-400 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-xl cursor-pointer"
           title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           {theme === 'dark' ? (
@@ -85,7 +85,7 @@ export default function Header() {
         {/* User Account Dropdown */}
         {user && (
           <DropdownMenu>
-            <DropdownMenuTrigger className="relative h-10 w-10 rounded-full hover:bg-slate-805 focus:ring-0 p-0 overflow-hidden flex items-center justify-center cursor-pointer border border-slate-800 bg-transparent">
+            <DropdownMenuTrigger className="relative h-10 w-10 rounded-full hover:bg-sidebar-accent focus:ring-0 p-0 overflow-hidden flex items-center justify-center cursor-pointer border border-sidebar-border bg-transparent">
               {user.profilePicture ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -102,45 +102,45 @@ export default function Header() {
               )}
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent className="w-56 bg-slate-900 border border-slate-800 text-slate-300" align="end">
+            <DropdownMenuContent className="w-56 bg-popover border border-border text-popover-foreground animate-in fade-in-50" align="end">
               <DropdownMenuGroup>
-                <DropdownMenuLabel className="font-normal text-xs text-slate-500 p-3">
+                <DropdownMenuLabel className="font-normal text-xs text-muted-foreground p-3">
                   <div className="flex flex-col gap-1">
-                    <p className="font-semibold text-slate-200 text-sm leading-none">{user.name}</p>
-                    <p className="text-slate-500 text-xs truncate leading-none mt-1">{user.email}</p>
+                    <p className="font-semibold text-foreground text-sm leading-none">{user.name}</p>
+                    <p className="text-muted-foreground text-xs truncate leading-none mt-1">{user.email}</p>
                   </div>
                 </DropdownMenuLabel>
               </DropdownMenuGroup>
               
-              <DropdownMenuSeparator className="bg-slate-800" />
+              <DropdownMenuSeparator className="bg-border" />
               
               {/* Profile Route Link */}
               <DropdownMenuItem 
                 onClick={() => router.push(user.role === 'admin' || user.role === 'super_admin' ? '/admin/profile' : '/public/profile')}
-                className="hover:bg-slate-800 hover:text-white cursor-pointer py-2.5"
+                className="hover:bg-accent hover:text-accent-foreground cursor-pointer py-2.5"
               >
-                <User className="mr-2 h-4 w-4 text-slate-400" />
+                <User className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>My Profile</span>
               </DropdownMenuItem>
 
               {/* Settings Route Link */}
               <DropdownMenuItem 
                 onClick={() => router.push(user.role === 'admin' || user.role === 'super_admin' ? '/admin/settings' : '/public/settings')}
-                className="hover:bg-slate-800 hover:text-white cursor-pointer py-2.5"
+                className="hover:bg-accent hover:text-accent-foreground cursor-pointer py-2.5"
               >
-                <Settings className="mr-2 h-4 w-4 text-slate-400" />
+                <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span>Account Settings</span>
               </DropdownMenuItem>
 
               {/* Admin warning marker */}
               {(user.role === 'admin' || user.role === 'super_admin') && (
-                <DropdownMenuItem className="hover:bg-slate-800 hover:text-white cursor-default py-2.5 text-indigo-400 font-semibold bg-indigo-500/5">
+                <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-default py-2.5 text-indigo-400 font-semibold bg-indigo-500/5">
                   <ShieldAlert className="mr-2 h-4 w-4 text-indigo-400" />
                   <span>Admin Panel Access</span>
                 </DropdownMenuItem>
               )}
 
-              <DropdownMenuSeparator className="bg-slate-800" />
+              <DropdownMenuSeparator className="bg-border" />
               
               {/* Log Out */}
               <DropdownMenuItem 

@@ -31,15 +31,15 @@ export default function DataTable<T>({
   renderRow,
 }: DataTableProps<T>) {
   return (
-    <Card className="overflow-hidden bg-slate-900/40 border-slate-800/80 backdrop-blur-md rounded-xl">
+    <Card className="overflow-hidden bg-card border-border backdrop-blur-md rounded-xl">
       <div className="overflow-x-auto w-full">
         <Table>
-          <TableHeader className="bg-slate-900/80 border-b border-slate-800">
-            <TableRow className="hover:bg-transparent border-slate-800">
+          <TableHeader className="bg-muted/30 border-b border-border">
+            <TableRow className="hover:bg-transparent border-border">
               {columns.map((col) => (
                 <TableHead
                   key={col.key}
-                  className={col.className || 'text-slate-400 font-semibold text-xs tracking-wider uppercase py-4'}
+                  className={col.className || 'text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4'}
                 >
                   {col.label}
                 </TableHead>
@@ -48,10 +48,10 @@ export default function DataTable<T>({
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow className="hover:bg-transparent border-slate-800">
+              <TableRow className="hover:bg-transparent border-border">
                 <TableCell
                   colSpan={columns.length}
-                  className="h-32 text-center text-slate-500"
+                  className="h-32 text-center text-muted-foreground"
                 >
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
@@ -60,10 +60,10 @@ export default function DataTable<T>({
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
-              <TableRow className="hover:bg-transparent border-slate-800">
+              <TableRow className="hover:bg-transparent border-border">
                 <TableCell
                   colSpan={columns.length}
-                  className="h-32 text-center text-slate-500 font-medium text-sm"
+                  className="h-32 text-center text-muted-foreground font-medium text-sm"
                 >
                   {emptyMessage}
                 </TableCell>

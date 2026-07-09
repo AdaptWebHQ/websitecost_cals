@@ -150,8 +150,8 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Quotation Packages</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Quotation Packages</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Manage your pricing tiers (Starter, Business, Premium, etc.) shown to calculator users.
           </p>
         </div>
@@ -170,27 +170,27 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
         data={packages}
         emptyMessage="No packages configured yet. Use the button above to add one."
         renderRow={(pkg) => (
-          <TableRow key={pkg.id} className="hover:bg-slate-900/10 border-slate-800/40 transition-colors">
-            <TableCell className="font-semibold text-white py-4 pl-6">
+          <TableRow key={pkg.id} className="hover:bg-muted/40 border-border transition-colors">
+            <TableCell className="font-semibold text-foreground py-4 pl-6">
               <div className="flex flex-col">
                 <span className="text-sm font-semibold">{pkg.name}</span>
-                <span className="text-xs text-slate-450 font-normal mt-0.5 max-w-sm truncate">
+                <span className="text-xs text-muted-foreground font-normal mt-0.5 max-w-sm truncate">
                   {pkg.description}
                 </span>
               </div>
             </TableCell>
-            <TableCell className="text-slate-355 font-medium text-xs">{formatCurrency(pkg.basePrice)}</TableCell>
-            <TableCell className="text-slate-355 text-xs">{pkg.deliveryDays} Days</TableCell>
-            <TableCell className="text-slate-355 text-xs">{pkg.pagesIncluded} Pages</TableCell>
+            <TableCell className="text-muted-foreground font-medium text-xs">{formatCurrency(pkg.basePrice)}</TableCell>
+            <TableCell className="text-muted-foreground text-xs">{pkg.deliveryDays} Days</TableCell>
+            <TableCell className="text-muted-foreground text-xs">{pkg.pagesIncluded} Pages</TableCell>
             <TableCell>
               {pkg.isActive ? (
-                <Badge className="bg-emerald-500/5 text-emerald-450 border border-emerald-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
+                <Badge className="bg-emerald-500/5 text-emerald-400 border border-emerald-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 inline-block"></span>
                   Active
                 </Badge>
               ) : (
-                <Badge className="bg-slate-800/20 text-slate-500 border border-slate-800/50 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-500 mr-1.5 inline-block"></span>
+                <Badge className="bg-slate-500/5 text-slate-400 border border-slate-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 inline-block"></span>
                   Inactive
                 </Badge>
               )}
@@ -206,7 +206,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
                   onClick={() => openEditModal(pkg)}
                   variant="ghost"
                   size="icon"
-                  className="text-slate-400 hover:text-white rounded-lg"
+                  className="text-muted-foreground hover:text-foreground rounded-lg"
                 >
                   <Edit className="w-4 h-4" />
                 </Button>
@@ -226,9 +226,9 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
 
       {/* shadcn Dialog Component */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl w-full max-w-lg p-6 relative">
+        <DialogContent className="bg-popover border border-border shadow-2xl rounded-2xl w-full max-w-lg p-6 relative text-popover-foreground">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-white">
+            <DialogTitle className="text-lg font-bold text-foreground">
               {editingPackage ? 'Edit Quotation Package' : 'Create Quotation Package'}
             </DialogTitle>
           </DialogHeader>
@@ -239,67 +239,67 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
               </p>
             )}
             <div className="space-y-1">
-              <Label className="text-slate-400 text-xs">Package Name</Label>
+              <Label className="text-muted-foreground text-xs">Package Name</Label>
               <Input
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Basic Brochure"
-                className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-slate-400 text-xs">Description</Label>
+              <Label className="text-muted-foreground text-xs">Description</Label>
               <Textarea
                 required
                 rows={2}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Summarize target audience and main values..."
-                className="bg-slate-950/60 border-slate-800 text-white rounded-xl"
+                className="bg-background border-border text-foreground rounded-xl"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Base Price (INR)</Label>
+                <Label className="text-muted-foreground text-xs">Base Price (INR)</Label>
                 <Input
                   required
                   type="number"
                   value={basePrice}
                   onChange={(e) => setBasePrice(Number(e.target.value))}
-                  className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Pages Included</Label>
+                <Label className="text-muted-foreground text-xs">Pages Included</Label>
                 <Input
                   required
                   type="number"
                   value={pagesIncluded}
                   onChange={(e) => setPagesIncluded(Number(e.target.value))}
-                  className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Delivery (Days)</Label>
+                <Label className="text-muted-foreground text-xs">Delivery (Days)</Label>
                 <Input
                   required
                   type="number"
                   value={deliveryDays}
                   onChange={(e) => setDeliveryDays(Number(e.target.value))}
-                  className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-slate-400 text-xs">Revisions Allowed</Label>
+                <Label className="text-muted-foreground text-xs">Revisions Allowed</Label>
                 <Input
                   required
                   type="number"
                   value={revisions}
                   onChange={(e) => setRevisions(Number(e.target.value))}
-                  className="bg-slate-950/60 border-slate-800 text-white rounded-xl h-10 text-sm"
+                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                 />
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
                   checked={isPopular}
                   onCheckedChange={(checked) => setIsPopular(!!checked)}
                 />
-                <Label htmlFor="isPopular" className="text-sm font-medium text-slate-300 cursor-pointer select-none">
+                <Label htmlFor="isPopular" className="text-sm font-medium text-foreground cursor-pointer select-none">
                   Mark as Popular
                 </Label>
               </div>
@@ -321,18 +321,18 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
                   checked={isActive}
                   onCheckedChange={(checked) => setIsActive(!!checked)}
                 />
-                <Label htmlFor="isActive" className="text-sm font-medium text-slate-300 cursor-pointer select-none">
+                <Label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer select-none">
                   Active Listing
                 </Label>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-800/60">
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-white rounded-xl h-10 px-5"
+                className="text-muted-foreground hover:text-foreground rounded-xl h-10 px-5"
               >
                 Cancel
               </Button>
