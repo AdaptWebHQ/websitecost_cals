@@ -21,132 +21,132 @@ export default function PublicDashboard({ user, calculations }: PublicDashboardP
   const latestDate = calculations[0]?.createdAt ? formatDate(calculations[0].createdAt) : null;
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-5 pb-8 animate-in fade-in-50 duration-300">
       {/* Welcome Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="max-w-2xl">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="px-2 py-0.5 bg-[#3a4a5f]/40 text-[#adc6ff] rounded font-mono text-[10px] uppercase tracking-widest font-semibold border border-[#adc6ff]/15">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="max-w-2xl font-sans">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2 py-0.5 bg-primary/10 text-primary rounded font-mono text-[9px] uppercase tracking-widest font-bold border border-primary/15">
               Client Portal
             </span>
-            <div className="h-px w-12 bg-white/20"></div>
+            <div className="h-px w-10 bg-border"></div>
           </div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-white mb-2">
-            Welcome back, <span className="text-[#adc6ff]">{user.name.split(' ')[0]}</span> 👋
+          <h1 className="font-display text-2xl font-bold tracking-tight text-foreground mb-1">
+            Welcome back, <span className="text-primary dark:text-blue-400">{user.name.split(' ')[0]}</span> 👋
           </h1>
-          <p className="text-sm text-slate-450 font-normal leading-relaxed">
+          <p className="text-xs text-muted-foreground font-normal leading-relaxed">
             Configure, manage, and inspect your custom project estimations.
           </p>
         </div>
-        <Link href="/dashboard/public/calculator">
-          <Button className="bg-primary text-on-primary-fixed px-6 py-4.5 rounded-xl font-bold hover:opacity-90 active:scale-95 transition-all shadow-lg subtle-glow flex items-center gap-2 border border-primary/20">
-            <Calculator className="w-4.5 h-4.5" />
+        <Link href="/public/calculator">
+          <Button className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer">
+            <Calculator className="w-4 h-4" />
             New Estimate
           </Button>
         </Link>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <Card className="bg-slate-900/60 border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 hover:border-indigo-500/30 transition-colors">
-          <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
-            <FileText className="w-6 h-6 text-indigo-400" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-sans">
+        <Card className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 transition-colors hover:bg-muted/10 shadow-sm">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+            <FileText className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-white">{totalEstimates}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Total Estimates</p>
+            <p className="text-xl font-bold text-foreground">{totalEstimates}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Total Estimates</p>
           </div>
         </Card>
 
-        <Card className="bg-slate-900/60 border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 hover:border-emerald-500/30 transition-colors">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-            <TrendingUp className="w-6 h-6 text-emerald-400" />
+        <Card className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 transition-colors hover:bg-muted/10 shadow-sm">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-white">{formatCurrency(avgValue)}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Average Quote Value</p>
+            <p className="text-xl font-bold text-foreground">{formatCurrency(avgValue)}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Average Quote Value</p>
           </div>
         </Card>
 
-        <Card className="bg-slate-900/60 border-slate-800/80 rounded-2xl p-5 flex items-center gap-4 hover:border-violet-500/30 transition-colors">
-          <div className="w-12 h-12 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
-            <Clock className="w-6 h-6 text-violet-400" />
+        <Card className="bg-card border border-border rounded-xl p-4 flex items-center gap-3 transition-colors hover:bg-muted/10 shadow-sm">
+          <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <p className="text-lg font-bold text-white">{latestDate || '—'}</p>
-            <p className="text-xs text-slate-500 mt-0.5">Last Estimate Generated</p>
+            <p className="text-base font-bold text-foreground truncate max-w-[150px]">{latestDate || '—'}</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Last Estimate Generated</p>
           </div>
         </Card>
       </div>
 
       {/* Recent Estimates */}
-      <div className="space-y-4">
+      <div className="space-y-3 font-sans">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
+          <h2 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-primary" />
             Recent Estimates
           </h2>
           {totalEstimates > 5 && (
             <Link
-              href="/dashboard/public/estimates"
-              className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors"
+              href="/public/estimates"
+              className="text-[10px] text-primary hover:text-primary/85 flex items-center gap-0.5 transition-colors font-semibold"
             >
-              View All <ChevronRight className="w-3.5 h-3.5" />
+              View All <ChevronRight className="w-3 h-3" />
             </Link>
           )}
         </div>
 
         {recentCalculations.length === 0 ? (
-          <Card className="bg-slate-900/40 border-slate-800/80 rounded-2xl p-10 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-4">
-              <Calculator className="w-7 h-7 text-indigo-400" />
+          <Card className="bg-muted/10 border border-border rounded-xl p-8 text-center shadow-inner">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-3">
+              <Calculator className="w-6 h-6 text-primary" />
             </div>
-            <p className="text-white font-semibold mb-1">No estimates yet</p>
-            <p className="text-slate-500 text-sm mb-6">
+            <p className="text-foreground font-semibold text-sm mb-0.5">No estimates yet</p>
+            <p className="text-muted-foreground text-xs mb-4 max-w-xs mx-auto leading-relaxed">
               Launch the cost calculator to generate your first quotation estimate instantly.
             </p>
-            <Link href="/dashboard/public/calculator">
-              <Button className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-10 px-6 font-semibold">
+            <Link href="/public/calculator">
+              <Button className="bg-primary hover:bg-primary/95 text-white rounded-lg h-9 px-4 font-semibold text-xs shadow-sm cursor-pointer">
                 Launch Calculator
               </Button>
             </Link>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {recentCalculations.map((calc) => (
               <Link
                 key={calc.id}
-                href={`/dashboard/public/estimates/${calc.id}`}
+                href={`/public/estimates/${calc.id}`}
                 className="block group"
               >
-                <Card className="bg-slate-900/40 border-slate-800/80 rounded-2xl px-5 py-4 hover:border-indigo-500/30 hover:bg-slate-900/60 transition-all duration-200 cursor-pointer">
+                <Card className="bg-card border border-border rounded-xl px-4 py-3 hover:border-primary/30 transition-colors shadow-sm cursor-pointer">
                   <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-4.5 h-4.5 text-indigo-400" />
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-4 h-4 text-primary" />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-white truncate text-sm">{calc.businessName}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <p className="font-semibold text-foreground truncate text-xs">{calc.businessName}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5 text-[10px]">
                           <Badge
                             variant="outline"
-                            className="border-slate-700 text-slate-500 text-[10px] px-1.5 py-0 hover:bg-transparent capitalize"
+                            className="border-border text-muted-foreground text-[9px] px-1 py-0 hover:bg-transparent capitalize font-semibold"
                           >
                             {calc.websiteType}
                           </Badge>
-                          <span className="text-slate-600 text-xs">·</span>
-                          <span className="text-slate-500 text-xs">{calc.packageName}</span>
-                          <span className="text-slate-600 text-xs">·</span>
-                          <span className="text-slate-500 text-xs">{calc.pages} pages</span>
+                          <span className="text-border">·</span>
+                          <span className="text-muted-foreground">{calc.packageName}</span>
+                          <span className="text-border">·</span>
+                          <span className="text-muted-foreground">{calc.pages} pages</span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 flex-shrink-0 text-right">
+                    <div className="flex items-center gap-3 flex-shrink-0 text-right">
                       <div>
-                        <p className="text-emerald-400 font-bold text-sm">{formatCurrency(calc.total)}</p>
-                        <p className="text-slate-600 text-[10px] mt-0.5">{formatDate(calc.createdAt)}</p>
+                        <p className="text-primary font-bold text-xs">{formatCurrency(calc.total)}</p>
+                        <p className="text-muted-foreground text-[9px] mt-0.5">{formatDate(calc.createdAt)}</p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                      <ChevronRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
                     </div>
                   </div>
                 </Card>
@@ -157,16 +157,16 @@ export default function PublicDashboard({ user, calculations }: PublicDashboardP
       </div>
 
       {/* Quick Action Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Link href="/dashboard/public/calculator" className="group block">
-          <Card className="bg-gradient-to-br from-indigo-600/10 to-violet-600/10 border-indigo-500/20 rounded-2xl p-6 hover:border-indigo-500/40 transition-all duration-200 hover:from-indigo-600/15 hover:to-violet-600/15">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center flex-shrink-0">
-                <Calculator className="w-6 h-6 text-indigo-300" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 font-sans">
+        <Link href="/public/calculator" className="group block">
+          <Card className="bg-card border border-border rounded-xl p-4 hover:border-primary/45 transition-colors shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/25 flex items-center justify-center flex-shrink-0">
+                <Calculator className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="font-bold text-white mb-1">Build a New Estimate</p>
-                <p className="text-sm text-slate-400 leading-relaxed">
+                <p className="font-bold text-foreground text-xs mb-0.5">Build a New Estimate</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
                   Use our multi-step wizard to get an instant cost breakdown for your website project.
                 </p>
               </div>
@@ -174,15 +174,15 @@ export default function PublicDashboard({ user, calculations }: PublicDashboardP
           </Card>
         </Link>
 
-        <Link href="/dashboard/public/estimates" className="group block">
-          <Card className="bg-gradient-to-br from-emerald-600/10 to-teal-600/10 border-emerald-500/20 rounded-2xl p-6 hover:border-emerald-500/40 transition-all duration-200 hover:from-emerald-600/15 hover:to-teal-600/15">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                <FileText className="w-6 h-6 text-emerald-300" />
+        <Link href="/public/estimates" className="group block">
+          <Card className="bg-card border border-border rounded-xl p-4 hover:border-primary/45 transition-colors shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/25 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="font-bold text-white mb-1">Browse Estimate History</p>
-                <p className="text-sm text-slate-400 leading-relaxed">
+                <p className="font-bold text-foreground text-xs mb-0.5">Browse Estimate History</p>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
                   View, download or share PDF quotes from all your previous project estimations.
                 </p>
               </div>

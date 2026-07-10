@@ -4,6 +4,8 @@ import { Label } from '@/components/ui/label';
 import { Settings, Info } from 'lucide-react';
 import { getServerUser } from '@/actions/auth';
 
+export const dynamic = 'force-dynamic';
+
 export default async function PublicSettingsPage() {
   const user = await getServerUser();
 

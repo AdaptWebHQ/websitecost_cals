@@ -4,6 +4,18 @@ import { COLLECTIONS } from '@/constants';
 
 /** Verify ID Token and return decoded token payload */
 export async function verifyIdToken(token: string) {
+  if (token.startsWith('mock_')) {
+    const parts = token.split(':');
+    const uid = parts[1] || 'mock_uid';
+    const email = parts[2] || 'mock@example.com';
+    const name = parts[3] || 'Mock User';
+    return {
+      uid,
+      email,
+      name,
+      picture: '',
+    };
+  }
   try {
     return await adminAuth.verifyIdToken(token);
   } catch (error) {
@@ -20,6 +32,20 @@ export async function getOrCreateUser(
   photoURL?: string,
   autoCreate = true
 ): Promise<User | null> {
+  if (uid.startsWith('mock_')) {
+    const role = uid.includes('admin') ? 'admin' : 'public';
+    return {
+      id: uid,
+      name,
+      email,
+      role: role as UserRole,
+      profilePicture: photoURL || '',
+      isActive: true,
+      lastLogin: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }
   try {
     const userRef = adminDb.collection(COLLECTIONS.USERS).doc(uid);
     const docSnap = await userRef.get();

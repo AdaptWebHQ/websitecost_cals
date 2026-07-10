@@ -1,10 +1,19 @@
 import CalculationsChart from './calculations-chart';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Flame, Snowflake, MessageSquare, ArrowRight, Calculator, CheckSquare, Sparkles, TrendingUp } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Calculator, FileText, ChevronRight, Clock, Sparkles, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import type { Calculation, Inquiry } from '@/types';
+
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 interface AdminDashboardProps {
   stats: {
@@ -25,220 +34,261 @@ export default function AdminDashboard({
 }: AdminDashboardProps) {
   const latestInquiries = inquiries.slice(0, 5);
 
-  // Compute mock financial metrics for the Amber pricing card
   const estimatedPipelineValue = stats.totalLeads * 35000;
   const averageQuoteVal = 42500;
 
   return (
-    <div className="space-y-8 pb-12 relative">
-      {/* Background Ambient Glows */}
-      <div className="absolute top-[-5%] right-[10%] w-[35%] h-[35%] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none -z-20" />
-      <div className="absolute bottom-[20%] left-[-5%] w-[35%] h-[35%] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none -z-20" />
-
-      {/* Page Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="max-w-2xl">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="px-2.5 py-0.5 bg-[#06b6d4]/10 text-[#06b6d4] rounded-full font-mono text-[10px] uppercase tracking-widest font-semibold border border-[#06b6d4]/20">
-              Telemetry Bento Matrix
+    <div className="space-y-5 pb-8 animate-in fade-in duration-500 font-sans">
+      {/* Header Section */}
+      <section className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-mono text-[9px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded uppercase tracking-wider">
+              CRM SYSTEM
             </span>
-            <div className="h-px w-12 bg-border"></div>
+            <span className="text-border">•</span>
+            <span className="text-xs text-muted-foreground font-semibold">Real-time Telemetry Matrix</span>
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-2">
-            Workspace Overview
-          </h1>
-          <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-            Monitor real-time calculations metrics, track sales pipeline conversion performance, and engage incoming CRM leads.
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Overview</h2>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+            Real-time performance metrics for AdaptWeb Ecosystem.
           </p>
         </div>
-      </header>
+        <div className="flex gap-2">
+          <button className="px-3.5 py-1.5 bg-card hover:bg-muted border border-border text-foreground font-semibold rounded-lg text-xs transition-colors shadow-sm cursor-pointer">
+            Export Report
+          </button>
+          <button className="px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg text-xs shadow-sm transition-colors cursor-pointer">
+            Generate Insights
+          </button>
+        </div>
+      </section>
 
-      {/* Telemetry Bento Grid Matrix */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
-        {/* Amber Finance / Pipeline Value Bento Card - Col Span 2 */}
-        <div className="md:col-span-2 glass-bento ambient-glow-amber border border-border/50 rounded-3xl p-6 flex flex-col justify-between haptic-shadow">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pipeline Valuation</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-amber-500" />
+      {/* Metrics Grid (Bento Style) */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Total Inquiries */}
+        <div className="card-custom p-4 flex flex-col justify-between transition-colors hover:bg-muted/10">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Calculator className="w-4 h-4 text-primary" />
+              </div>
+              <span className="text-[9px] font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase">
+                +12.5%
+              </span>
             </div>
+            <h3 className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Total Inquiries</h3>
+            <p className="text-2xl font-bold text-foreground mt-1">{stats.totalLeads}</p>
           </div>
-          <div className="my-6">
-            <span className="text-sm font-semibold text-amber-500 block mb-1">Estimated Pipeline Value</span>
-            <span className="text-5xl font-black tracking-tight text-foreground">
-              ₹{(estimatedPipelineValue / 100000).toFixed(1)}L
-            </span>
-            <p className="text-xs text-muted-foreground mt-2">
-              Based on average quote size of ₹{averageQuoteVal.toLocaleString()}
-            </p>
-          </div>
-          <div className="pt-4 border-t border-border/40 flex justify-between items-center text-xs text-muted-foreground">
-            <span>Avg. Lead Quote</span>
-            <span className="font-semibold text-foreground">₹{(averageQuoteVal / 1000).toFixed(1)}K</span>
+          <div className="mt-2 h-8 w-full opacity-60">
+            <svg className="w-full h-full" viewBox="0 0 100 30" preserveAspectRatio="none">
+              <path
+                d="M0 25 Q 10 10, 20 18 T 40 10 T 60 22 T 80 5 T 100 15"
+                fill="none"
+                stroke="var(--primary)"
+                strokeWidth="1.5"
+                vectorEffect="non-scaling-stroke"
+              ></path>
+            </svg>
           </div>
         </div>
 
-        {/* Calculations / Volume Bento Card - Col Span 2 */}
-        <div className="md:col-span-2 glass-bento ambient-glow-purple border border-border/50 rounded-3xl p-6 flex flex-col justify-between haptic-shadow">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Public Interaction</span>
-            <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-              <Calculator className="w-4 h-4 text-purple-500" />
+        {/* Active Packages */}
+        <div className="card-custom p-4 flex flex-col justify-between transition-colors hover:bg-muted/10">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <div className="p-2 bg-secondary/10 rounded-lg">
+                <FileText className="w-4 h-4 text-secondary" />
+              </div>
             </div>
+            <h3 className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Active Packages</h3>
+            <p className="text-2xl font-bold text-foreground mt-1">5</p>
           </div>
-          <div className="my-6">
-            <span className="text-sm font-semibold text-purple-500 block mb-1">Total Calculations</span>
-            <span className="text-5xl font-black tracking-tight text-foreground">{stats.totalCalculations}</span>
-            <p className="text-xs text-muted-foreground mt-2">Public quotation calculator executions</p>
-          </div>
-          <div className="pt-4 border-t border-border/40 flex justify-between items-center text-xs text-muted-foreground">
-            <span>Converted Projects</span>
-            <span className="font-semibold text-foreground">{stats.convertedLeads}</span>
+          <div className="mt-2 flex items-center gap-2">
+            <div className="flex -space-x-1">
+              <div className="w-5 h-5 rounded-full border border-card bg-muted flex items-center justify-center text-[7px] font-bold">S</div>
+              <div className="w-5 h-5 rounded-full border border-card bg-primary text-white flex items-center justify-center text-[7px] font-bold">E</div>
+              <div className="w-5 h-5 rounded-full border border-card bg-secondary text-white flex items-center justify-center text-[7px] font-bold">P</div>
+            </div>
+            <span className="text-[9px] font-medium text-muted-foreground truncate">Starter, Enterprise, Pro</span>
           </div>
         </div>
 
-        {/* CRM Leads & Priority Bento Card - Col Span 2 */}
-        <div className="md:col-span-2 glass-bento ambient-glow-cyan border border-border/50 rounded-3xl p-6 flex flex-col justify-between haptic-shadow">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">CRM Inquiries</span>
-            <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-              <MessageSquare className="w-4 h-4 text-cyan-500" />
-            </div>
-          </div>
-          <div className="my-6 space-y-4">
-            <div>
-              <span className="text-xs text-muted-foreground block mb-0.5">Total Inquiries Received</span>
-              <span className="text-4xl font-extrabold tracking-tight text-foreground">{stats.totalLeads}</span>
-            </div>
-            <div className="flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500 pulse-active" style={{ '--pulse-color': '#ef4444' } as any} />
-                <span>{stats.hotLeads} Hot Leads</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                <span>{stats.coldLeads} Cold / New</span>
+        {/* Feature Count */}
+        <div className="card-custom p-4 flex flex-col justify-between transition-colors hover:bg-muted/10">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <div className="p-2 bg-accent/10 rounded-lg">
+                <Sparkles className="w-4 h-4 text-accent" />
               </div>
             </div>
+            <h3 className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Calculations Count</h3>
+            <p className="text-2xl font-bold text-foreground mt-1">{stats.totalCalculations}</p>
           </div>
-          <div className="pt-4 border-t border-border/40 flex justify-between items-center text-xs text-muted-foreground">
-            <span>Priority Conversion</span>
-            <span className="font-semibold text-foreground">
-              {stats.totalLeads > 0 ? Math.round((stats.convertedLeads / stats.totalLeads) * 100) : 0}%
-            </span>
+          <div className="mt-2 flex flex-wrap gap-1">
+            <span className="px-1.5 py-0.5 bg-muted rounded text-[8px] font-semibold text-muted-foreground">Booking Engine</span>
+            <span className="px-1.5 py-0.5 bg-muted rounded text-[8px] font-semibold text-muted-foreground">API Mesh</span>
           </div>
+        </div>
+
+        {/* Revenue Estimate */}
+        <div className="card-custom p-4 flex flex-col justify-between border-l-2 border-l-primary transition-colors hover:bg-muted/10">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <div className="p-2 bg-emerald-500/10 rounded-lg">
+                <TrendingUp className="w-4 h-4 text-emerald-500" />
+              </div>
+            </div>
+            <h3 className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Est. Potential Revenue</h3>
+            <p className="text-2xl font-bold text-foreground mt-1">₹{(estimatedPipelineValue / 100000).toFixed(1)}L</p>
+          </div>
+          <p className="text-emerald-600 font-bold text-[9px] mt-2 flex items-center gap-1">
+            <span className="w-1 h-1 rounded-full bg-emerald-500 pulse-active" /> Pipeline growth
+          </p>
         </div>
       </div>
 
-      {/* 2. Calculations Analytics Chart (Emerald Accent) */}
-      <div className="glass-bento ambient-glow-emerald border border-border/50 rounded-3xl p-1 shadow-sm overflow-hidden haptic-shadow">
+      {/* Analytics Chart */}
+      <div className="card-custom p-2 shadow-sm overflow-hidden">
         <CalculationsChart calculations={calculations} />
       </div>
 
-      {/* 3. Latest 5 Inquiries Bento Workspace */}
-      <Card className="glass-bento border border-border/50 rounded-3xl p-6 shadow-sm haptic-shadow">
-        <CardHeader className="p-0 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* Secondary Section: Recent Inquiries & Focus Areas */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+        {/* Recent Inquiries Table */}
+        <div className="md:col-span-8 card-custom overflow-hidden flex flex-col justify-between">
           <div>
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#06b6d4] pulse-active" />
-              Incoming Leads Queue
-            </CardTitle>
-            <CardDescription>
-              Recent client submissions and calculator leads needing response
-            </CardDescription>
-          </div>
-          <Link
-            href="/admin/inquiries"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#06b6d4] hover:text-[#06b6d4]/90 transition-colors"
-          >
-            Open CRM Board
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </CardHeader>
-        <CardContent className="p-0 border-t border-border/40">
-          {latestInquiries.length === 0 ? (
-            <div className="text-center py-12 text-sm text-muted-foreground">
-              No inquiries found.
+            <div className="p-4 border-b border-border flex justify-between items-center">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Recent Inquiries
+              </h3>
+              <Link href="/admin/inquiries">
+                <button className="text-[10px] font-semibold text-primary hover:underline cursor-pointer">View All</button>
+              </Link>
             </div>
-          ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:bg-transparent border-border/40">
-                    <TableHead className="font-semibold text-foreground">Name / Company</TableHead>
-                    <TableHead className="font-semibold text-foreground">Contact</TableHead>
-                    <TableHead className="font-semibold text-foreground">Budget</TableHead>
-                    <TableHead className="font-semibold text-foreground text-center">Priority</TableHead>
-                    <TableHead className="font-semibold text-foreground text-center">Status</TableHead>
-                    <TableHead className="font-semibold text-foreground text-right">Submitted At</TableHead>
+                  <TableRow className="bg-muted/30 border-b border-border/80">
+                    <TableHead className="px-4 py-2.5 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Lead Name</TableHead>
+                    <TableHead className="px-4 py-2.5 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Contact</TableHead>
+                    <TableHead className="px-4 py-2.5 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Budget</TableHead>
+                    <TableHead className="px-4 py-2.5 text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Temp</TableHead>
+                    <TableHead className="px-4 py-2.5 text-[9px] font-bold text-muted-foreground uppercase tracking-widest text-right">Status</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {latestInquiries.map((inq) => {
-                    const submissionDate = new Date(inq.createdAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    });
-
-                    return (
-                      <TableRow key={inq.id} className="border-border/40 hover:bg-muted/50 transition-colors">
-                        <TableCell className="font-medium">
-                          <div className="text-sm font-semibold">{inq.name}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">{inq.companyName}</div>
-                        </TableCell>
-                        <TableCell className="text-sm">
+                <TableBody className="divide-y divide-border/10">
+                  {latestInquiries.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center text-muted-foreground text-xs font-medium">
+                        No recent inquiries registered.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    latestInquiries.map((inq) => (
+                      <TableRow key={inq.id} className="hover:bg-muted/20 transition-colors">
+                        <td className="px-4 py-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary text-[10px]">
+                              {getInitials(inq.name)}
+                            </div>
+                            <div>
+                              <p className="font-bold text-xs text-foreground">{inq.name}</p>
+                              <p className="text-[9px] text-muted-foreground mt-0.5">{inq.companyName}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2.5 text-[10px] font-semibold text-muted-foreground">
                           <div>{inq.email}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">{inq.phone}</div>
-                        </TableCell>
-                        <TableCell className="font-semibold text-sm">
-                          {inq.budget}
-                        </TableCell>
-                        <TableCell className="text-center">
+                          <div className="text-[9px] text-muted-foreground mt-0.5">{inq.phone}</div>
+                        </td>
+                        <td className="px-4 py-2.5 text-[10px] font-semibold text-foreground">{inq.budget}</td>
+                        <td className="px-4 py-2.5">
                           {inq.temperature === 'hot' ? (
-                            <Badge variant="outline" className="bg-red-500/10 text-red-500 border-red-500/20 inline-flex items-center gap-1.5">
-                              <div className="w-1.5 h-1.5 rounded-full bg-red-500 pulse-active" style={{ '--pulse-color': '#ef4444' } as any} />
-                              Hot Lead
-                            </Badge>
-                          ) : inq.temperature === 'cold' ? (
-                            <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 inline-flex items-center gap-1.5">
-                              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                              Cold Lead
-                            </Badge>
+                            <span className="px-2 py-0.5 bg-red-500/10 text-red-500 rounded-md font-bold text-[8px] uppercase tracking-wider inline-flex items-center gap-1">
+                              <span className="w-1 h-1 rounded-full bg-red-500" />
+                              HOT
+                            </span>
                           ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
+                            <span className="px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded-md font-bold text-[8px] uppercase tracking-wider inline-flex items-center gap-1">
+                              COLD
+                            </span>
                           )}
-                        </TableCell>
-                        <TableCell className="text-center">
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
                           <Badge
-                            className={`capitalize ${
-                              inq.status === 'new'
-                                ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
-                                : inq.status === 'contacted'
-                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                                : inq.status === 'proposal_sent'
-                                ? 'bg-orange-500/10 text-orange-500 border-orange-500/20'
-                                : inq.status === 'converted'
-                                ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                                : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                            }`}
+                            className={`capitalize text-[8px] font-bold py-0 px-1.5`}
                             variant="outline"
                           >
-                            {inq.status.replace('_', ' ')}
+                            {inq.status}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-right text-xs text-muted-foreground">
-                          {submissionDate}
-                        </TableCell>
+                        </td>
                       </TableRow>
-                    );
-                  })}
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+
+        {/* Focus Areas / Industry Split */}
+        <div className="md:col-span-4 flex flex-col gap-4">
+          <div className="card-custom p-4 flex flex-col justify-between flex-1">
+            <h3 className="text-xs font-bold text-foreground mb-4">Industry Distribution</h3>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between mb-1.5 text-[10px]">
+                  <span className="font-semibold text-foreground">Healthcare</span>
+                  <span className="font-mono font-bold text-muted-foreground">34%</span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded overflow-hidden">
+                  <div className="h-full bg-primary rounded" style={{ width: '34%' }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-1.5 text-[10px]">
+                  <span className="font-semibold text-foreground">Tourism</span>
+                  <span className="font-mono font-bold text-muted-foreground">28%</span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded overflow-hidden">
+                  <div className="h-full bg-secondary rounded" style={{ width: '28%' }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-1.5 text-[10px]">
+                  <span className="font-semibold text-foreground">Real Estate</span>
+                  <span className="font-mono font-bold text-muted-foreground">22%</span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded overflow-hidden">
+                  <div className="h-full bg-accent rounded" style={{ width: '22%' }}></div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-1.5 text-[10px]">
+                  <span className="font-semibold text-foreground">Fintech</span>
+                  <span className="font-mono font-bold text-muted-foreground">16%</span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded" style={{ width: '16%' }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Promotional / Contextual Card */}
+          <div className="relative rounded-2xl overflow-hidden h-40 bg-muted">
+            <div className="absolute inset-0 bg-primary/95 flex flex-col justify-end p-4">
+              <p className="text-white font-mono text-[8px] uppercase tracking-widest opacity-80">Next Update</p>
+              <h4 className="text-white text-sm font-bold mt-0.5">Luminous v2.4</h4>
+              <p className="text-white/80 text-[10px] mt-0.5 leading-normal font-medium">
+                Predictive lead scoring & industry benchmarking console.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

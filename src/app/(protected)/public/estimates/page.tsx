@@ -36,15 +36,15 @@ export default async function PublicEstimatesPage() {
 
   if (calculations.length === 0) {
     return (
-      <div className="py-12 flex flex-col items-center">
+      <div className="py-12 flex flex-col items-center animate-in fade-in duration-300">
         <EmptyState
           title="No Estimates Found"
           description="You haven't run any cost calculations yet. Get started by launching our multi-step cost estimator wizard."
           iconName="Calculator"
         />
         <div className="mt-6">
-          <Link href="/dashboard/public/calculator">
-            <Button className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-11 px-6 font-semibold shadow-lg shadow-indigo-600/10">
+          <Link href="/public/calculator">
+            <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-12 px-6 font-bold shadow-md shadow-primary/10 cursor-pointer">
               Launch Estimator
             </Button>
           </Link>
@@ -54,17 +54,17 @@ export default async function PublicEstimatesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in-50 duration-300 font-sans">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">My Estimation Logs</h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">My Estimation Logs</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             Historical registry of project estimates run under your profile account.
           </p>
         </div>
-        <Link href="/dashboard/public/calculator">
-          <Button className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 rounded-xl h-11 px-5">
+        <Link href="/public/calculator">
+          <Button className="bg-primary hover:bg-primary/90 text-white gap-2 rounded-xl h-12 px-5 font-bold shadow-md shadow-primary/10 cursor-pointer">
             <Calculator className="w-5 h-5" />
             New Estimate
           </Button>
@@ -77,23 +77,23 @@ export default async function PublicEstimatesPage() {
         data={calculations}
         emptyMessage="No calculations registered under your account yet."
         renderRow={(calc) => (
-          <TableRow key={calc.id} className="hover:bg-slate-900/20 border-slate-800/60">
-            <TableCell className="font-semibold text-white py-4 pl-6">
+          <TableRow key={calc.id} className="hover:bg-muted/40 border-border">
+            <TableCell className="font-bold text-foreground py-4 pl-6">
               {calc.businessName}
             </TableCell>
-            <TableCell className="text-slate-300 capitalize">{calc.websiteType}</TableCell>
-            <TableCell className="text-slate-300 font-medium">
-              <Badge variant="outline" className="border-indigo-500/20 text-indigo-400 bg-indigo-500/5 hover:bg-transparent">
+            <TableCell className="text-muted-foreground capitalize font-semibold">{calc.websiteType}</TableCell>
+            <TableCell className="text-muted-foreground font-medium">
+              <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 hover:bg-transparent font-bold">
                 {calc.packageName}
               </Badge>
             </TableCell>
-            <TableCell className="text-slate-300 font-medium">{calc.pages} Pages</TableCell>
-            <TableCell className="text-emerald-400 font-bold">{formatCurrency(calc.total)}</TableCell>
-            <TableCell className="text-slate-400">{formatDate(calc.createdAt)}</TableCell>
+            <TableCell className="text-muted-foreground font-semibold">{calc.pages} Pages</TableCell>
+            <TableCell className="text-emerald-600 dark:text-emerald-450 font-extrabold">{formatCurrency(calc.total)}</TableCell>
+            <TableCell className="text-muted-foreground font-medium">{formatDate(calc.createdAt)}</TableCell>
             <TableCell className="text-right py-4 pr-6">
               <div className="flex items-center justify-end gap-2">
-                <Link href={`/dashboard/public/estimates/${calc.id}`}>
-                  <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white rounded-lg">
+                <Link href={`/public/estimates/${calc.id}`}>
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg h-10 w-10 flex items-center justify-center cursor-pointer">
                     <Eye className="w-4 h-4" />
                   </Button>
                 </Link>

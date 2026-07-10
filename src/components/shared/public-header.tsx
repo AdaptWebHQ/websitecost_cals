@@ -17,39 +17,39 @@ export default function PublicHeader() {
     : '/login';
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-900/60 bg-white/85 dark:bg-slate-950/80 backdrop-blur-md transition-colors duration-300">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/85 backdrop-blur-md transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Branding Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg text-slate-900 dark:text-white">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <Link href="/" className="flex items-center gap-2.5 font-bold text-lg text-foreground">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center shadow-md shadow-primary/10">
             <Calculator className="w-5 h-5 text-white" />
           </div>
-          <span>WebCost<span className="text-indigo-600 dark:text-indigo-400 font-medium">Pro</span></span>
+          <span>WebCost<span className="text-primary font-semibold">Pro</span></span>
         </Link>
 
         {/* Navigation Links */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-500 dark:text-slate-400">
+        <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-muted-foreground">
           <Link 
             href="/about" 
-            className={`hover:text-slate-900 dark:hover:text-white transition-colors ${pathname === '/about' ? 'text-indigo-600 dark:text-indigo-400' : ''}`}
+            className={`hover:text-foreground transition-colors ${pathname === '/about' ? 'text-primary' : ''}`}
           >
             About
           </Link>
           <Link 
             href="/faq" 
-            className={`hover:text-slate-900 dark:hover:text-white transition-colors ${pathname === '/faq' ? 'text-indigo-600 dark:text-indigo-400' : ''}`}
+            className={`hover:text-foreground transition-colors ${pathname === '/faq' ? 'text-primary' : ''}`}
           >
             FAQ
           </Link>
           <Link 
             href="/privacy" 
-            className={`hover:text-slate-900 dark:hover:text-white transition-colors ${pathname === '/privacy' ? 'text-indigo-600 dark:text-indigo-400' : ''}`}
+            className={`hover:text-foreground transition-colors ${pathname === '/privacy' ? 'text-primary' : ''}`}
           >
             Privacy
           </Link>
           <Link 
             href="/terms" 
-            className={`hover:text-slate-900 dark:hover:text-white transition-colors ${pathname === '/terms' ? 'text-indigo-600 dark:text-indigo-400' : ''}`}
+            className={`hover:text-foreground transition-colors ${pathname === '/terms' ? 'text-primary' : ''}`}
           >
             Terms
           </Link>
@@ -64,7 +64,7 @@ export default function PublicHeader() {
             <>
               {user ? (
                 <Link href={dashboardUrl}>
-                  <Button className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-10 px-5 gap-2 text-sm font-semibold shadow-lg shadow-indigo-600/15">
+                  <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-10 px-5 gap-2 text-sm font-semibold shadow-md shadow-primary/10">
                     Enter Dashboard
                     <ArrowRight className="w-4 h-4" />
                   </Button>
@@ -72,12 +72,12 @@ export default function PublicHeader() {
               ) : (
                 <div className="flex items-center gap-2">
                   <Link href="/login">
-                    <Button variant="ghost" className="text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white text-xs font-semibold">
+                    <Button variant="ghost" className="text-muted-foreground hover:text-foreground text-xs font-semibold">
                       Sign In
                     </Button>
                   </Link>
                   <Link href="/register" className="hidden sm:inline-block">
-                    <Button className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-9 px-4 text-xs font-semibold shadow-lg shadow-indigo-600/15">
+                    <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-9 px-4 text-xs font-semibold shadow-md shadow-primary/10">
                       Get Started
                     </Button>
                   </Link>
@@ -88,7 +88,7 @@ export default function PublicHeader() {
 
           {/* Skeleton placeholder while auth state initializes */}
           {isLoading && (
-            <div className="w-28 h-9 bg-slate-200 dark:bg-slate-900 animate-pulse rounded-xl" />
+            <div className="w-24 h-9 bg-muted animate-pulse rounded-xl" />
           )}
         </div>
       </div>

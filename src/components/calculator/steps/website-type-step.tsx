@@ -1,9 +1,17 @@
 'use client';
 
 import { useCalculatorStore } from '@/store/calculator-store';
-import { Button } from '@/components/ui/button';
 import { WEBSITE_TYPES } from '@/constants';
-import { Globe, ArrowLeft } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  ArrowRight,
+  Layers, 
+  ShoppingBag, 
+  Briefcase, 
+  Sparkles, 
+  LayoutGrid, 
+  CheckCircle2 
+} from 'lucide-react';
 
 export default function WebsiteTypeStep() {
   const { websiteType, updateFields, nextStep, prevStep } = useCalculatorStore();
@@ -18,62 +26,84 @@ export default function WebsiteTypeStep() {
     }
   };
 
+  const getTypeIcon = (value: string) => {
+    const v = value.toLowerCase();
+    if (v.includes('saas') || v.includes('product') || v.includes('app') || v.includes('custom')) return <LayoutGrid className="w-6 h-6 text-primary" />;
+    if (v.includes('commerce') || v.includes('shop')) return <ShoppingBag className="w-6 h-6 text-primary" />;
+    if (v.includes('corp') || v.includes('business')) return <Briefcase className="w-6 h-6 text-primary" />;
+    if (v.includes('land') || v.includes('single')) return <Sparkles className="w-6 h-6 text-primary" />;
+    return <Layers className="w-6 h-6 text-primary" />;
+  };
+
+  const selectedType = WEBSITE_TYPES.find(t => t.value === websiteType);
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-white">Select Website Type</h2>
-        <p className="text-sm text-slate-400 mt-1">
-          Choose the architectural type matching your web app needs.
+    <div className="space-y-5 animate-in fade-in duration-500">
+      <div className="text-left">
+        <h2 className="text-sm font-bold text-foreground">Select Website Type</h2>
+        <p className="text-xs text-muted-foreground mt-1 max-w-xl leading-relaxed">
+          Choose the architectural foundation that best aligns with your business goals and operational needs.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Grid of Luminous Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl">
         {WEBSITE_TYPES.map((type) => {
           const isSelected = websiteType === type.value;
           return (
             <button
               key={type.value}
               onClick={() => handleSelect(type.value)}
-              className={`p-5 rounded-2xl text-left border flex items-start gap-4 transition-all ${
-                isSelected
-                  ? 'border-indigo-500 bg-indigo-950/20 text-white shadow-lg'
-                  : 'border-slate-800 bg-slate-900/10 text-slate-400 hover:border-slate-700 hover:text-white'
+              className={`p-4 text-left flex flex-col items-start select-none group relative rounded-lg border transition-colors ${
+                isSelected 
+                  ? 'border-primary bg-card/90 shadow-sm' 
+                  : 'border-border bg-card/65 hover:border-primary/50'
               }`}
             >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shrink-0 mt-0.5 ${
-                isSelected 
-                  ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-400' 
-                  : 'bg-slate-900 border-slate-800 text-slate-500'
-              }`}>
-                <Globe className="w-5 h-5" />
+              {/* Absolute Top-Right Check */}
+              <div className={`absolute top-3 right-3 transition-opacity duration-200 ${isSelected ? 'opacity-100' : 'opacity-0'}`}>
+                <CheckCircle2 className="w-4 h-4 text-primary fill-primary/10" />
               </div>
-              <div className="flex flex-col">
-                <span className="font-semibold text-sm">{type.label}</span>
-                <span className="text-xs text-slate-500 mt-1 leading-normal font-normal">
-                  {type.description}
-                </span>
+
+              {/* Large Icon Container */}
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                {getTypeIcon(type.value)}
               </div>
+
+              <h3 className="font-bold text-xs text-foreground mb-1">{type.label}</h3>
+              <p className="text-[10px] text-muted-foreground leading-normal font-normal">
+                {type.description}
+              </p>
             </button>
           );
         })}
       </div>
 
-      <div className="flex items-center justify-between pt-4">
-        <Button
+      {/* Controls Area */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-6 border-t border-border">
+        <button
           onClick={prevStep}
-          variant="ghost"
-          className="text-slate-400 hover:text-white gap-2"
+          className="w-full sm:w-auto px-4 py-2 rounded-lg border border-border hover:bg-muted text-muted-foreground font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3.5 h-3.5" />
           Back
-        </Button>
-        <Button
-          onClick={handleNext}
-          disabled={!websiteType}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-11 px-8 font-medium disabled:opacity-50"
-        >
-          Next Step
-        </Button>
+        </button>
+
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          {selectedType && (
+            <p className="text-xs text-muted-foreground font-semibold">
+              Selected: <span className="text-primary font-bold">{selectedType.label}</span>
+            </p>
+          )}
+          <button
+            onClick={handleNext}
+            disabled={!websiteType}
+            className="w-full sm:w-auto px-5 py-2 bg-primary text-white font-semibold rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-sm hover:bg-primary/95 transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+          >
+            Continue to Features
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   );

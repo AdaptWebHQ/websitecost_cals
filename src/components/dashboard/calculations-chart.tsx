@@ -126,25 +126,25 @@ export default function CalculationsChart({ calculations }: CalculationsChartPro
   }, [chartData]);
 
   return (
-    <Card className="bg-white dark:bg-slate-900/40 border-slate-250 dark:border-slate-800/80 backdrop-blur-md rounded-2xl p-6 shadow-sm dark:shadow-none">
-      <CardHeader className="p-0 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <Card className="bg-card border border-border rounded-xl p-4 shadow-sm">
+      <CardHeader className="p-0 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Calculator className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+          <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+            <Calculator className="w-4 h-4 text-primary" />
             Calculation Performance
           </CardTitle>
-          <CardDescription className="text-slate-500">
+          <CardDescription className="text-xs text-muted-foreground">
             Monitor calculator tool engagement and volume generated
           </CardDescription>
         </div>
 
         {/* Date Filters Tabs */}
-        <div className="flex flex-wrap gap-1 bg-slate-100 dark:bg-slate-800/40 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/30">
+        <div className="flex flex-wrap gap-0.5 bg-muted p-0.5 rounded-lg border border-border">
           {(
             [
-              { id: '7d', label: 'Last 7 Days' },
-              { id: '30d', label: '30 Days' },
-              { id: '90d', label: '90 Days' },
+              { id: '7d', label: '7D' },
+              { id: '30d', label: '30D' },
+              { id: '90d', label: '90D' },
               { id: 'this_month', label: 'This Month' },
               { id: 'last_month', label: 'Last Month' },
             ] as const
@@ -152,10 +152,10 @@ export default function CalculationsChart({ calculations }: CalculationsChartPro
             <button
               key={opt.id}
               onClick={() => setRange(opt.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+              className={`px-2 py-1 rounded text-[10px] font-semibold transition-colors duration-150 ${
                 range === opt.id
-                  ? 'bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-sm'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white'
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {opt.label}
@@ -166,14 +166,14 @@ export default function CalculationsChart({ calculations }: CalculationsChartPro
 
       <CardContent className="p-0">
         {/* Simple inline range KPI statistics */}
-        <div className="flex items-center gap-6 mb-6 p-4 bg-slate-50/50 dark:bg-slate-800/20 rounded-xl border border-slate-100 dark:border-slate-800/50">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-lg">
-              <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+        <div className="flex items-center gap-4 mb-4 p-3 bg-muted/40 rounded-lg border border-border">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-primary/10 rounded-md">
+              <Calendar className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <div className="text-xs text-slate-500 font-medium">Calculations in Period</div>
-              <div className="text-2xl font-bold text-slate-900 dark:text-white">
+              <div className="text-[10px] text-muted-foreground font-semibold">Calculations in Period</div>
+              <div className="text-xl font-bold text-foreground">
                 {totalCalculationsInRange}
               </div>
             </div>
@@ -181,47 +181,47 @@ export default function CalculationsChart({ calculations }: CalculationsChartPro
         </div>
 
         {/* Chart View */}
-        <div className="h-80 w-full">
+        <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
               <defs>
                 <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.08)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} vertical={false} />
               <XAxis
                 dataKey="date"
-                stroke="#64748b"
-                fontSize={11}
+                stroke="var(--muted-foreground)"
+                fontSize={9}
                 tickLine={false}
                 axisLine={false}
-                dy={10}
+                dy={8}
               />
               <YAxis
-                stroke="#64748b"
-                fontSize={11}
+                stroke="var(--muted-foreground)"
+                fontSize={9}
                 tickLine={false}
                 axisLine={false}
                 allowDecimals={false}
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#0f172a',
-                  border: '1px solid #334155',
-                  borderRadius: '12px',
-                  color: '#f8fafc',
-                  fontSize: '12px',
+                  backgroundColor: 'var(--card)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  color: 'var(--foreground)',
+                  fontSize: '11px',
                 }}
-                cursor={{ stroke: 'rgba(99, 102, 241, 0.15)', strokeWidth: 2 }}
+                cursor={{ stroke: 'var(--border)', strokeWidth: 1.5 }}
               />
               <Area
                 type="monotone"
                 dataKey="count"
                 name="Calculations"
-                stroke="#6366f1"
-                strokeWidth={2}
+                stroke="var(--primary)"
+                strokeWidth={1.5}
                 fillOpacity={1}
                 fill="url(#chartGradient)"
               />

@@ -1,5 +1,7 @@
 import { getServerUser } from '@/actions/auth';
 import { Card } from '@/components/ui/card';
+
+export const dynamic = 'force-dynamic';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { User, Mail, Shield, Calendar } from 'lucide-react';

@@ -35,6 +35,7 @@ export interface Package {
   isPopular: boolean;
   isActive: boolean;
   sortOrder: number;
+  features?: string[];
   createdAt: Date;
   updatedAt: Date;
 }

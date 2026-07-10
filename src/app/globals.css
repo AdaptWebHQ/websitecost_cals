@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -50,89 +50,186 @@
   --color-gold-hover: var(--gold-hover);
   --color-gold-light: var(--gold-light);
 
-  /* Remap slate classes to AdaptWeb glassmorphism colors */
-  --color-slate-50: #fafafa;
-  --color-slate-100: #f4f4f5;
-  --color-slate-200: #e4e4e7;
-  --color-slate-300: #d4d4d8;
-  --color-slate-400: #c2c6d6;
-  --color-slate-450: #a9bad3;
-  --color-slate-500: #8c909f;
-  --color-slate-600: #52525b;
-  --color-slate-700: #3f3f46;
-  --color-slate-800: rgba(255, 255, 255, 0.08); /* Faint glass border */
-  --color-slate-850: rgba(255, 255, 255, 0.04);
-  --color-slate-900: rgba(17, 18, 20, 0.8);      /* Glass panel background */
-  --color-slate-950: #08090a;                     /* Page background */
+  /* Remap slate classes to Premium Enterprise Colors */
+  --color-slate-50: var(--slate-50);
+  --color-slate-100: var(--slate-100);
+  --color-slate-200: var(--slate-200);
+  --color-slate-300: var(--slate-300);
+  --color-slate-400: var(--slate-400);
+  --color-slate-450: var(--slate-450);
+  --color-slate-500: var(--slate-500);
+  --color-slate-600: var(--slate-600);
+  --color-slate-700: var(--slate-700);
+  --color-slate-800: var(--slate-800);
+  --color-slate-850: var(--slate-850);
+  --color-slate-900: var(--slate-900);
+  --color-slate-950: var(--slate-950);
+
+  /* Remap indigo classes to primary theme colors for uniform buttons */
+  --color-indigo-50: var(--slate-50);
+  --color-indigo-100: var(--slate-100);
+  --color-indigo-200: var(--slate-200);
+  --color-indigo-300: var(--slate-300);
+  --color-indigo-400: var(--primary);
+  --color-indigo-500: var(--primary);
+  --color-indigo-600: var(--primary);
+  --color-indigo-700: var(--primary-hover);
+  --color-indigo-800: var(--primary-hover);
+  --color-indigo-900: var(--primary);
+  --color-indigo-950: var(--primary);
+
+  /* Remap emerald (success) classes to brand success (Seal) */
+  --color-emerald-50: var(--slate-50);
+  --color-emerald-100: var(--slate-100);
+  --color-emerald-200: var(--slate-200);
+  --color-emerald-300: var(--slate-300);
+  --color-emerald-400: var(--success);
+  --color-emerald-500: var(--success);
+  --color-emerald-600: var(--success);
+  --color-emerald-700: var(--success);
+  --color-emerald-800: var(--success);
+  --color-emerald-900: var(--success);
+  --color-emerald-950: var(--success);
+
+  /* Remap red (danger) classes to brand destructive (Alert) */
+  --color-red-50: var(--slate-50);
+  --color-red-100: var(--slate-100);
+  --color-red-200: var(--slate-200);
+  --color-red-300: var(--slate-300);
+  --color-red-400: var(--destructive);
+  --color-red-500: var(--destructive);
+  --color-red-600: var(--destructive);
+  --color-red-700: var(--destructive);
+  --color-red-800: var(--destructive);
+  --color-red-900: var(--destructive);
+  --color-red-950: var(--destructive);
 }
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #a855f7;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #a855f7;
-  --chart-1: #a855f7;
-  --chart-2: #8b5cf6;
-  --chart-3: #6366f1;
-  --chart-4: #3b82f6;
-  --chart-5: #0ea5e9;
-  --radius: 1rem;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #a855f7;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #a855f7;
+  --background: #FAFAF8; /* Paper */
+  --foreground: #152238; /* Charter (navy) */
+  --card: #FFFFFF;
+  --card-secondary: #FAFAF8; /* Paper */
+  --card-foreground: #152238;
+  --popover: #FFFFFF;
+  --popover-foreground: #152238;
+  --primary: #152238; /* Charter */
+  --primary-hover: #2F4C6B; /* Ledger Blue */
+  --primary-foreground: #FAFAF8;
+  --secondary: #FAFAF8;
+  --secondary-foreground: #152238;
+  --accent: #2F4C6B; /* Ledger Blue */
+  --accent-foreground: #FAFAF8;
+  --muted: #FAFAF8;
+  --muted-foreground: #5B6D82;
+  --destructive: #8C2F2F; /* Alert */
+  --destructive-foreground: #FAFAF8;
+  --border: #CFD5DE; /* Muted Ledger Blue border */
+  --border-muted: #E2E7ED;
+  --input: #FFFFFF;
+  --ring: #152238;
+  
+  --success: #A9812E; /* Seal */
+  --warning: #A9812E;
+  --info: #2F4C6B;
+
+  --chart-1: #152238; /* Charter */
+  --chart-2: #A9812E; /* Seal */
+  --chart-3: #2F4C6B; /* Ledger Blue */
+  --chart-4: #8C2F2F; /* Alert */
+  --chart-5: #5B6D82;
+  --radius: 1.25rem;
+  
+  --sidebar: #FAFAF8;
+  --sidebar-foreground: #152238;
+  --sidebar-primary: #A9812E;
+  --sidebar-primary-foreground: #FAFAF8;
+  --sidebar-accent: #E5E8EC;
+  --sidebar-accent-foreground: #152238;
+  --sidebar-border: #CFD5DE;
+  --sidebar-ring: #152238;
+
+  --gold: #A9812E;
+  --gold-hover: #926E23;
+  --gold-light: #F7EEDB;
+
+  /* Slate Scale for Light Theme */
+  --slate-50: #FAFAF8;
+  --slate-100: #F2F3F5;
+  --slate-200: #E5E8EC;
+  --slate-300: #CFD5DE;
+  --slate-400: #A2AFBF;
+  --slate-450: #7E8D9F;
+  --slate-500: #5B6D82;
+  --slate-600: #2F4C6B;
+  --slate-700: #152238;
+  --slate-800: #0E1726;
+  --slate-850: #0B111D;
+  --slate-900: #070B13;
+  --slate-950: #070B13;
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #18181b;
-  --card-foreground: #fafafa;
-  --popover: #18181b;
-  --popover-foreground: #fafafa;
-  --primary: #a855f7;
-  --primary-foreground: #ffffff;
-  --secondary: #27272a;
-  --secondary-foreground: #a1a1aa;
-  --muted: #18181b;
-  --muted-foreground: #71717a;
-  --accent: #27272a;
-  --accent-foreground: #fafafa;
-  --destructive: #ef4444;
-  --border: #27272a;
-  --input: #27272a;
-  --ring: #a855f7;
-  --chart-1: #a855f7;
-  --chart-2: #8b5cf6;
-  --chart-3: #6366f1;
-  --chart-4: #3b82f6;
-  --chart-5: #0ea5e9;
-  --sidebar: #18181b;
-  --sidebar-foreground: #fafafa;
-  --sidebar-primary: #a855f7;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #27272a;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #27272a;
-  --sidebar-ring: #a855f7;
+  --background: #0E0F12; /* Deep Charcoal Background */
+  --foreground: #F3F4F6; /* High Contrast White Text */
+  --card: #181A20; /* One level lighter than Surface */
+  --card-secondary: #121418; /* Surface */
+  --card-foreground: #F3F4F6;
+  --popover: #181A20;
+  --popover-foreground: #F3F4F6;
+  --primary: #A9812E; /* Warm Gold Accent */
+  --primary-hover: #C29A3F;
+  --primary-foreground: #0E0F12; /* Dark text on gold */
+  --secondary: #121418; /* Surface Neutral */
+  --secondary-foreground: #F3F4F6;
+  --accent: #A9812E;
+  --accent-foreground: #0E0F12;
+  --muted: #121418;
+  --muted-foreground: #9CA3AF; /* Medium Gray Muted Text */
+  --destructive: #8C2F2F; /* Muted Red Alert */
+  --destructive-foreground: #FAFAF8;
+  --border: #22252C; /* Subtle separation borders */
+  --border-muted: #181A20;
+  --input: #121418;
+  --ring: #A9812E;
+  
+  --success: #A9812E; /* Seal Gold */
+  --warning: #CA8A04;
+  --info: #2F4C6B;
+
+  --chart-1: #A9812E; /* Gold Accent */
+  --chart-2: #2F4C6B; /* Ledger Blue */
+  --chart-3: #8C2F2F; /* Brick Red Alert */
+  --chart-4: #4B5563; /* Muted Gray */
+  --chart-5: #22252C;
+
+  --sidebar: #090A0C; /* Slightly darker than Content */
+  --sidebar-foreground: #F3F4F6;
+  --sidebar-primary: #A9812E;
+  --sidebar-primary-foreground: #0E0F12;
+  --sidebar-accent: #181A20;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #16181D;
+  --sidebar-ring: #A9812E;
+
+  --gold: #A9812E;
+  --gold-hover: #C29A3F;
+  --gold-light: #2D2513;
+
+  /* Slate Scale for Dark Theme - Corporate Charcoal Scale */
+  --slate-50: #F9FAFB;
+  --slate-100: #F3F4F6;
+  --slate-200: #E5E7EB;
+  --slate-300: #D1D5DB;
+  --slate-450: #9CA3AF;
+  --slate-400: #9CA3AF;
+  --slate-500: #6B7280;
+  --slate-600: #4B5563;
+  --slate-700: #22252C;
+  --slate-800: #181A20;
+  --slate-850: #181A20;
+  --slate-900: #121418;
+  --slate-950: #0E0F12;
 }
 
 @layer base {
@@ -140,8 +237,22 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-    background-image: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.02) 0%, transparent 80%);
+    @apply bg-background text-foreground relative min-h-screen;
+    background-image: radial-gradient(circle at 50% 50%, rgba(169, 129, 46, 0.005) 0%, transparent 80%);
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    opacity: 0.005;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    z-index: 9999;
+  }
+  .dark body::before {
+    opacity: 0.01;
   }
   html {
     @apply font-sans;
@@ -151,37 +262,69 @@
 /* Glass-Bento & Dimensional Styles */
 .glass-bento {
   background: var(--card);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(168, 85, 247, 0.08);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.01), 0 4px 12px rgba(0, 0, 0, 0.01);
+  backdrop-filter: blur(16px);
 }
 .dark .glass-bento {
-  background: rgba(24, 24, 27, 0.4);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  background: rgba(14, 19, 30, 0.7);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(16px);
 }
 
-/* Haptic physics shadows */
-.haptic-shadow {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Physical card state animations */
+.haptic-card {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--border);
 }
-.haptic-shadow:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+.haptic-card:hover {
+  transform: translateY(-2px) scale(1.005);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.04);
+  border-color: rgba(47, 76, 107, 0.25);
+}
+.dark .haptic-card:hover {
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.3);
+  border-color: rgba(169, 129, 46, 0.25);
+  background: rgba(24, 32, 48, 0.5);
 }
 
-/* Ambient glow colors */
+/* Selected state with clean border outline (no glowing neon gradients) */
+.selected-card-glow {
+  border-color: transparent !important;
+  position: relative;
+  background-clip: padding-box;
+}
+.selected-card-glow::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px; right: -1px; bottom: -1px;
+  background: var(--primary);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.85;
+}
+.selected-card-glow-inner {
+  background: var(--card);
+  height: 100%;
+  border-radius: inherit;
+}
+.dark .selected-card-glow-inner {
+  background: var(--card-secondary);
+}
+
+/* Ambient glow colors - now muted and premium */
 .ambient-glow-purple {
-  box-shadow: 0 0 40px -10px rgba(168, 85, 247, 0.2);
+  box-shadow: 0 0 50px -12px rgba(169, 129, 46, 0.05);
 }
 .ambient-glow-cyan {
-  box-shadow: 0 0 40px -10px rgba(6, 182, 212, 0.2);
+  box-shadow: 0 0 50px -12px rgba(47, 76, 107, 0.05);
 }
 .ambient-glow-emerald {
-  box-shadow: 0 0 40px -10px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 50px -12px rgba(169, 129, 46, 0.05);
 }
-.ambient-glow-amber {
-  box-shadow: 0 0 40px -10px rgba(245, 158, 11, 0.2);
+.ambient-glow-blue {
+  box-shadow: 0 0 50px -12px rgba(47, 76, 107, 0.05);
 }
 
 /* Priority Pulse Animations */
@@ -189,15 +332,212 @@
   0%, 100% {
     transform: scale(1);
     opacity: 1;
-    filter: drop-shadow(0 0 2px var(--pulse-color, #06b6d4));
+    filter: drop-shadow(0 0 2px var(--primary));
   }
   50% {
-    transform: scale(1.15);
-    opacity: 0.7;
-    filter: drop-shadow(0 0 6px var(--pulse-color, #06b6d4));
+    transform: scale(1.08);
+    opacity: 0.8;
+    filter: drop-shadow(0 0 4px var(--primary));
   }
 }
 
 .pulse-active {
-  animation: breathing-pulse 2s infinite ease-in-out;
+  animation: breathing-pulse 2.5s infinite ease-in-out;
+}
+
+/* ==========================================
+   HANDCRAFTED LIGHT/DARK COMPONENT STYLES
+   ========================================== */
+
+/* Buttons */
+.btn-primary-custom {
+  @apply rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer;
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+.btn-primary-custom:hover {
+  transform: translateY(-1px);
+  background-color: var(--primary-hover, #1D4ED8);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+}
+.dark .btn-primary-custom {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+.dark .btn-primary-custom:hover {
+  transform: translateY(-1px);
+  background-color: var(--primary-hover, #3B82F6);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
+  filter: none;
+}
+
+.btn-secondary-custom {
+  @apply rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer border;
+  background-color: #FFFFFF;
+  border-color: #E5E7EB;
+  color: #111827;
+}
+.btn-secondary-custom:hover {
+  background-color: #F7F7F5;
+  transform: translateY(-1px);
+}
+.dark .btn-secondary-custom {
+  background-color: #151922;
+  border-color: #2E3647;
+  color: #F3F4F6;
+}
+.dark .btn-secondary-custom:hover {
+  border-color: var(--primary);
+  background-color: #1B2130;
+}
+
+/* Cards */
+.card-custom {
+  @apply rounded-lg border transition-colors;
+  background-color: var(--card);
+  border-color: var(--border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+.dark .card-custom {
+  background-color: var(--card);
+  border-color: var(--border);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+/* Inputs */
+.input-custom {
+  @apply rounded-lg transition-colors w-full outline-none border text-xs font-medium;
+  background-color: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+.input-custom::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.75;
+}
+.input-custom:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+.dark .input-custom {
+  background-color: var(--card);
+  border-color: var(--border);
+  color: var(--foreground);
+  box-shadow: none;
+}
+.dark .input-custom::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.5;
+}
+.dark .input-custom:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* Selection Cards */
+.selection-custom {
+  @apply border transition-colors cursor-pointer select-none rounded-lg;
+  border-color: var(--border);
+  background-color: var(--card);
+}
+.selection-custom:hover {
+  border-color: var(--primary);
+  background-color: var(--muted);
+}
+.selection-custom.selected {
+  border-color: var(--primary);
+  background-color: var(--muted);
+  box-shadow: none;
+}
+.dark .selection-custom {
+  border-color: var(--border);
+  background-color: var(--card);
+}
+.dark .selection-custom:hover {
+  border-color: var(--primary);
+  background-color: var(--muted);
+}
+.dark .selection-custom.selected {
+  border-color: var(--primary);
+  background-color: var(--muted);
+  box-shadow: none;
+  transform: none;
+}
+
+/* Progress track */
+.progress-bar-custom {
+  @apply h-full transition-all duration-300 rounded-full;
+  background: var(--primary);
+}
+.dark .progress-bar-custom {
+  background: var(--primary);
+}
+
+/* ==========================================
+   EXECUTIVE VISUAL HIERARCHY & ANIMATIONS
+   ========================================== */
+
+/* Typography Hierarchies */
+.text-title-executive {
+  @apply font-bold tracking-tight text-foreground font-sans;
+  font-family: 'Manrope', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.text-subtitle-executive {
+  @apply text-[9px] font-bold text-primary uppercase tracking-widest block;
+  letter-spacing: 0.12em;
+}
+
+.text-desc-executive {
+  @apply text-xs text-muted-foreground leading-relaxed font-medium;
+}
+
+/* Light Mode Animations */
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+.animate-light-hover {
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.animate-light-hover:hover {
+  border-color: var(--primary);
+}
+
+/* Dark Mode Animations */
+@keyframes border-pulse-subtle {
+  0%, 100% {
+    border-color: var(--border);
+  }
+  50% {
+    border-color: var(--primary);
+  }
+}
+
+.dark .animate-dark-glow {
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.dark .animate-dark-glow:hover {
+  border-color: var(--primary);
+}
+
+/* Page entrance slides */
+@keyframes entrance-slide {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-entrance {
+  animation: entrance-slide 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

@@ -3,10 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useCalculatorStore } from '@/store/calculator-store';
 import { calculateQuotation } from '@/lib/calculations/pricing';
-import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import type { Package, Feature, PriceConfig, Industry, Calculation } from '@/types';
-import { ArrowLeft, Loader2, Sparkles, CheckCircle2, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, CheckCircle2, ChevronRight, ShieldCheck, Cpu } from 'lucide-react';
 import PdfDownloadButton from '../pdf-download-button';
 
 interface SummaryStepProps {
@@ -34,8 +33,6 @@ export default function SummaryStep({
 
   const {
     businessName,
-    businessEmail,
-    businessPhone,
     industryId,
     websiteType,
     packageId,
@@ -61,165 +58,225 @@ export default function SummaryStep({
     customFeatures
   );
 
+  const getTimelineWeeks = () => {
+    let days = selectedPackage?.deliveryDays || 30;
+    if (rushDelivery) days = Math.round(days * 0.6);
+    return `${Math.ceil(days / 7)} Weeks`;
+  };
+
+  const getWebsiteTypeLabel = () => {
+    const vt = websiteType.toLowerCase();
+    if (vt.includes('saas') || vt.includes('app')) return 'SaaS Dashboard';
+    if (vt.includes('commerce') || vt.includes('shop')) return 'E-Commerce Storefront';
+    if (vt.includes('corp') || vt.includes('business')) return 'Corporate Informative';
+    return 'Single Page / Landing';
+  };
+
   if (calcResult) {
     return (
-      <div className="text-center space-y-6 max-w-md mx-auto py-8">
-        <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-450 rounded-full flex items-center justify-center mx-auto animate-bounce">
-          <CheckCircle2 className="w-10 h-10" />
+      <div className="text-center space-y-5 max-w-md mx-auto py-6 animate-in fade-in duration-500">
+        <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-sm">
+          <CheckCircle2 className="w-6 h-6" />
         </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Quotation Generated!</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold text-foreground">Quotation Generated!</h2>
+          <p className="text-xs text-muted-foreground leading-relaxed font-medium">
             Your quotation has been securely calculated, signed, and saved in database records.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border bg-muted p-5 text-left border-dashed">
-          <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 text-xs">
+        <div className="rounded-lg border border-dashed border-border bg-card p-4 text-left shadow-sm">
+          <div className="flex justify-between items-center text-muted-foreground text-xs font-mono">
             <span>Reference ID</span>
-            <span className="font-mono">{calcResult.id}</span>
+            <span className="font-bold text-foreground">{calcResult.id}</span>
           </div>
-          <div className="flex justify-between items-center text-slate-900 dark:text-white font-bold text-lg mt-3 pt-3 border-t border-border">
+          <div className="flex justify-between items-center text-foreground font-bold text-base mt-3 pt-3 border-t border-border">
             <span>Total Cost</span>
-            <span className="text-primary">{formatCurrency(calcResult.total)}</span>
+            <span className="text-primary font-extrabold">{formatCurrency(calcResult.total)}</span>
           </div>
         </div>
 
-        <div className="pt-4 flex flex-col gap-3">
-          <Button
+        <div className="pt-3 flex flex-col gap-2.5">
+          <button
             onClick={() => {
               reset();
               router.push('/public/estimates');
             }}
-            className="bg-primary hover:bg-primary/95 text-white rounded-xl h-11 w-full gap-2 font-semibold"
+            className="bg-primary hover:bg-primary/95 text-white rounded-lg h-9 w-full flex items-center justify-center gap-1.5 font-semibold shadow-sm cursor-pointer text-xs"
           >
             Go to My Estimates
-            <ChevronRight className="w-4 h-4" />
-          </Button>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
           <PdfDownloadButton calculationId={calcResult.id} businessName={calcResult.businessName} />
         </div>
       </div>
     );
   }
 
+  const moduleCount = selectedFeatures.length + customFeatures.length;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 animate-in fade-in duration-500">
       {errorMessage && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-sm font-medium">
+        <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-xs font-bold">
           {errorMessage}
         </div>
       )}
 
-      <div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Quotation Summary</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Review your selection and final estimate details.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        {/* Selection Details */}
-        <div className="space-y-4 rounded-2xl border border-border bg-secondary/50 p-5">
-          <h3 className="text-xs font-bold text-primary uppercase tracking-wider mb-2">
-            Selected Options
-          </h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between border-b border-border pb-2">
-              <span className="text-slate-500">Business Name</span>
-              <span className="text-slate-900 dark:text-slate-300 font-medium text-right max-w-[200px] truncate">
-                {businessName}
-              </span>
-            </div>
-            <div className="flex justify-between border-b border-border pb-2">
-              <span className="text-slate-500">Industry Segment</span>
-              <span className="text-slate-900 dark:text-slate-300 font-medium">{selectedIndustry.name}</span>
-            </div>
-            <div className="flex justify-between border-b border-border pb-2">
-              <span className="text-slate-500">Website Architectural Type</span>
-              <span className="text-slate-900 dark:text-slate-300 font-medium capitalize">{websiteType}</span>
-            </div>
-            <div className="flex justify-between border-b border-border pb-2">
-              <span className="text-slate-500">Quotation Baseline Tier</span>
-              <span className="text-slate-900 dark:text-slate-300 font-medium">{selectedPackage.name}</span>
-            </div>
-            <div className="flex justify-between border-b border-border pb-2">
-              <span className="text-slate-500">Unique Pages</span>
-              <span className="text-slate-900 dark:text-slate-300 font-medium">{pages} Pages</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-slate-500">Delivery Urgence</span>
-              <span className="text-slate-900 dark:text-slate-300 font-medium">
-                {rushDelivery ? 'Rush (Priority)' : 'Standard Delivery'}
-              </span>
-            </div>
-          </div>
+      {/* Header wrapper */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-sm font-bold text-foreground">Final Summary & Generation</h2>
+          <p className="text-xs text-muted-foreground mt-1 max-w-xl leading-relaxed">
+            Review your custom solution and generate your executive quotation.
+          </p>
         </div>
-
-        {/* Pricing Calculations */}
-        <div className="space-y-4 rounded-2xl border border-border bg-secondary/50 p-5">
-          <h3 className="text-xs font-bold text-primary uppercase tracking-wider mb-2">
-            Cost Computations
-          </h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between text-slate-500">
-              <span>Package Base Price</span>
-              <span className="text-slate-900 dark:text-slate-300 font-medium">{formatCurrency(pricing.basePrice)}</span>
-            </div>
-            {pricing.featuresPrice > 0 && (
-              <div className="flex justify-between text-slate-500">
-                <span>Features & Integrations ({selectedFeatures.length + customFeatures.length})</span>
-                <span className="text-slate-900 dark:text-slate-300 font-medium">{formatCurrency(pricing.featuresPrice)}</span>
-              </div>
-            )}
-            <div className="flex justify-between text-slate-900 dark:text-white border-t border-border pt-2 font-semibold">
-              <span>Subtotal</span>
-              <span>{formatCurrency(pricing.subtotal)}</span>
-            </div>
-            {pricing.rushMarkup > 0 && (
-              <div className="flex justify-between text-amber-600 dark:text-amber-500">
-                <span>Rush Markup ({priceConfig.rushDeliveryPercentage}%)</span>
-                <span>{formatCurrency(pricing.rushMarkup)}</span>
-              </div>
-            )}
-            <div className="flex justify-between text-slate-500">
-              <span>GST ({priceConfig.gstPercentage}%)</span>
-              <span className="text-slate-900 dark:text-slate-300 font-medium">{formatCurrency(pricing.gstAmount)}</span>
-            </div>
-            <div className="flex justify-between text-slate-900 dark:text-white font-bold text-lg pt-3 border-t border-border">
-              <span>Estimated Quote</span>
-              <span className="text-primary">{formatCurrency(pricing.total)}</span>
-            </div>
-          </div>
+        <div className="bg-primary/5 border border-primary/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-primary font-semibold text-[9px] uppercase tracking-wider shrink-0">
+          <ShieldCheck className="w-3.5 h-3.5" />
+          Your quotation has been securely calculated.
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-border">
-        <Button
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        {/* Left column options */}
+        <div className="lg:col-span-7 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Core Scope */}
+            <div className="bg-card rounded-lg p-4 border border-border flex flex-col justify-between">
+              <span className="text-[9px] font-bold text-primary uppercase tracking-widest block mb-3">Core Scope</span>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between items-center border-b border-border pb-2">
+                  <span className="text-muted-foreground font-medium">Industry</span>
+                  <span className="text-foreground font-bold text-right">{selectedIndustry.name}</span>
+                </div>
+                <div className="flex justify-between items-center pb-1">
+                  <span className="text-muted-foreground font-medium">Platform Type</span>
+                  <span className="text-foreground font-bold">{getWebsiteTypeLabel()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Service Level */}
+            <div className="bg-card rounded-lg p-4 border border-border flex flex-col justify-between">
+              <span className="text-[9px] font-bold text-primary uppercase tracking-widest block mb-3">Service Level</span>
+              <div>
+                <h4 className="font-bold text-foreground text-xs">{selectedPackage.name}</h4>
+                <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{selectedPackage.description}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Module Selection */}
+          <div className="bg-card rounded-lg p-4 border border-border space-y-3">
+            <span className="text-[9px] font-bold text-primary uppercase tracking-widest block">Module Selection</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {selectedFeatures.map((feat) => (
+                <div key={feat.id} className="p-2 bg-muted/40 rounded-lg flex items-center gap-1.5 border border-border">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span className="text-xs font-semibold text-foreground/80">{feat.name}</span>
+                </div>
+              ))}
+              {customFeatures.map((cf) => (
+                <div key={cf.id} className="p-2 bg-muted/40 rounded-lg flex items-center gap-1.5 border border-border">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span className="text-xs font-semibold text-foreground/80">{cf.name} (Custom)</span>
+                </div>
+              ))}
+              {selectedFeatures.length === 0 && customFeatures.length === 0 && (
+                <p className="text-xs text-muted-foreground font-medium col-span-2">No additional feature modules selected.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Innovation Banner */}
+          <div className="p-4 bg-muted rounded-lg border border-border space-y-1.5">
+            <h4 className="font-bold text-xs text-foreground">Innovation by Design.</h4>
+            <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">
+              AdaptWeb uses proprietary architectures to ensure your digital ecosystem grows with your ambitions.
+            </p>
+          </div>
+        </div>
+
+        {/* Right column investment sidebar */}
+        <div className="lg:col-span-5">
+          <div className="bg-card rounded-lg p-4 border border-border shadow-sm space-y-4">
+            <h3 className="text-xs font-bold tracking-tight text-foreground">Investment Analysis</h3>
+
+            <div className="space-y-2.5 pb-4 border-b border-border text-xs">
+              <div className="flex justify-between text-muted-foreground font-medium">
+                <span>Base Infrastructure</span>
+                <span className="text-foreground font-bold">{formatCurrency(pricing.basePrice)}</span>
+              </div>
+              {pricing.featuresPrice > 0 && (
+                <div className="flex justify-between text-muted-foreground font-medium">
+                  <span>Module Subtotal ({moduleCount})</span>
+                  <span className="text-foreground font-bold">{formatCurrency(pricing.featuresPrice)}</span>
+                </div>
+              )}
+              {pricing.rushMarkup > 0 && (
+                <div className="flex justify-between items-center text-primary font-bold">
+                  <span className="flex items-center gap-1.5">
+                    Expedited Delivery
+                    <span className="text-[8px] bg-primary/10 border border-primary/20 px-1 py-0.5 rounded uppercase">RUSH</span>
+                  </span>
+                  <span>+ {formatCurrency(pricing.rushMarkup)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-muted-foreground font-medium">
+                <span>GST ({priceConfig.gstPercentage}%)</span>
+                <span className="text-foreground font-bold">{formatCurrency(pricing.gstAmount)}</span>
+              </div>
+            </div>
+
+            {/* Total project estimate block */}
+            <div className="p-3 bg-muted/40 rounded-lg flex items-center justify-between border border-border">
+              <div className="space-y-0.5">
+                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider block">TOTAL PROJECT ESTIMATE</span>
+                <span className="text-base font-bold text-foreground">{formatCurrency(pricing.total)}</span>
+              </div>
+              <div className="text-right space-y-0.5">
+                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider block">ESTIMATED TIMELINE</span>
+                <span className="text-xs font-bold text-primary">{getTimelineWeeks()}</span>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-1">
+              <button
+                type="button"
+                onClick={onFinalize}
+                disabled={isLoading}
+                className="w-full h-9 bg-primary text-white font-semibold rounded-lg flex items-center justify-center gap-1.5 hover:bg-primary/95 transition-colors shadow-sm disabled:opacity-50 cursor-pointer text-xs"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Finalize & Generate Quotation
+                  </>
+                )}
+              </button>
+              <p className="text-[9px] text-center text-muted-foreground leading-normal font-medium">
+                Quote valid for 14 business days. Secure PDF will be generated instantly.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Back button */}
+      <div className="flex justify-between items-center pt-4 border-t border-border max-w-7xl mx-auto">
+        <button
           onClick={prevStep}
           disabled={isLoading}
-          variant="ghost"
-          className="text-slate-500 hover:text-slate-900 dark:hover:text-white gap-2 disabled:opacity-50"
+          className="px-4 py-2 rounded-lg border border-border hover:bg-muted text-muted-foreground font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-xs disabled:opacity-50"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Button>
-        <Button
-          onClick={onFinalize}
-          disabled={isLoading}
-          className="bg-primary hover:bg-primary/95 text-white rounded-xl h-11 px-8 font-medium gap-2 disabled:opacity-50"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Sparkles className="w-4 h-4" />
-              Finalize & Generate Quotation
-            </>
-          )}
-        </Button>
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Previous Step
+        </button>
       </div>
     </div>
   );

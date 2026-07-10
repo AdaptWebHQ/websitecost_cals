@@ -18,6 +18,7 @@ interface AuthContextType {
   error: string | null;
   setError: (error: string | null) => void;
   loginWithGoogle: (isRegistering?: boolean) => Promise<{ success: boolean; error?: string }>;
+  loginMock: (role: 'admin' | 'public') => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
 }
 
@@ -44,6 +45,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
           }
         } else {
+          // Keep active mock sessions in dev instead of wiping them
+          const cookieToken = document.cookie.split('; ').find(row => row.startsWith('webcost_session_token='));
+          if (cookieToken && cookieToken.split('=')[1].startsWith('mock_')) {
+            // Already logged in with mock
+            return;
+          }
           await clearSession();
           setUser(null);
         }
@@ -86,6 +93,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginMock = async (role: 'admin' | 'public'): Promise<{ success: boolean; error?: string }> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const idToken = role === 'admin' 
+        ? 'mock_admin:admin_uid:admin@example.com:Admin User'
+        : 'mock_public:public_uid:public@example.com:Public User';
+      const result = await setSession(idToken, false);
+      
+      if (result.success && result.user) {
+        setUser(result.user);
+        setIsLoading(false);
+        return { success: true };
+      } else {
+        const errMessage = result.error || 'Failed to authenticate mock user on the server';
+        setError(errMessage);
+        setIsLoading(false);
+        return { success: false, error: errMessage };
+      }
+    } catch (err: unknown) {
+      console.error('Mock login action error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sign in with Mock';
+      setError(errorMessage);
+      setIsLoading(false);
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const logout = async () => {
     setIsLoading(true);
     try {
@@ -109,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error,
         setError,
         loginWithGoogle,
+        loginMock,
         logout,
       }}
     >

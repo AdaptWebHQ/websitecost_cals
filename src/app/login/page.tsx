@@ -9,7 +9,7 @@ import { Shield, Sparkles } from 'lucide-react';
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, loginWithGoogle, isLoading, error, setError } = useAuth();
+  const { user, loginWithGoogle, loginMock, isLoading, error, setError } = useAuth();
   const [authError, setAuthError] = useState<string | null>(null);
 
   // Clear errors on load
@@ -30,6 +30,14 @@ function LoginFormContent() {
     const res = await loginWithGoogle();
     if (!res.success) {
       setAuthError(res.error || 'Authentication failed. Please check your credentials or access rights.');
+    }
+  };
+
+  const handleMockSignIn = async (role: 'admin' | 'public') => {
+    setAuthError(null);
+    const res = await loginMock(role);
+    if (!res.success) {
+      setAuthError(res.error || 'Mock authentication failed.');
     }
   };
 
@@ -90,6 +98,24 @@ function LoginFormContent() {
               </>
             )}
           </Button>
+
+          {/* Dev Bypass Section */}
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => handleMockSignIn('admin')}
+              disabled={isLoading}
+              className="flex-1 py-2 px-3 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700/50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Dev Bypass: Admin
+            </button>
+            <button
+              onClick={() => handleMockSignIn('public')}
+              disabled={isLoading}
+              className="flex-1 py-2 px-3 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700/50 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Dev Bypass: Public
+            </button>
+          </div>
 
           <div className="relative flex items-center py-2">
             <div className="flex-grow border-t border-slate-800"></div>

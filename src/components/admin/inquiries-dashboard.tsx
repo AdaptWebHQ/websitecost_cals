@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { 
   collection, 
   query, 
@@ -15,7 +16,8 @@ import {
   updateInquiryStatusAction, 
   updateInquiryTemperatureAction, 
   deleteInquiryAction,
-  addInquiryNoteAction
+  addInquiryNoteAction,
+  createInquiryAction
 } from '@/actions/inquiries';
 import { 
   Search, 
@@ -37,7 +39,9 @@ import {
   Phone, 
   Clock, 
   ExternalLink,
-  Plus
+  Plus,
+  Loader2,
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -59,6 +63,58 @@ export default function InquiriesDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // New Inquiry form state
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [budget, setBudget] = useState('$10k - $25k');
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('new') === 'true') {
+      setShowCreateForm(true);
+    }
+  }, [searchParams]);
+
+  const handleCreateInquiry = async (status: 'new' | 'contacted' = 'new') => {
+    if (!name.trim() || !company.trim() || !email.trim() || !phone.trim() || !message.trim()) {
+      setSubmitError('All fields are required.');
+      return;
+    }
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const response = await createInquiryAction({
+        name: name.trim(),
+        company: company.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        budget,
+        message: message.trim(),
+      });
+      if (response.success) {
+        setName('');
+        setCompany('');
+        setEmail('');
+        setPhone('');
+        setMessage('');
+        setShowCreateForm(false);
+      } else {
+        setSubmitError(response.error || 'Failed to submit inquiry.');
+      }
+    } catch (err) {
+      setSubmitError('An unexpected error occurred.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -278,6 +334,227 @@ export default function InquiriesDashboard() {
     }
   };
 
+  if (showCreateForm) {
+    return (
+      <div className="space-y-8 min-h-screen text-foreground font-sans pb-12 relative animate-in fade-in duration-500">
+        {/* Soft background glow */}
+        <div className="absolute top-[-5%] left-[10%] w-[35%] h-[35%] bg-primary/5 rounded-full blur-[130px] pointer-events-none -z-20" />
+
+        {/* Back navigation */}
+        <button
+          onClick={() => {
+            setShowCreateForm(false);
+            setSubmitError(null);
+          }}
+          className="flex items-center gap-1.5 text-[10px] font-bold text-primary hover:opacity-85 transition-opacity cursor-pointer uppercase tracking-widest"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back to Inquiries
+        </button>
+
+        {/* Heading */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-extrabold tracking-tight">New Consultation Inquiry</h1>
+          <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed">
+            Initialize a new strategic consultation request. This form captures high-level executive requirements to match your project with our senior leadership team.
+          </p>
+        </div>
+
+        {submitError && (
+          <div className="p-4 bg-destructive/10 border border-destructive/20 text-destructive rounded-xl text-xs font-bold max-w-5xl">
+            {submitError}
+          </div>
+        )}
+
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl items-start">
+          {/* Left Column Form */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Identity & Contact Card */}
+            <div className="bg-card rounded-2xl p-6 border border-border space-y-6 shadow-sm">
+              <h3 className="text-xs font-bold text-primary uppercase tracking-widest border-l-2 border-primary pl-2.5">
+                Identity & Contact
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Full Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Julian Montgomery"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Company</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Quantum Dynamics Inc."
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Email Address</label>
+                  <input
+                    type="email"
+                    placeholder="j.montgomery@quantum.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Phone Number</label>
+                  <input
+                    type="tel"
+                    placeholder="+1 (555) 000-0000"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full h-11 px-4 rounded-xl border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Project Parameters Card */}
+            <div className="bg-card rounded-2xl p-6 border border-border space-y-6 shadow-sm">
+              <h3 className="text-xs font-bold text-primary uppercase tracking-widest border-l-2 border-primary pl-2.5">
+                Project Parameters
+              </h3>
+
+              {/* Budget selector buttons */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Target Budget Range</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {['$10k - $25k', '$25k - $50k', '$50k - $100k', '$100k+'].map((range) => {
+                    const isSelected = budget === range;
+                    return (
+                      <button
+                        key={range}
+                        type="button"
+                        onClick={() => setBudget(range)}
+                        className={`py-3 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-primary text-white border-primary shadow-sm'
+                            : 'border-border bg-card text-muted-foreground hover:border-primary/40'
+                        }`}
+                      >
+                        {range}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Requirements textarea */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Detailed Requirements</label>
+                <textarea
+                  rows={6}
+                  placeholder="Please describe the core challenges, project scope, and desired outcomes..."
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="w-full p-4 rounded-xl border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50 resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Form submit controls */}
+            <div className="flex justify-between items-center pt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setSubmitError(null);
+                }}
+                className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
+              >
+                Cancel Draft
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCreateInquiry()}
+                disabled={isSubmitting}
+                className="px-8 py-3 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/10 hover:shadow-primary/30 transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer text-xs"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    Submit Inquiry
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Right Column Info panels */}
+          <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-28">
+            {/* Response Timeline Info Box */}
+            <div className="p-5 bg-card border border-border rounded-2xl space-y-3.5 shadow-sm">
+              <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Response Timeline
+              </h4>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Our typical executive review turnaround for new inquiries is <span className="font-bold text-primary">24-48 business hours</span>.
+              </p>
+              <div className="pt-2 border-t border-border/80 flex items-center justify-between text-[9px] font-bold text-muted-foreground tracking-wider uppercase">
+                <span>QUEUE STATUS:</span>
+                <span className="text-emerald-500">4 ACTIVE REVIEWS</span>
+              </div>
+            </div>
+
+            {/* Expertise Focus */}
+            <div className="p-5 bg-card border border-border rounded-2xl space-y-4 shadow-sm">
+              <h4 className="text-xs font-bold text-foreground">Expertise Focus</h4>
+              
+              <div className="space-y-3 text-[11px] leading-relaxed">
+                <div className="flex gap-2.5 items-start">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-foreground block">Systems Architecture</span>
+                    <span className="text-muted-foreground">High-load distributed network planning.</span>
+                  </div>
+                </div>
+                <div className="flex gap-2.5 items-start">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-foreground block">Market Strategy</span>
+                    <span className="text-muted-foreground">SaaS scaling and product positioning.</span>
+                  </div>
+                </div>
+                <div className="flex gap-2.5 items-start">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-foreground block">Data Compliance</span>
+                    <span className="text-muted-foreground">GDPR and international data protocols.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Graphic card */}
+            <div className="p-6 bg-gradient-to-br from-primary to-[#712ae2] text-white rounded-2xl space-y-2 shadow-md">
+              <h4 className="font-extrabold text-sm leading-tight">Empowering Global Scale Consulting</h4>
+              <p className="text-[10px] text-white/80 leading-relaxed font-medium">
+                Designing systems optimized for conversions, robust security auditing, and seamless API / CRM orchestrations.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 min-h-screen text-foreground font-sans pb-12 relative">
       {/* Background Soft Glow */}
@@ -293,13 +570,22 @@ export default function InquiriesDashboard() {
             Track inquiries, manage temperatures, and optimize conversions for AdaptWeb.
           </p>
         </div>
-        <button 
-          onClick={handleRefresh}
-          className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-card border border-border hover:border-cyan-500/30 text-foreground transition-all shadow-sm cursor-pointer"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setShowCreateForm(true)}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-primary hover:bg-primary/95 text-white transition-all shadow-md cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            New Inquiry
+          </button>
+          <button 
+            onClick={handleRefresh}
+            className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-card border border-border hover:border-cyan-500/30 text-foreground transition-all shadow-sm cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* KPI Bento Grid */}

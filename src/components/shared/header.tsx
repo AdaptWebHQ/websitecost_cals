@@ -11,11 +11,12 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Bell, LogOut, Search, User, Settings, ShieldAlert, Sun, Moon } from 'lucide-react';
+import { Bell, LogOut, Search, User, Settings, ShieldAlert, Sun, Moon, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { capitalize } from '@/lib/utils';
 import { useTitleStore } from '@/store/title-store';
 import { useTheme } from '@/context/theme-context';
+import { useSidebarStore } from '@/store/sidebar-store';
 
 export default function Header() {
   const pathname = usePathname();
@@ -23,6 +24,7 @@ export default function Header() {
   const { user, logout } = useAuth();
   const { title } = useTitleStore();
   const { theme, toggleTheme } = useTheme();
+  const { toggle: toggleSidebar } = useSidebarStore();
 
   // Derive title from URL pathname
   const segments = pathname.split('/').filter(Boolean);
@@ -37,10 +39,18 @@ export default function Header() {
   };
 
   return (
-    <header className="h-16 border-b border-sidebar-border bg-sidebar px-6 flex items-center justify-between z-10">
+    <header className="h-16 border-b border-sidebar-border bg-sidebar px-6 flex items-center justify-between z-10 flex-shrink-0">
       
-      {/* Title */}
-      <div className="flex items-center gap-2">
+      {/* Title & Mobile Hamburger Trigger */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          aria-label="Toggle navigation menu"
+          className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg md:hidden cursor-pointer transition-colors"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
         <h2 className="text-lg font-bold text-sidebar-foreground tracking-wide">{displayTitle}</h2>
       </div>
 
@@ -53,7 +63,7 @@ export default function Header() {
           <input
             type="text"
             placeholder="Quick search..."
-            className="w-full h-9 bg-background border border-sidebar-border rounded-xl pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-indigo-500/50 transition-colors"
+            className="w-full h-9 bg-background border border-sidebar-border rounded-xl pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 transition-colors"
           />
         </div>
 
@@ -64,7 +74,7 @@ export default function Header() {
           className="relative text-slate-400 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-xl"
         >
           <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full animate-pulse" />
         </Button>
 
         {/* Theme Toggle Button */}
@@ -96,7 +106,7 @@ export default function Header() {
                   />
                 </>
               ) : (
-                <div className="flex items-center justify-center w-full h-full bg-indigo-600/20 text-indigo-400 font-bold">
+                <div className="flex items-center justify-center w-full h-full bg-primary/20 text-primary font-bold">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -134,8 +144,8 @@ export default function Header() {
 
               {/* Admin warning marker */}
               {(user.role === 'admin' || user.role === 'super_admin') && (
-                <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-default py-2.5 text-indigo-400 font-semibold bg-indigo-500/5">
-                  <ShieldAlert className="mr-2 h-4 w-4 text-indigo-400" />
+                <DropdownMenuItem className="hover:bg-accent hover:text-accent-foreground cursor-default py-2.5 text-primary font-semibold bg-primary/5">
+                  <ShieldAlert className="mr-2 h-4 w-4 text-primary" />
                   <span>Admin Panel Access</span>
                 </DropdownMenuItem>
               )}

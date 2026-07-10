@@ -45,6 +45,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
   const [revisions, setRevisions] = useState(3);
   const [isPopular, setIsPopular] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [featuresText, setFeaturesText] = useState('');
 
   const openAddModal = () => {
     setEditingPackage(null);
@@ -56,6 +57,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
     setRevisions(3);
     setIsPopular(false);
     setIsActive(true);
+    setFeaturesText('');
     setErrorMsg(null);
     setIsModalOpen(true);
   };
@@ -70,6 +72,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
     setRevisions(pkg.revisions);
     setIsPopular(pkg.isPopular);
     setIsActive(pkg.isActive);
+    setFeaturesText((pkg.features || []).join('\n'));
     setErrorMsg(null);
     setIsModalOpen(true);
   };
@@ -78,6 +81,11 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg(null);
+
+    const features = featuresText
+      .split('\n')
+      .map((f) => f.trim())
+      .filter(Boolean);
 
     const formData = {
       name,
@@ -88,6 +96,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
       revisions,
       isPopular,
       isActive,
+      features,
       sortOrder: editingPackage ? editingPackage.sortOrder : packages.length,
     };
 
@@ -256,6 +265,16 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Summarize target audience and main values..."
+                className="bg-background border-border text-foreground rounded-xl"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-muted-foreground text-xs">Included Features / Bullets (One per line)</Label>
+              <Textarea
+                rows={3}
+                value={featuresText}
+                onChange={(e) => setFeaturesText(e.target.value)}
+                placeholder="e.g.&#10;Up to 5 Responsive Pages&#10;Basic SEO Optimization"
                 className="bg-background border-border text-foreground rounded-xl"
               />
             </div>

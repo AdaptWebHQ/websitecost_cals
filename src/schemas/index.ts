@@ -14,6 +14,7 @@ export const packageSchema = z.object({
   isPopular: z.boolean().default(false),
   isActive: z.boolean().default(true),
   sortOrder: z.coerce.number().min(0).default(0),
+  features: z.array(z.string()).optional().default([]),
 });
 
 export type PackageFormData = z.infer<typeof packageSchema>;

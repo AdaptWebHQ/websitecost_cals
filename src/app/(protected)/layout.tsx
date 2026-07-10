@@ -42,7 +42,7 @@ export default function DashboardLayout({
         <Header />
 
         {/* Dashboard Content Container */}
-        <main className="flex-1 overflow-y-auto bg-background p-6 md:p-8">
+        <main className="flex-1 overflow-y-auto bg-background p-4 md:p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             {children}
           </div>

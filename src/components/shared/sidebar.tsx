@@ -1,11 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { ADMIN_NAV_ITEMS, PUBLIC_NAV_ITEMS } from '@/constants';
-import * as Icons from 'lucide-react';
+import { useSidebarStore } from '@/store/sidebar-store';
+import { 
+  LayoutGrid, 
+  MessageSquare, 
+  Coins, 
+  Settings, 
+  BarChart3, 
+  HelpCircle, 
+  LogOut, 
+  Plus, 
+  ChevronLeft, 
+  ChevronRight,
+  Calculator,
+  FolderTree,
+  User,
+  Building2
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarProps {
@@ -14,119 +29,308 @@ interface SidebarProps {
 
 export default function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isOpen, setIsOpen } = useSidebarStore();
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1280) {
+        setIsCollapsed(false);
+      } else if (window.innerWidth >= 768) {
+        setIsCollapsed(true);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const role = user?.role || 'public';
-  const navItems = role === 'admin' || role === 'super_admin' ? ADMIN_NAV_ITEMS : PUBLIC_NAV_ITEMS;
+  const isAdmin = role === 'admin' || role === 'super_admin';
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/login');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
 
   return (
-    <aside
-      className={cn(
-        'relative h-full flex flex-col transition-all duration-300 ease-in-out z-20 flex-shrink-0',
-        'bg-sidebar border-r border-sidebar-border',
-        isCollapsed ? 'w-[72px]' : 'w-64',
-        className
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden animate-in fade-in duration-200"
+          onClick={() => setIsOpen(false)}
+        />
       )}
-    >
-      {/* Collapse/Expand Handle — anchored to right edge of sidebar */}
-      <button
-        onClick={() => setIsCollapsed((p) => !p)}
-        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        className="absolute -right-3 top-[72px] z-30 w-6 h-6 rounded-full bg-sidebar border border-sidebar-border shadow-md flex items-center justify-center text-slate-400 hover:text-sidebar-foreground hover:bg-indigo-600 hover:border-indigo-500 transition-all duration-200"
-      >
-        {isCollapsed ? (
-          <Icons.ChevronRight className="w-3 h-3" />
-        ) : (
-          <Icons.ChevronLeft className="w-3 h-3" />
+
+      <aside
+        className={cn(
+          'h-full flex flex-col transition-all duration-300 ease-in-out text-sidebar-foreground bg-sidebar border-r border-sidebar-border',
+          // Desktop & Mobile display states
+          isOpen ? 'flex' : 'hidden md:flex',
+          // Desktop sizing
+          'relative z-20 flex-shrink-0',
+          isCollapsed ? 'md:w-[72px]' : 'md:w-64',
+          // Mobile absolute positioning
+          'fixed md:relative inset-y-0 left-0 z-50 transform md:transform-none w-64 md:w-auto',
+          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+          className
         )}
-      </button>
-
-      {/* Brand Header */}
-      <div className="h-16 flex items-center px-4 border-b border-sidebar-border flex-shrink-0">
-        <Link href="/dashboard" className={cn('flex items-center gap-3 overflow-hidden min-w-0', isCollapsed && 'justify-center w-full')}>
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/20 flex-shrink-0">
-            <Icons.Shield className="w-5 h-5 text-white" />
-          </div>
-          {!isCollapsed && (
-            <span className="font-bold tracking-tight text-sidebar-foreground text-base truncate">
-              WebCost <span className="text-indigo-400">Pro</span>
-            </span>
-          )}
-        </Link>
-      </div>
-
-      {/* Navigation Links */}
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto scrollbar-none">
-        {navItems.map((item) => {
-          const Icon = (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[item.icon] || Icons.HelpCircle;
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={isCollapsed ? item.label : undefined}
-              className={cn(
-                'group relative flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200',
-                isCollapsed ? 'px-0 py-0 justify-center h-11 w-full' : 'px-3.5 py-2.5',
-                isActive
-                  ? 'bg-indigo-600/10 dark:bg-indigo-600/15 text-indigo-600 dark:text-indigo-300'
-                  : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-              )}
-            >
-              {/* Active indicator bar */}
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-indigo-500 rounded-r-full" />
-              )}
-              <Icon
-                className={cn(
-                  'flex-shrink-0 transition-all duration-200',
-                  isCollapsed ? 'w-5 h-5' : 'w-4.5 h-4.5',
-                  isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-muted-foreground group-hover:text-sidebar-accent-foreground'
-                )}
-              />
-              {!isCollapsed && <span className="truncate">{item.label}</span>}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Sidebar Divider */}
-      <div className="border-t border-sidebar-border" />
-
-      {/* Footer User Card */}
-      {user && (
-        <div className={cn('p-3 flex-shrink-0', isCollapsed ? 'flex justify-center' : '')}>
+      >
+        {/* Collapse/Expand Handle (Only shown on Desktop) */}
+        <button
+          onClick={() => setIsCollapsed((p) => !p)}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="hidden md:flex absolute -right-3 top-[72px] z-30 w-6 h-6 rounded-full bg-sidebar border border-sidebar-border shadow-sm items-center justify-center text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer"
+        >
           {isCollapsed ? (
-            <div className="w-9 h-9 rounded-full bg-indigo-600/20 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-sm flex-shrink-0">
-              {user.name.charAt(0).toUpperCase()}
+            <ChevronRight className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronLeft className="w-3.5 h-3.5" />
+          )}
+        </button>
+
+        {/* Brand Header */}
+        <div className="h-20 flex flex-col justify-center px-6 border-b border-[#E2E8F0] dark:border-border flex-shrink-0">
+          {(!isCollapsed || isOpen) ? (
+            <div className="space-y-0.5">
+              <span className="font-extrabold tracking-tight text-foreground text-sm block">
+                AdaptWeb Console
+              </span>
+              <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest block">
+                Executive Suite
+              </span>
             </div>
           ) : (
-            <div className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-sidebar-accent/50 transition-colors cursor-default">
-              {user.profilePicture ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.profilePicture}
-                  alt={user.name}
-                  className="w-9 h-9 rounded-full border border-sidebar-border object-cover flex-shrink-0"
-                />
-              ) : (
-                <div className="w-9 h-9 rounded-full bg-indigo-600/20 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-sm flex-shrink-0">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-sidebar-foreground truncate">{user.name}</p>
-                <p className="text-xs text-muted-foreground truncate capitalize">
-                  {user.role.replace('_', ' ')}
-                </p>
-              </div>
-              <Icons.MoreVertical className="w-4 h-4 text-slate-500 flex-shrink-0" />
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-extrabold text-xs mx-auto">
+              AW
             </div>
           )}
         </div>
-      )}
-    </aside>
+
+      {/* Navigation Links */}
+      <div 
+        onClick={() => setIsOpen(false)} 
+        className="flex-1 py-6 px-3 flex flex-col justify-between overflow-y-auto scrollbar-none"
+      >
+        <div className="space-y-6">
+          {/* Main Links */}
+          <nav className="space-y-1.5">
+            {isAdmin ? (
+              <>
+                {/* Admin Menu */}
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname === '/dashboard'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <LayoutGrid className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Overview</span>}
+                </Link>
+
+                <Link
+                  href="/admin/inquiries"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname.startsWith('/admin/inquiries')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <MessageSquare className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Inquiries</span>}
+                </Link>
+
+                <Link
+                  href="/admin/packages"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname.startsWith('/admin/packages')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <Coins className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Pricing Rules</span>}
+                </Link>
+
+                <Link
+                  href="/admin/features"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname.startsWith('/admin/features')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <FolderTree className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Features</span>}
+                </Link>
+
+                <Link
+                  href="/admin/price-config"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname.startsWith('/admin/price-config')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <Settings className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Project Metadata</span>}
+                </Link>
+
+                <Link
+                  href="/admin/industries"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname.startsWith('/admin/industries')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <Building2 className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Industries</span>}
+                </Link>
+
+                <Link
+                  href="/admin/calculations"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname.startsWith('/admin/calculations')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <Calculator className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Calculations</span>}
+                </Link>
+
+                <Link
+                  href="/admin/reports"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname.startsWith('/admin/reports')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <BarChart3 className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Analytics</span>}
+                </Link>
+
+                <Link
+                  href="/admin/profile"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname.startsWith('/admin/profile')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <User className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Profile</span>}
+                </Link>
+              </>
+            ) : (
+              <>
+                {/* Public Menu */}
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname === '/dashboard'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <LayoutGrid className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Dashboard</span>}
+                </Link>
+
+                <Link
+                  href="/public/calculator"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname === '/public/calculator'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <MessageSquare className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Calculator</span>}
+                </Link>
+
+                <Link
+                  href="/public/estimates"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname.startsWith('/public/estimates')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <BarChart3 className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>My Estimates</span>}
+                </Link>
+              </>
+            )}
+          </nav>
+
+          {/* "+ New Inquiry" Action Button (Admin only) */}
+          {isAdmin && (
+            <div className="pt-2">
+              {!isCollapsed ? (
+                <Link
+                  href="/admin/inquiries?new=true"
+                  className="w-full h-11 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-primary/95 transition-all shadow-md shadow-primary/10 text-xs cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Inquiry
+                </Link>
+              ) : (
+                <Link
+                  href="/admin/inquiries?new=true"
+                  title="New Inquiry"
+                  className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center hover:bg-primary/95 transition-all shadow-md mx-auto cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                </Link>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Utility items */}
+        <div className="space-y-1.5 pt-6 border-t border-sidebar-border">
+          <Link
+            href="/faq"
+            className="group flex items-center gap-3 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground px-3.5 py-3 transition-all"
+          >
+            <HelpCircle className="w-4 h-4 shrink-0" />
+            {!isCollapsed && <span>Help Center</span>}
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="w-full group flex items-center gap-3 rounded-xl text-xs font-bold text-muted-foreground hover:bg-destructive/10 hover:text-destructive px-3.5 py-3 transition-all cursor-pointer text-left"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!isCollapsed && <span>Logout</span>}
+          </button>
+        </div>
+      </div>
+      </aside>
+    </>
   );
 }

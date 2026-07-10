@@ -52,7 +52,7 @@ export default function PdfDownloadButton({ calculationId, businessName }: PdfDo
       <Button
         onClick={handleDownload}
         disabled={isLoading}
-        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-11 px-6 gap-2 font-semibold shadow-lg shadow-indigo-600/10 disabled:opacity-50 flex items-center justify-center"
+        className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl h-12 px-6 gap-2 font-bold shadow-lg shadow-primary/10 disabled:opacity-50 flex items-center justify-center cursor-pointer"
       >
         {isLoading ? (
           <>

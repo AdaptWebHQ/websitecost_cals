@@ -41,12 +41,12 @@ export default async function PublicEstimateDetailPage({ params }: EstimateDetai
   }
 
   return (
-    <div className="space-y-6 pb-12 max-w-4xl mx-auto">
+    <div className="space-y-6 pb-12 max-w-4xl mx-auto animate-in fade-in-50 duration-300 font-sans">
       {/* Dynamic Header Title Override */}
       <PageTitleSetter title={calculation.businessName} />
 
       {/* Back to List */}
-      <Link href="/dashboard/public/estimates" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm">
+      <Link href="/public/estimates" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm font-semibold">
         <ArrowLeft className="w-4 h-4" />
         Back to Estimates
       </Link>
@@ -54,13 +54,13 @@ export default async function PublicEstimateDetailPage({ params }: EstimateDetai
       {/* Header and Download controls */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-2xl font-extrabold tracking-tight text-foreground flex items-center gap-3">
             Quotation Estimate Details
-            <Badge variant="outline" className="border-indigo-500/20 text-indigo-400 bg-indigo-500/5 hover:bg-transparent text-xs select-none">
+            <Badge variant="outline" className="border-primary/20 text-primary bg-primary/5 hover:bg-transparent text-xs select-none font-mono font-bold">
               Ref ID: {calculation.id}
             </Badge>
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Generated on {formatDate(calculation.createdAt)} for {calculation.businessName}.
           </p>
         </div>
@@ -70,43 +70,43 @@ export default async function PublicEstimateDetailPage({ params }: EstimateDetai
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column: Project Config summary */}
         <div className="md:col-span-2 space-y-6">
-          <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur-md rounded-2xl p-6">
-            <h2 className="text-lg font-bold text-white mb-4">Baseline Structure</h2>
+          <Card className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-foreground mb-4">Baseline Structure</h2>
             <div className="grid grid-cols-2 gap-6 text-sm">
               <div>
-                <span className="text-slate-500 text-xs block uppercase tracking-wider font-semibold">Website Type</span>
-                <span className="text-slate-200 font-medium text-base mt-1 block capitalize">{calculation.websiteType}</span>
+                <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Website Type</span>
+                <span className="text-foreground font-semibold text-base mt-1 block capitalize">{calculation.websiteType}</span>
               </div>
               <div>
-                <span className="text-slate-500 text-xs block uppercase tracking-wider font-semibold">Predefined Package</span>
-                <span className="text-indigo-400 font-bold text-base mt-1 block">{calculation.packageName}</span>
+                <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Predefined Package</span>
+                <span className="text-primary font-bold text-base mt-1 block">{calculation.packageName}</span>
               </div>
               <div>
-                <span className="text-slate-500 text-xs block uppercase tracking-wider font-semibold">Target Sector</span>
-                <span className="text-slate-200 font-medium text-base mt-1 block">{calculation.industryName}</span>
+                <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Target Sector</span>
+                <span className="text-foreground font-semibold text-base mt-1 block">{calculation.industryName}</span>
               </div>
               <div>
-                <span className="text-slate-500 text-xs block uppercase tracking-wider font-semibold">Configure Pages</span>
-                <span className="text-slate-200 font-medium text-base mt-1 block">{calculation.pages} Pages</span>
+                <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Configure Pages</span>
+                <span className="text-foreground font-semibold text-base mt-1 block">{calculation.pages} Pages</span>
               </div>
             </div>
           </Card>
 
           {/* Features check list */}
-          <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur-md rounded-2xl p-6">
-            <h2 className="text-lg font-bold text-white mb-4">Integrated Custom Modules</h2>
+          <Card className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-foreground mb-4">Integrated Custom Modules</h2>
             {calculation.selectedFeatures.length === 0 ? (
-              <p className="text-slate-500 text-sm">No custom integrations selected for this estimate.</p>
+              <p className="text-muted-foreground text-sm">No custom integrations selected for this estimate.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {calculation.selectedFeatures.map((feat) => (
-                  <div key={feat.featureId} className="flex items-start gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/20">
-                    <div className="w-5 h-5 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
+                  <div key={feat.featureId} className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-muted/20">
+                    <div className="w-5 h-5 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 mt-0.5">
                       <Check className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <span className="font-semibold text-white text-sm block">{feat.featureName}</span>
-                      <span className="text-xs text-slate-500 capitalize block mt-0.5">
+                      <span className="font-bold text-foreground text-sm block">{feat.featureName}</span>
+                      <span className="text-xs text-muted-foreground capitalize block mt-1">
                         Pricing: {feat.pricingType === 'per_page' ? `${formatCurrency(feat.unitPrice)} / page` : feat.pricingType === 'percentage' ? `${feat.unitPrice}% of base` : formatCurrency(feat.unitPrice)}
                       </span>
                     </div>
@@ -119,41 +119,41 @@ export default async function PublicEstimateDetailPage({ params }: EstimateDetai
 
         {/* Right Column: Pricing Breakdown */}
         <div className="md:col-span-1">
-          <Card className="bg-slate-900/40 border-slate-800/80 backdrop-blur-md rounded-2xl p-6 sticky top-24">
-            <h2 className="text-lg font-bold text-white mb-4">Pricing Breakdown</h2>
+          <Card className="bg-card border border-border rounded-2xl p-6 sticky top-24 shadow-sm">
+            <h2 className="text-lg font-bold text-foreground mb-4">Pricing Breakdown</h2>
             <div className="space-y-4 text-sm">
-              <div className="flex justify-between text-slate-400 pb-2 border-b border-slate-800/60">
+              <div className="flex justify-between items-center text-muted-foreground pb-2 border-b border-border">
                 <span>Base Tier Price</span>
-                <span className="text-slate-200 font-semibold">{formatCurrency(calculation.basePrice || 0)}</span>
+                <span className="text-foreground font-semibold">{formatCurrency(calculation.basePrice || 0)}</span>
               </div>
               
               {calculation.featuresPrice && calculation.featuresPrice > 0 ? (
-                <div className="flex justify-between text-slate-400 pb-2 border-b border-slate-800/60">
+                <div className="flex justify-between items-center text-muted-foreground pb-2 border-b border-border">
                   <span>Custom Modules</span>
-                  <span className="text-slate-200 font-semibold">{formatCurrency(calculation.featuresPrice)}</span>
+                  <span className="text-foreground font-semibold">{formatCurrency(calculation.featuresPrice)}</span>
                 </div>
               ) : null}
 
-              <div className="flex justify-between text-slate-300 font-medium pb-2 border-b border-slate-800/60">
+              <div className="flex justify-between items-center text-foreground font-bold pb-2 border-b border-border">
                 <span>Subtotal</span>
                 <span>{formatCurrency(calculation.subtotal)}</span>
               </div>
 
               {calculation.rushMarkup && calculation.rushMarkup > 0 ? (
-                <div className="flex justify-between text-amber-400 pb-2 border-b border-slate-800/60">
+                <div className="flex justify-between items-center text-amber-600 dark:text-amber-500 font-semibold pb-2 border-b border-border">
                   <span>Rush Markup Charge</span>
                   <span>{formatCurrency(calculation.rushMarkup)}</span>
                 </div>
               ) : null}
 
-              <div className="flex justify-between text-slate-400 pb-2 border-b border-slate-800/60">
+              <div className="flex justify-between items-center text-muted-foreground pb-2 border-b border-border">
                 <span>Integrated GST</span>
-                <span className="text-slate-200 font-semibold">{formatCurrency(calculation.gstAmount)}</span>
+                <span className="text-foreground font-semibold">{formatCurrency(calculation.gstAmount)}</span>
               </div>
 
-              <div className="flex justify-between text-white font-bold text-lg pt-2">
+              <div className="flex justify-between items-center text-foreground font-extrabold text-lg pt-2">
                 <span>Total Quotation</span>
-                <span className="text-indigo-400">{formatCurrency(calculation.total)}</span>
+                <span className="text-primary font-black">{formatCurrency(calculation.total)}</span>
               </div>
             </div>
           </Card>

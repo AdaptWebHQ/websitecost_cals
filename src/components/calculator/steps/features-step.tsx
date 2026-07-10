@@ -3,11 +3,23 @@
 import React, { useState } from 'react';
 import { useCalculatorStore } from '@/store/calculator-store';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { formatCurrency } from '@/lib/utils';
 import type { Feature, FeatureCategory, Package } from '@/types';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  ArrowRight,
+  Plus, 
+  Trash2, 
+  Check, 
+  Mail, 
+  TrendingUp, 
+  FileText, 
+  BarChart2, 
+  Calendar, 
+  CreditCard,
+  PlusCircle,
+  HelpCircle
+} from 'lucide-react';
 
 interface FeaturesStepProps {
   categories: FeatureCategory[];
@@ -68,7 +80,6 @@ export default function FeaturesStep({ categories, features, packages }: Feature
   };
 
   const handleSkip = () => {
-    // Clear both standard selected features and custom features, reset pages count, and proceed
     updateFields({
       selectedFeatureIds: [],
       customFeatures: [],
@@ -77,40 +88,51 @@ export default function FeaturesStep({ categories, features, packages }: Feature
     nextStep();
   };
 
+  const getFeatureIcon = (slug: string) => {
+    const s = slug.toLowerCase();
+    if (s.includes('contact') || s.includes('mail')) return <Mail className="w-5 h-5" />;
+    if (s.includes('seo') || s.includes('search') || s.includes('optimization')) return <TrendingUp className="w-5 h-5" />;
+    if (s.includes('cms') || s.includes('content') || s.includes('blog')) return <FileText className="w-5 h-5" />;
+    if (s.includes('analytics') || s.includes('track') || s.includes('stat')) return <BarChart2 className="w-5 h-5" />;
+    if (s.includes('booking') || s.includes('calendar') || s.includes('schedul')) return <Calendar className="w-5 h-5" />;
+    if (s.includes('payment') || s.includes('checkout') || s.includes('store')) return <CreditCard className="w-5 h-5" />;
+    return <HelpCircle className="w-5 h-5" />;
+  };
+
   const showPageCustomizer = selectedFeatureIds.includes('feat-extra-page');
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 animate-in fade-in duration-500">
       <div>
-        <h2 className="text-xl font-bold text-white">Select Features</h2>
-        <p className="text-sm text-slate-400 mt-1">
-          Choose additional custom components, integrations, and tools.
+        <h2 className="text-sm font-bold text-foreground">Select Features</h2>
+        <p className="text-xs text-muted-foreground mt-1 max-w-xl leading-relaxed">
+          Define the functional core of your digital ecosystem. Choose from our curated high-performance modules or add your own custom specifications.
         </p>
       </div>
 
       {/* Page Count Customizer (Only visible when 'Extra Page' feature is selected) */}
       {showPageCustomizer && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/10 p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="rounded-lg border border-border bg-card/65 p-4 space-y-3 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-white">Website Size (Pages)</h3>
-              <p className="text-xs text-slate-500">
-                {selectedPackage.name} includes <span className="font-semibold text-slate-350">{selectedPackage.pagesIncluded} pages</span>.
+              <h3 className="text-xs font-bold text-foreground">Website Size (Pages)</h3>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {selectedPackage.name} includes <span className="font-bold text-primary">{selectedPackage.pagesIncluded} pages</span>.
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-card border border-border rounded-lg p-0.5 w-fit shadow-sm">
               <button
                 type="button"
                 onClick={() => updateFields({ pages: Math.max(1, pages - 1) })}
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center font-bold transition-colors select-none"
+                className="w-8 h-8 rounded hover:bg-muted text-foreground flex items-center justify-center font-bold transition-colors select-none active:scale-95 cursor-pointer text-sm"
               >
                 -
               </button>
-              <span className="text-sm font-bold text-white min-w-10 text-center">{pages} Pages</span>
+              <span className="text-xs font-bold text-foreground min-w-10 text-center">{pages} Pages</span>
               <button
                 type="button"
                 onClick={() => updateFields({ pages: Math.min(200, pages + 1) })}
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center font-bold transition-colors select-none"
+                className="w-8 h-8 rounded hover:bg-muted text-foreground flex items-center justify-center font-bold transition-colors select-none active:scale-95 cursor-pointer text-sm"
               >
                 +
               </button>
@@ -118,11 +140,11 @@ export default function FeaturesStep({ categories, features, packages }: Feature
           </div>
 
           {pages > selectedPackage.pagesIncluded && (
-            <div className="text-xs text-indigo-400 bg-indigo-950/15 border border-indigo-950/30 p-2.5 rounded-lg flex justify-between items-center">
+            <div className="text-[10px] text-primary bg-primary/5 border border-primary/10 p-2 rounded-lg flex justify-between items-center font-semibold">
               <span>
                 {pages - selectedPackage.pagesIncluded} Additional Pages (at {formatCurrency(1500)}/page)
               </span>
-              <span className="font-semibold">
+              <span className="font-bold">
                 + {formatCurrency((pages - selectedPackage.pagesIncluded) * 1500)}
               </span>
             </div>
@@ -130,47 +152,48 @@ export default function FeaturesStep({ categories, features, packages }: Feature
         </div>
       )}
 
-      <div className="space-y-6 max-h-[300px] overflow-y-auto pr-2">
+      {/* Features Categories */}
+      <div className="space-y-6 max-h-[320px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border">
         {categories.map((cat) => {
-          // Filter features belonging to this category
           const catFeatures = features.filter((f) => f.categoryId === cat.id);
           if (catFeatures.length === 0) return null;
 
           return (
             <div key={cat.id} className="space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-primary border-l-2 border-primary pl-2">
                 {cat.name}
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {catFeatures.map((feat) => {
                   const isChecked = selectedFeatureIds.includes(feat.id);
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={feat.id}
                       onClick={() => handleToggle(feat.id, !isChecked)}
-                      className={`p-4 rounded-xl border flex items-start gap-3 cursor-pointer transition-all select-none ${
+                      className={`p-3 rounded-lg border text-left flex flex-col justify-between transition-colors select-none group relative ${
                         isChecked
-                          ? 'border-indigo-500 bg-indigo-950/15 text-white'
-                          : 'border-slate-800 bg-slate-900/10 text-slate-400 hover:border-slate-700'
+                          ? 'border-primary bg-primary/5 shadow-sm'
+                          : 'border-border bg-card/65 hover:border-primary/40'
                       }`}
                     >
-                      <Checkbox
-                        id={feat.id}
-                        checked={isChecked}
-                        onCheckedChange={(checked) => handleToggle(feat.id, !!checked)}
-                        className="mt-0.5"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <Label
-                          htmlFor={feat.id}
-                          className="font-semibold text-sm cursor-pointer block truncate text-slate-200"
-                        >
-                          {feat.name}
-                        </Label>
-                        <p className="text-[10px] text-slate-500 mt-0.5 leading-normal">
+                      <div className="flex justify-between items-start w-full mb-3">
+                        <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
+                          {getFeatureIcon(feat.slug || feat.name)}
+                        </div>
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                          isChecked ? 'bg-primary border-primary' : 'border-border bg-card'
+                        }`}>
+                          {isChecked && <Check className="w-3 h-3 text-white stroke-[3.5]" />}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-bold text-[11px] text-foreground mb-0.5">{feat.name}</h4>
+                        <p className="text-[9px] text-muted-foreground mb-2 leading-normal font-normal">
                           {feat.description}
                         </p>
-                        <span className="text-[10px] text-indigo-400 font-semibold block mt-1.5">
+                        <span className="text-[9px] text-primary font-bold">
                           {feat.pricingType === 'per_page' 
                             ? `+ ${formatCurrency(feat.price)}/page` 
                             : feat.pricingType === 'percentage' 
@@ -178,7 +201,7 @@ export default function FeaturesStep({ categories, features, packages }: Feature
                             : `+ ${formatCurrency(feat.price)}`}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -187,94 +210,99 @@ export default function FeaturesStep({ categories, features, packages }: Feature
         })}
       </div>
 
-      {/* Custom Features Section */}
-      <div className="pt-6 border-t border-slate-800 space-y-4">
-        <div>
-          <h3 className="text-sm font-bold text-white">Add Custom Features</h3>
-          <p className="text-xs text-slate-400 mt-1">
-            Need something custom or unique? Add it here with a proposed price.
-          </p>
+      {/* Add Custom Features Section */}
+      <div className="p-4 rounded-lg border border-border bg-card/65 space-y-4">
+        <div className="flex items-center gap-1.5">
+          <PlusCircle className="w-4 h-4 text-primary" />
+          <h4 className="font-bold text-xs text-foreground">Add Custom Features</h4>
         </div>
 
-        {/* List of added custom features */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+          <div className="md:col-span-6 space-y-1.5">
+            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block">Feature Name</label>
+            <input
+              type="text"
+              placeholder="e.g. Salesforce CRM Sync"
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50"
+            />
+          </div>
+          <div className="md:col-span-4 space-y-1.5">
+            <label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block">Est. Price (INR)</label>
+            <input
+              type="number"
+              placeholder="5000"
+              value={customPrice}
+              onChange={(e) => setCustomPrice(e.target.value)}
+              className="w-full h-9 px-3 rounded-lg border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <button
+              type="button"
+              onClick={handleAddCustom}
+              className="w-full h-9 bg-primary text-white font-semibold rounded-lg flex items-center justify-center gap-1 hover:bg-primary/95 transition-colors cursor-pointer text-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add
+            </button>
+          </div>
+        </div>
+
+        {/* Dynamic List for added custom features */}
         {customFeatures.length > 0 && (
-          <div className="space-y-2">
+          <ul className="space-y-1.5 pt-1">
             {customFeatures.map((cf) => (
-              <div
+              <li
                 key={cf.id}
-                className="flex items-center justify-between p-3 rounded-xl border border-dashed border-indigo-500/30 bg-indigo-950/10 text-slate-300"
+                className="flex justify-between items-center bg-card/80 p-2 rounded-lg border border-dashed border-primary/20"
               >
-                <span className="text-xs font-semibold text-indigo-300 truncate max-w-[250px]">
-                  {cf.name}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-primary" />
+                  <span className="text-[11px] font-bold text-foreground">{cf.name}</span>
+                </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-slate-200">
-                    {cf.price > 0 ? formatCurrency(cf.price) : 'Free/Included'}
-                  </span>
+                  <span className="text-[11px] font-bold text-primary">+{formatCurrency(cf.price)}</span>
                   <button
                     type="button"
                     onClick={() => removeCustomFeature(cf.id)}
-                    className="text-slate-500 hover:text-rose-400 p-1 transition-colors"
+                    className="text-muted-foreground hover:text-destructive transition-colors outline-none cursor-pointer"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-
-        {/* Input Form */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="text"
-            placeholder="Feature Name (e.g., Salesforce Sync)"
-            value={customName}
-            onChange={(e) => setCustomName(e.target.value)}
-            className="flex-1 bg-slate-900/40 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl h-10 px-3.5 text-xs outline-none transition-all placeholder:text-slate-650"
-          />
-          <input
-            type="number"
-            placeholder="Est. Price (INR)"
-            value={customPrice}
-            onChange={(e) => setCustomPrice(e.target.value)}
-            className="w-full sm:w-36 bg-slate-900/40 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl h-10 px-3.5 text-xs outline-none transition-all placeholder:text-slate-650"
-          />
-          <Button
-            type="button"
-            onClick={handleAddCustom}
-            className="bg-indigo-900/40 hover:bg-indigo-900/60 text-indigo-300 border border-indigo-500/20 rounded-xl h-10 text-xs px-4 flex items-center gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add
-          </Button>
-        </div>
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-slate-900 gap-4">
-        <Button
+      {/* Controls Area */}
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-6 border-t border-border">
+        <button
           onClick={prevStep}
-          variant="ghost"
-          className="text-slate-400 hover:text-white gap-2"
+          className="w-full sm:w-auto px-4 py-2 rounded-lg border border-border hover:bg-muted text-muted-foreground font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-xs"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3.5 h-3.5" />
           Back
-        </Button>
-        <div className="flex items-center gap-3">
-          <Button
+        </button>
+
+        <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
+          <button
             type="button"
             onClick={handleSkip}
-            variant="outline"
-            className="border-slate-800 text-slate-400 hover:text-white hover:bg-slate-900/50 rounded-xl h-11 px-6 font-medium"
+            className="w-full sm:w-auto px-4 py-2 border border-border hover:bg-muted text-muted-foreground font-semibold rounded-lg transition-colors cursor-pointer text-xs"
           >
             Skip Features
-          </Button>
-          <Button
+          </button>
+          <button
             onClick={nextStep}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-11 px-8 font-medium"
+            className="w-full sm:w-auto px-5 py-2 bg-primary text-white font-semibold rounded-lg flex items-center justify-center gap-1.5 shadow-sm hover:bg-primary/95 transition-colors cursor-pointer text-xs"
           >
             Next Step
-          </Button>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
     </div>
