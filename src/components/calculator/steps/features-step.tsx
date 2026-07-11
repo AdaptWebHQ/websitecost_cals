@@ -44,6 +44,8 @@ export default function FeaturesStep({ categories, features, packages }: Feature
   const [customPrice, setCustomPrice] = useState('');
 
   const selectedPackage = packages.find((p) => p.id === packageId) || packages[0];
+  const extraPageFeature = features.find((f) => f.id === 'feat-extra-page');
+  const extraPagePrice = extraPageFeature ? extraPageFeature.price : 2000;
 
   const handleToggle = (id: string, checked: boolean) => {
     if (id === 'feat-extra-page') {
@@ -142,10 +144,10 @@ export default function FeaturesStep({ categories, features, packages }: Feature
           {pages > selectedPackage.pagesIncluded && (
             <div className="text-[10px] text-primary bg-primary/5 border border-primary/10 p-2 rounded-lg flex justify-between items-center font-semibold">
               <span>
-                {pages - selectedPackage.pagesIncluded} Additional Pages (at {formatCurrency(1500)}/page)
+                {pages - selectedPackage.pagesIncluded} Additional Pages (at {formatCurrency(extraPagePrice)}/page)
               </span>
               <span className="font-bold">
-                + {formatCurrency((pages - selectedPackage.pagesIncluded) * 1500)}
+                + {formatCurrency((pages - selectedPackage.pagesIncluded) * extraPagePrice)}
               </span>
             </div>
           )}

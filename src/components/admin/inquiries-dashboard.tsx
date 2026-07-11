@@ -19,6 +19,7 @@ import {
   addInquiryNoteAction,
   createInquiryAction
 } from '@/actions/inquiries';
+import { exportInquiriesCsvAction } from '@/actions/reports';
 import { 
   Search, 
   Flame, 
@@ -30,6 +31,7 @@ import {
   X, 
   ChevronLeft, 
   ChevronRight, 
+  ChevronDown,
   ArrowUpDown, 
   RefreshCw, 
   Calendar, 
@@ -41,7 +43,9 @@ import {
   ExternalLink,
   Plus,
   Loader2,
-  ArrowRight
+  ArrowRight,
+  FileDown,
+  Calculator
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -60,9 +64,35 @@ const formatDate = (date: Date | any) => {
 export default function InquiriesDashboard() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [activities, setActivities] = useState<InquiryActivity[]>([]);
+  const [calculations, setCalculations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [leadLoading, setLeadLoading] = useState(false);
+
+  const handleExportInquiries = async () => {
+    setLeadLoading(true);
+    try {
+      const response = await exportInquiriesCsvAction();
+      if (response.success && response.data) {
+        const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'crm_leads_report.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        alert(response.error || 'Failed to export inquiries.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to trigger CRM CSV export.');
+    } finally {
+      setLeadLoading(false);
+    }
+  };
 
   // New Inquiry form state
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -123,10 +153,9 @@ export default function InquiriesDashboard() {
   const [budgetFilter, setBudgetFilter] = useState<string>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-
   // Pagination & Sorting state
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
+  const [visibleCount, setVisibleCount] = useState(7);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [sortField, setSortField] = useState<'companyName' | 'budget' | 'createdAt'>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
@@ -184,9 +213,25 @@ export default function InquiriesDashboard() {
       setActivities(actList);
     });
 
+    const calculationsQuery = query(
+      collection(db, COLLECTIONS.CALCULATIONS)
+    );
+
+    const unsubscribeCalculations = onSnapshot(calculationsQuery, (snapshot) => {
+      const calcList: any[] = [];
+      snapshot.forEach((doc) => {
+        calcList.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+      setCalculations(calcList);
+    });
+
     return () => {
       unsubscribeInquiries();
       unsubscribeActivities();
+      unsubscribeCalculations();
     };
   }, [selectedInquiry?.id]);
 
@@ -297,15 +342,20 @@ export default function InquiriesDashboard() {
       });
   }, [inquiries, searchTerm, tempFilter, statusFilter, budgetFilter, startDate, endDate, sortField, sortDirection]);
 
-  const paginatedInquiries = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredInquiries.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredInquiries, currentPage]);
+  const visibleInquiries = useMemo(() => {
+    return filteredInquiries.slice(0, visibleCount);
+  }, [filteredInquiries, visibleCount]);
 
-  const totalPages = Math.ceil(filteredInquiries.length / itemsPerPage) || 1;
+  const handleLoadMore = () => {
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + 7);
+      setIsLoadingMore(false);
+    }, 400);
+  };
 
   useEffect(() => {
-    setCurrentPage(1);
+    setVisibleCount(7);
   }, [searchTerm, tempFilter, statusFilter, budgetFilter, startDate, endDate]);
 
   const kpiData = useMemo(() => {
@@ -324,6 +374,11 @@ export default function InquiriesDashboard() {
   const selectedInquiryNotes = useMemo(() => {
     return selectedInquiryActivities.filter(act => act.action === 'Admin Comment Added');
   }, [selectedInquiryActivities]);
+
+  const linkedCalculation = useMemo(() => {
+    if (!selectedInquiry || !selectedInquiry.calculationId) return null;
+    return calculations.find(c => c.id === selectedInquiry.calculationId);
+  }, [selectedInquiry, calculations]);
 
   const requestSort = (field: 'companyName' | 'budget' | 'createdAt') => {
     if (sortField === field) {
@@ -570,7 +625,19 @@ export default function InquiriesDashboard() {
             Track inquiries, manage temperatures, and optimize conversions for AdaptWeb.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button 
+            onClick={handleExportInquiries}
+            disabled={leadLoading}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-md cursor-pointer disabled:opacity-50"
+          >
+            {leadLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <FileDown className="w-3.5 h-3.5" />
+            )}
+            Export CRM Report (CSV)
+          </button>
           <button 
             onClick={() => setShowCreateForm(true)}
             className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-primary hover:bg-primary/95 text-white transition-all shadow-md cursor-pointer"
@@ -791,7 +858,7 @@ export default function InquiriesDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/55">
-                {paginatedInquiries.map((inq) => (
+                {visibleInquiries.map((inq) => (
                   <tr 
                     key={inq.id} 
                     className="hover:bg-muted/30 transition-colors group border-b border-border/40"
@@ -814,8 +881,25 @@ export default function InquiriesDashboard() {
                       </div>
                     </td>
 
-                    <td className="px-6 py-4.5 font-semibold">
-                      {inq.budget}
+                    <td className="px-6 py-4.5">
+                      {(() => {
+                        const calc = inq.calculationId ? calculations.find(c => c.id === inq.calculationId) : null;
+                        return (
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{inq.budget}</span>
+                            {calc && (
+                              <div className="mt-1 flex flex-col gap-0.5">
+                                <span className="text-[10px] text-cyan-500 font-bold block truncate max-w-[150px]">
+                                  {calc.packageName}
+                                </span>
+                                <span className="text-[10px] text-emerald-500 font-extrabold block">
+                                  {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(calc.total)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     <td className="px-6 py-4.5">
@@ -885,35 +969,24 @@ export default function InquiriesDashboard() {
           </div>
         )}
 
-        {/* Pagination Controls */}
-        {!loading && filteredInquiries.length > 0 && (
-          <div className="flex items-center justify-between border-t border-border/40 pt-4 text-sm text-muted-foreground">
-            <div>
-              Showing <span className="font-semibold text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
-              <span className="font-semibold text-foreground">
-                {Math.min(currentPage * itemsPerPage, filteredInquiries.length)}
-              </span>{' '}
-              of <span className="font-semibold text-foreground">{filteredInquiries.length}</span> leads
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                className="p-2 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground transition-all cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-xs font-semibold px-2">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                className="p-2 rounded-lg border border-border bg-background text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground transition-all cursor-pointer"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+        {/* Load More Controls */}
+        {!loading && filteredInquiries.length > visibleCount && (
+          <div className="flex flex-col items-center gap-2 pt-4 border-t border-border/40">
+            <p className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase">
+              Showing {Math.min(visibleCount, filteredInquiries.length)} of {filteredInquiries.length} Inquiries
+            </p>
+            <button
+              onClick={handleLoadMore}
+              disabled={isLoadingMore}
+              className="flex items-center gap-1.5 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl px-6 py-2.5 shadow-md cursor-pointer text-xs disabled:opacity-50 min-w-44 justify-center"
+            >
+              {isLoadingMore ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5" />
+              )}
+              {isLoadingMore ? 'Syncing...' : `Load More (+7)`}
+            </button>
           </div>
         )}
       </div>
@@ -979,18 +1052,73 @@ export default function InquiriesDashboard() {
                 </div>
               </div>
 
-              {/* Calculation info if linked */}
-              {selectedInquiry.calculationId && (
+              {/* Linked Calculation Detailed Workspace */}
+              {linkedCalculation && (
+                <div className="rounded-2xl border border-border/50 bg-muted/30 p-4 space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b border-border/30">
+                    <span className="text-xs font-bold text-[#06b6d4] flex items-center gap-1.5 font-mono uppercase tracking-wider">
+                      <Calculator className="w-3.5 h-3.5 text-[#06b6d4]" />
+                      Cost Estimation Details
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <span className="text-muted-foreground block mb-0.5">Recommended Tier</span>
+                      <span className="font-bold text-foreground">{linkedCalculation.packageName}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block mb-0.5">Website Type</span>
+                      <span className="font-bold text-foreground capitalize">{linkedCalculation.websiteType}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block mb-0.5">Pages Count</span>
+                      <span className="font-bold text-foreground">{linkedCalculation.pages} Pages</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block mb-0.5">Estimated Timeline</span>
+                      <span className="font-bold text-primary">
+                        {linkedCalculation.estimatedDays 
+                          ? `${Math.ceil(linkedCalculation.estimatedDays / 7)} Weeks (${linkedCalculation.estimatedDays} Days)` 
+                          : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Selected Features list */}
+                  <div className="space-y-2 pt-2 border-t border-border/30">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground block">Selected Feature Modules</span>
+                    {linkedCalculation.selectedFeatures && linkedCalculation.selectedFeatures.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {linkedCalculation.selectedFeatures.map((feat: any) => (
+                          <span 
+                            key={feat.featureId} 
+                            className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-primary/10 text-primary border border-primary/15"
+                          >
+                            {feat.featureName}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">No additional features selected.</span>
+                    )}
+                  </div>
+
+                  {/* Total Quote Value */}
+                  <div className="pt-2.5 border-t border-border/30 flex justify-between items-center text-xs">
+                    <span className="font-bold text-foreground">Calculated Quote Total:</span>
+                    <span className="text-emerald-500 font-extrabold text-sm">
+                      {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(linkedCalculation.total)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Fallback basic budget reference if no calculation is loaded */}
+              {!linkedCalculation && selectedInquiry.calculationId && (
                 <div className="rounded-2xl border border-border/50 bg-muted/30 p-4 space-y-3">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center pb-2 border-b border-border/30">
                     <span className="text-xs font-semibold text-foreground">Linked Estimation Quote</span>
-                    <Link 
-                      href={`/admin/calculations?id=${selectedInquiry.calculationId}`} 
-                      className="text-xs text-cyan-500 hover:text-cyan-400 font-semibold flex items-center gap-1"
-                    >
-                      View Calc Details
-                      <ExternalLink className="w-3 h-3" />
-                    </Link>
                   </div>
                   <div className="grid grid-cols-2 gap-4 text-xs pt-1">
                     <div>

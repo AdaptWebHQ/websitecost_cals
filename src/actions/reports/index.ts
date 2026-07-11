@@ -109,6 +109,16 @@ export async function exportInquiriesCsvAction(): Promise<ApiResponse<string>> {
       .orderBy('createdAt', 'desc')
       .get();
 
+    // Pre-fetch all calculations to link details
+    const calculationsSnapshot = await adminDb
+      .collection(COLLECTIONS.CALCULATIONS)
+      .get();
+
+    const calculationsMap = new Map<string, any>();
+    calculationsSnapshot.forEach((doc) => {
+      calculationsMap.set(doc.id, doc.data());
+    });
+
     const headers = [
       'Inquiry ID',
       'Client Name',
@@ -120,6 +130,17 @@ export async function exportInquiriesCsvAction(): Promise<ApiResponse<string>> {
       'Pipeline Status',
       'Calculation Ref ID',
       'Date Submitted',
+      // Enriched calculation details
+      'Website Type',
+      'Selected Package',
+      'Configure Pages',
+      'Selected Feature Modules',
+      'Base Price',
+      'Features Cost',
+      'Subtotal',
+      'GST Tax Amount',
+      'Project Cost Total',
+      'Timeline (Days)',
     ];
 
     const rows = [headers.join(',')];
@@ -129,6 +150,12 @@ export async function exportInquiriesCsvAction(): Promise<ApiResponse<string>> {
       const createdAt = data.createdAt?.toDate 
         ? data.createdAt.toDate().toISOString() 
         : (data.createdAt || '');
+
+      const calcData = data.calculationId ? calculationsMap.get(data.calculationId) : null;
+      
+      const featuresStr = calcData?.selectedFeatures
+        ? calcData.selectedFeatures.map((f: any) => f.featureName).join('; ')
+        : '';
 
       const row = [
         escapeCsvCell(doc.id),
@@ -141,6 +168,17 @@ export async function exportInquiriesCsvAction(): Promise<ApiResponse<string>> {
         escapeCsvCell(data.status),
         escapeCsvCell(data.calculationId),
         escapeCsvCell(createdAt),
+        // Enriched calculation details
+        escapeCsvCell(calcData?.websiteType || ''),
+        escapeCsvCell(calcData?.packageName || ''),
+        escapeCsvCell(calcData?.pages ? String(calcData.pages) : ''),
+        escapeCsvCell(featuresStr),
+        escapeCsvCell(calcData?.basePrice ? String(calcData.basePrice) : ''),
+        escapeCsvCell(calcData?.featuresPrice ? String(calcData.featuresPrice) : ''),
+        escapeCsvCell(calcData?.subtotal ? String(calcData.subtotal) : ''),
+        escapeCsvCell(calcData?.gstAmount ? String(calcData.gstAmount) : ''),
+        escapeCsvCell(calcData?.total ? String(calcData.total) : ''),
+        escapeCsvCell(calcData?.estimatedDays ? String(calcData.estimatedDays) : ''),
       ];
 
       rows.push(row.join(','));

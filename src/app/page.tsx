@@ -36,7 +36,7 @@ export default async function LandingPage() {
 
         <h1 className="text-5xl sm:text-7xl font-black tracking-tight max-w-4xl leading-[1.1] text-foreground">
           Instantly Estimate & Validate <br />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent dark:to-primary-hover">
             Your Next Web Project Cost
           </span>
         </h1>
@@ -197,7 +197,7 @@ export default async function LandingPage() {
                     }`}
                   >
                     {isFeatured && (
-                      <span className="absolute top-0 right-6 -translate-y-1/2 bg-gradient-to-r from-primary to-secondary text-white font-bold text-[9px] uppercase tracking-wider px-3.5 py-1 rounded-full shadow-lg">
+                      <span className="absolute top-0 right-6 -translate-y-1/2 bg-gradient-to-r from-primary to-accent text-white font-bold text-[9px] uppercase tracking-wider px-3.5 py-1 rounded-full shadow-lg">
                         Popular Choice
                       </span>
                     )}

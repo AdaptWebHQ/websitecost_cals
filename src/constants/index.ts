@@ -46,16 +46,13 @@ export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: 'Price Config', href: '/admin/price-config', icon: 'IndianRupee' },
   { label: 'Calculations', href: '/admin/calculations', icon: 'Calculator' },
   { label: 'Inquiries', href: '/admin/inquiries', icon: 'MessageSquare' },
-  { label: 'Reports', href: '/admin/reports', icon: 'BarChart3' },
   { label: 'Settings', href: '/admin/settings', icon: 'Settings' },
-  { label: 'Profile', href: '/admin/profile', icon: 'UserCircle' },
 ];
 
 export const PUBLIC_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
   { label: 'Calculator', href: '/public/calculator', icon: 'Calculator' },
   { label: 'My Estimates', href: '/public/estimates', icon: 'FileText' },
-  { label: 'Profile', href: '/public/profile', icon: 'UserCircle' },
 ];
 
 // ============================================================================

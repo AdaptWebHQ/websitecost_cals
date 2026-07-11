@@ -11,7 +11,7 @@ import DeliveryStep from './steps/delivery-step';
 import SummaryStep from './steps/summary-step';
 import type { Package, Feature, FeatureCategory, PriceConfig, Industry, Calculation } from '@/types';
 import { createCalculationAction } from '@/actions/calculations';
-import { ShieldCheck, BarChart2, DollarSign } from 'lucide-react';
+import { ShieldCheck, BarChart2, DollarSign, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 interface CalculatorWizardProps {
@@ -43,6 +43,8 @@ export default function CalculatorWizard({
     customFeatures,
     setStep,
     nextStep,
+    updateFields,
+    removeCustomFeature,
   } = useCalculatorStore();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -89,7 +91,9 @@ export default function CalculatorWizard({
     // Pages cost
     const pagesIncluded = selectedPkg?.pagesIncluded || 0;
     const additionalPages = Math.max(0, pages - pagesIncluded);
-    const pagesCost = additionalPages * 1500;
+    const extraPageFeature = features.find((f) => f.id === 'feat-extra-page');
+    const extraPagePrice = extraPageFeature ? extraPageFeature.price : 2000;
+    const pagesCost = additionalPages * extraPagePrice;
 
     // Standard features cost
     let featuresCost = 0;
@@ -205,29 +209,58 @@ export default function CalculatorWizard({
   if (currentStep === 5) {
     const selectedPkg = packages.find((p) => p.id === packageId) || packages[0];
     const basePrice = selectedPkg?.basePrice || 0;
-    
-    // Calculate features cost
-    let featuresSum = 0;
     const pagesIncluded = selectedPkg?.pagesIncluded || 0;
     const additionalPages = Math.max(0, pages - pagesIncluded);
-    featuresSum += additionalPages * 1500;
+    const extraPageFeature = features.find((f) => f.id === 'feat-extra-page');
+    const extraPagePrice = extraPageFeature ? extraPageFeature.price : 2000;
+
+    // Build array of selected features with name & cost contribution
+    const selectedFeaturesList: { id: string; name: string; cost: number; isCustom: boolean; isPages: boolean }[] = [];
+    let featuresSum = 0;
+
+    if (additionalPages > 0 && selectedFeatureIds.includes('feat-extra-page')) {
+      const pageCost = additionalPages * extraPagePrice;
+      selectedFeaturesList.push({
+        id: 'feat-extra-page',
+        name: `Extra Pages (${additionalPages} pages)`,
+        cost: pageCost,
+        isCustom: false,
+        isPages: true,
+      });
+      featuresSum += pageCost;
+    }
 
     selectedFeatureIds.forEach((fid) => {
       if (fid === 'feat-extra-page') return;
       const featObj = features.find((f) => f.id === fid);
       if (featObj) {
+        let cost = 0;
         if (featObj.pricingType === 'per_page') {
-          featuresSum += featObj.price * pages;
+          cost = featObj.price * pages;
         } else if (featObj.pricingType === 'percentage') {
-          featuresSum += (featObj.price / 100) * basePrice;
+          cost = (featObj.price / 100) * basePrice;
         } else {
-          featuresSum += featObj.price;
+          cost = featObj.price;
         }
+        selectedFeaturesList.push({
+          id: featObj.id,
+          name: featObj.name,
+          cost,
+          isCustom: false,
+          isPages: false,
+        });
+        featuresSum += cost;
       }
     });
 
-    // Custom features cost
     customFeatures.forEach((cf) => {
+      selectedFeaturesList.push({
+        id: cf.id,
+        name: cf.name,
+        cost: cf.price,
+        isCustom: true,
+        isPages: false,
+      });
       featuresSum += cf.price;
     });
 
@@ -261,10 +294,41 @@ export default function CalculatorWizard({
                 <span>Base Development</span>
                 <span className="text-foreground font-bold">{formatCurrency(basePrice)}</span>
               </div>
-              {featuresSum > 0 && (
-                <div className="flex justify-between text-muted-foreground font-medium">
-                  <span>Selected Features</span>
-                  <span className="text-foreground font-bold">{formatCurrency(featuresSum)}</span>
+              
+              {selectedFeaturesList.length > 0 && (
+                <div className="pt-2 border-t border-border space-y-2">
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider block">Selected Modules</span>
+                  <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1 scrollbar-thin">
+                    {selectedFeaturesList.map((feat) => (
+                      <div key={feat.id} className="flex justify-between items-start text-[11px] gap-2 text-muted-foreground group/sidebar-feat">
+                        <span className="truncate max-w-[70%]" title={feat.name}>{feat.name}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-foreground font-semibold">{formatCurrency(feat.cost)}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (feat.isPages) {
+                                updateFields({
+                                  selectedFeatureIds: selectedFeatureIds.filter((fid) => fid !== feat.id),
+                                  pages: pagesIncluded,
+                                });
+                              } else if (feat.isCustom) {
+                                removeCustomFeature(feat.id);
+                              } else {
+                                updateFields({
+                                  selectedFeatureIds: selectedFeatureIds.filter((fid) => fid !== feat.id),
+                                });
+                              }
+                            }}
+                            className="text-muted-foreground hover:text-destructive p-0.5 rounded hover:bg-muted transition-colors cursor-pointer"
+                            title={`Remove ${feat.name}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

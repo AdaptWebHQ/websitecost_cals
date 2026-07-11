@@ -153,21 +153,12 @@ export default function LiveSummary({
               <span className="text-foreground font-semibold">{selectedPackage.pagesIncluded} Pages</span>
             </div>
 
-            {extraPagesCount > 0 && (
-              <div className="flex justify-between items-center text-muted-foreground">
-                <span>Extra Pages (+{extraPagesCount})</span>
-                <span className="text-foreground font-semibold">{formatCurrency(extraPagesCost)}</span>
+            {pricing.selectedFeatures.map((feat) => (
+              <div key={feat.featureId} className="flex justify-between items-start text-muted-foreground gap-4">
+                <span className="truncate max-w-[70%]">{feat.featureName}</span>
+                <span className="text-foreground font-semibold shrink-0">{formatCurrency(feat.calculatedPrice)}</span>
               </div>
-            )}
-
-            {modulesPrice > 0 && (
-              <div className="flex justify-between items-start text-muted-foreground">
-                <span>Modules & Integrations ({selectedFeatures.length + customFeatures.length})</span>
-                <span className="text-foreground font-semibold">
-                  {formatCurrency(modulesPrice)}
-                </span>
-              </div>
-            )}
+            ))}
 
             {rushDelivery && (
               <div className="flex justify-between items-center text-primary font-semibold">

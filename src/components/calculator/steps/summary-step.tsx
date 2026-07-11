@@ -5,7 +5,7 @@ import { useCalculatorStore } from '@/store/calculator-store';
 import { calculateQuotation } from '@/lib/calculations/pricing';
 import { formatCurrency } from '@/lib/utils';
 import type { Package, Feature, PriceConfig, Industry, Calculation } from '@/types';
-import { ArrowLeft, Loader2, Sparkles, CheckCircle2, ChevronRight, ShieldCheck, Cpu } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, CheckCircle2, ChevronRight, ShieldCheck, Cpu, Trash2, Plus } from 'lucide-react';
 import PdfDownloadButton from '../pdf-download-button';
 
 interface SummaryStepProps {
@@ -42,11 +42,27 @@ export default function SummaryStep({
     customFeatures,
     prevStep,
     reset,
+    updateFields,
+    removeCustomFeature,
+    setStep,
   } = useCalculatorStore();
 
   const selectedPackage = packages.find((p) => p.id === packageId) || packages[0];
   const selectedIndustry = industries.find((i) => i.id === industryId) || industries[0];
   const selectedFeatures = features.filter((f) => selectedFeatureIds.includes(f.id));
+
+  const handleRemoveFeature = (id: string) => {
+    if (id === 'feat-extra-page') {
+      updateFields({
+        selectedFeatureIds: selectedFeatureIds.filter((fid) => fid !== id),
+        pages: selectedPackage.pagesIncluded,
+      });
+    } else {
+      updateFields({
+        selectedFeatureIds: selectedFeatureIds.filter((fid) => fid !== id),
+      });
+    }
+  };
 
   // Calculate pricing client-side for review
   const pricing = calculateQuotation(
@@ -168,18 +184,48 @@ export default function SummaryStep({
 
           {/* Module Selection */}
           <div className="bg-card rounded-lg p-4 border border-border space-y-3">
-            <span className="text-[9px] font-bold text-primary uppercase tracking-widest block">Module Selection</span>
+            <div className="flex justify-between items-center">
+              <span className="text-[9px] font-bold text-primary uppercase tracking-widest block">Module Selection</span>
+              <button
+                type="button"
+                onClick={() => setStep(5)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/30 rounded-lg transition-all cursor-pointer select-none active:scale-[0.98]"
+              >
+                <Plus className="w-3.5 h-3.5 shrink-0" />
+                Add / Edit Features
+              </button>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {selectedFeatures.map((feat) => (
-                <div key={feat.id} className="p-2 bg-muted/40 rounded-lg flex items-center gap-1.5 border border-border">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                  <span className="text-xs font-semibold text-foreground/80">{feat.name}</span>
+                <div key={feat.id} className="p-2 bg-muted/40 rounded-lg flex items-center justify-between border border-border group/feat gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <span className="text-xs font-semibold text-foreground/80 truncate">{feat.name}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveFeature(feat.id)}
+                    className="text-muted-foreground hover:text-destructive p-0.5 rounded hover:bg-muted transition-colors shrink-0 cursor-pointer"
+                    title={`Remove ${feat.name}`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               ))}
               {customFeatures.map((cf) => (
-                <div key={cf.id} className="p-2 bg-muted/40 rounded-lg flex items-center gap-1.5 border border-border">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                  <span className="text-xs font-semibold text-foreground/80">{cf.name} (Custom)</span>
+                <div key={cf.id} className="p-2 bg-muted/40 rounded-lg flex items-center justify-between border border-border group/feat gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <span className="text-xs font-semibold text-foreground/80 truncate">{cf.name} (Custom)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeCustomFeature(cf.id)}
+                    className="text-muted-foreground hover:text-destructive p-0.5 rounded hover:bg-muted transition-colors shrink-0 cursor-pointer"
+                    title={`Remove ${cf.name}`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               ))}
               {selectedFeatures.length === 0 && customFeatures.length === 0 && (
