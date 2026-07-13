@@ -60,7 +60,7 @@ export async function sendInquiryEmail(inquiry: {
 }) {
   try {
     const priceConfigDoc = await adminDb.collection(COLLECTIONS.PRICE_CONFIG).doc('global').get();
-    const adminEmail = priceConfigDoc.data()?.companyEmail || process.env.ADMIN_NOTIFY_EMAIL || 'admin@webcostpro.com';
+    const adminEmail = priceConfigDoc.data()?.companyEmail || process.env.ADMIN_NOTIFY_EMAIL || 'founder@adapweb.in';
 
     const emailSubject = `New CRM Lead Inquiry: ${inquiry.companyName || 'N/A'} (${inquiry.name || 'N/A'})`;
     const emailHtml = `

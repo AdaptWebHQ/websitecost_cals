@@ -2,75 +2,6 @@ import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
 import type { DashboardStats, ChartDataPoint, MonthlyData } from '@/types';
 
-// ============================================================================
-// Fallback Mock Data (For development/fresh setup before data is generated)
-// ============================================================================
-
-export const MOCK_DASHBOARD_STATS: DashboardStats = {
-  totalCalculations: 342,
-  todayCalculations: 12,
-  totalLeads: 84,
-  bookedProjects: 18,
-  conversionRate: 21, // 21% conversion rate (Leads -> Booked)
-  averageProjectValue: 48500, // INR
-  revenuePipeline: 873000, // INR
-  averageQuoteValue: 32400, // INR
-  convertedLeads: 18,
-  hotLeads: 42,
-  coldLeads: 24,
-};
-
-export const MOCK_MONTHLY_CALCULATIONS: MonthlyData[] = [
-  { month: 'Jan', count: 45, revenue: 145000 },
-  { month: 'Feb', count: 52, revenue: 182000 },
-  { month: 'Mar', count: 68, revenue: 220000 },
-  { month: 'Apr', count: 59, revenue: 198000 },
-  { month: 'May', count: 84, revenue: 285000 },
-  { month: 'Jun', count: 96, revenue: 342000 },
-];
-
-export const MOCK_LEAD_STATUS: ChartDataPoint[] = [
-  { label: 'New', value: 24, color: '#3B82F6' },
-  { label: 'Inquired', value: 18, color: '#9333EA' },
-  { label: 'Contacted', value: 15, color: '#EAB308' },
-  { label: 'Proposal Sent', value: 12, color: '#F97316' },
-  { label: 'Negotiation', value: 8, color: '#6366F1' },
-  { label: 'Booked', value: 18, color: '#22C55E' },
-  { label: 'Lost', value: 5, color: '#EF4444' },
-];
-
-export const MOCK_INDUSTRY_DISTRIBUTION: ChartDataPoint[] = [
-  { label: 'Salon', value: 45, color: '#6366F1' },
-  { label: 'Restaurant', value: 62, color: '#8B5CF6' },
-  { label: 'School', value: 28, color: '#06B6D4' },
-  { label: 'Hospital', value: 15, color: '#10B981' },
-  { label: 'Gym', value: 34, color: '#F59E0B' },
-  { label: 'Law Firm', value: 22, color: '#EF4444' },
-  { label: 'Construction', value: 19, color: '#EC4899' },
-];
-
-export const MOCK_PACKAGE_POPULARITY: ChartDataPoint[] = [
-  { label: 'Starter', value: 98, color: '#3B82F6' },
-  { label: 'Business', value: 164, color: '#8B5CF6' },
-  { label: 'Premium', value: 62, color: '#06B6D4' },
-  { label: 'Enterprise', value: 18, color: '#10B981' },
-];
-
-export const MOCK_FEATURE_USAGE: ChartDataPoint[] = [
-  { label: 'Payment Gateway', value: 245, color: '#6366F1' },
-  { label: 'Booking System', value: 184, color: '#8B5CF6' },
-  { label: 'Admin Panel', value: 156, color: '#06B6D4' },
-  { label: 'SEO Setup', value: 289, color: '#10B981' },
-  { label: 'WhatsApp', value: 212, color: '#F59E0B' },
-  { label: 'Blog', value: 135, color: '#EC4899' },
-];
-
-export const MOCK_CONVERSION_FUNNEL: ChartDataPoint[] = [
-  { label: 'Calculations', value: 342 },
-  { label: 'Leads', value: 84 },
-  { label: 'Contacted', value: 53 },
-  { label: 'Booked', value: 18 },
-];
 
 // ============================================================================
 // Analytics Aggregation Services
@@ -81,12 +12,24 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     const inquiriesSnap = await adminDb.collection(COLLECTIONS.INQUIRIES).get();
-    
+
     const totalCalculations = calculationsSnap.size;
     const totalLeads = inquiriesSnap.size;
 
     if (totalCalculations === 0) {
-      return MOCK_DASHBOARD_STATS;
+      return {
+        totalCalculations: 0,
+        todayCalculations: 0,
+        totalLeads: 0,
+        bookedProjects: 0,
+        conversionRate: 0,
+        averageProjectValue: 0,
+        revenuePipeline: 0,
+        averageQuoteValue: 0,
+        convertedLeads: 0,
+        hotLeads: 0,
+        coldLeads: 0,
+      };
     }
 
     // Filter calculations created today
@@ -100,11 +43,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     // Filter inquiries by status
     const inquiries = inquiriesSnap.docs.map((doc) => doc.data());
     const bookedProjects = inquiries.filter((l) => l.status === 'booked').length;
-    
+
     const convertedLeads = bookedProjects;
     const hotLeads = inquiries.filter((l) => ['contacted', 'proposal_sent', 'negotiation'].includes(l.status)).length;
     const coldLeads = inquiries.filter((l) => ['new', 'inquired'].includes(l.status)).length;
-    
+
     // Calculate conversion rate (Leads -> Booked)
     const conversionRate = totalLeads > 0 ? Math.round((bookedProjects / totalLeads) * 100) : 0;
 
@@ -137,16 +80,27 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       totalLeads,
       bookedProjects,
       conversionRate,
-      averageProjectValue: averageProjectValue || MOCK_DASHBOARD_STATS.averageProjectValue,
-      revenuePipeline: pipeline || MOCK_DASHBOARD_STATS.revenuePipeline,
-      averageQuoteValue: averageQuoteValue || MOCK_DASHBOARD_STATS.averageQuoteValue,
+      averageProjectValue,
+      revenuePipeline: pipeline,
+      averageQuoteValue,
       convertedLeads,
       hotLeads,
       coldLeads,
     };
   } catch (error) {
-    // Quiet fallback
-    return MOCK_DASHBOARD_STATS;
+    return {
+      totalCalculations: 0,
+      todayCalculations: 0,
+      totalLeads: 0,
+      bookedProjects: 0,
+      conversionRate: 0,
+      averageProjectValue: 0,
+      revenuePipeline: 0,
+      averageQuoteValue: 0,
+      convertedLeads: 0,
+      hotLeads: 0,
+      coldLeads: 0,
+    };
   }
 }
 
@@ -155,7 +109,7 @@ export async function getMonthlyCalculations(): Promise<MonthlyData[]> {
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     if (calculationsSnap.empty) {
-      return MOCK_MONTHLY_CALCULATIONS;
+      return [];
     }
 
     const monthlyMap: Record<string, { count: number; revenue: number }> = {};
@@ -171,7 +125,7 @@ export async function getMonthlyCalculations(): Promise<MonthlyData[]> {
       if (!monthlyMap[monthStr]) {
         monthlyMap[monthStr] = { count: 0, revenue: 0 };
       }
-      
+
       monthlyMap[monthStr].count += 1;
       monthlyMap[monthStr].revenue += data.total || 0;
     });
@@ -184,10 +138,10 @@ export async function getMonthlyCalculations(): Promise<MonthlyData[]> {
         revenue: monthlyMap[m].revenue,
       }));
 
-    return result.length > 0 ? result : MOCK_MONTHLY_CALCULATIONS;
+    return result;
   } catch (error) {
     // Quiet fallback
-    return MOCK_MONTHLY_CALCULATIONS;
+    return [];
   }
 }
 
@@ -196,7 +150,7 @@ export async function getLeadStatusDistribution(): Promise<ChartDataPoint[]> {
   try {
     const inquiriesSnap = await adminDb.collection(COLLECTIONS.INQUIRIES).get();
     if (inquiriesSnap.empty) {
-      return MOCK_LEAD_STATUS;
+      return [];
     }
 
     const counts: Record<string, number> = {};
@@ -222,7 +176,7 @@ export async function getLeadStatusDistribution(): Promise<ChartDataPoint[]> {
     }));
   } catch (error) {
     // Quiet fallback
-    return MOCK_LEAD_STATUS;
+    return [];
   }
 }
 
@@ -231,7 +185,7 @@ export async function getIndustryDistribution(): Promise<ChartDataPoint[]> {
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     if (calculationsSnap.empty) {
-      return MOCK_INDUSTRY_DISTRIBUTION;
+      return [];
     }
 
     const counts: Record<string, number> = {};
@@ -249,7 +203,7 @@ export async function getIndustryDistribution(): Promise<ChartDataPoint[]> {
     }));
   } catch (error) {
     // Quiet fallback
-    return MOCK_INDUSTRY_DISTRIBUTION;
+    return [];
   }
 }
 
@@ -258,7 +212,7 @@ export async function getPackagePopularity(): Promise<ChartDataPoint[]> {
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     if (calculationsSnap.empty) {
-      return MOCK_PACKAGE_POPULARITY;
+      return [];
     }
 
     const counts: Record<string, number> = {};
@@ -276,7 +230,7 @@ export async function getPackagePopularity(): Promise<ChartDataPoint[]> {
     }));
   } catch (error) {
     // Quiet fallback
-    return MOCK_PACKAGE_POPULARITY;
+    return [];
   }
 }
 
@@ -285,7 +239,7 @@ export async function getFeatureUsage(): Promise<ChartDataPoint[]> {
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     if (calculationsSnap.empty) {
-      return MOCK_FEATURE_USAGE;
+      return [];
     }
 
     const counts: Record<string, number> = {};
@@ -310,7 +264,7 @@ export async function getFeatureUsage(): Promise<ChartDataPoint[]> {
     }));
   } catch (error) {
     // Quiet fallback
-    return MOCK_FEATURE_USAGE;
+    return [];
   }
 }
 
@@ -319,14 +273,20 @@ export async function getConversionFunnel(): Promise<ChartDataPoint[]> {
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     const inquiriesSnap = await adminDb.collection(COLLECTIONS.INQUIRIES).get();
-    
+
     if (calculationsSnap.empty) {
-      return MOCK_CONVERSION_FUNNEL;
+      return [
+        { label: 'Calculations', value: 0 },
+        { label: 'Leads', value: 0 },
+        { label: 'Contacted', value: 0 },
+        { label: 'Booked', value: 0 },
+      ];
     }
+
 
     const totalCalculations = calculationsSnap.size;
     const totalLeads = inquiriesSnap.size;
-    
+
     const inquiries = inquiriesSnap.docs.map((doc) => doc.data());
     const contacted = inquiries.filter((l) => l.status !== 'new' && l.status !== 'inquired').length;
     const booked = inquiries.filter((l) => l.status === 'booked').length;
@@ -339,6 +299,11 @@ export async function getConversionFunnel(): Promise<ChartDataPoint[]> {
     ];
   } catch (error) {
     // Quiet fallback
-    return MOCK_CONVERSION_FUNNEL;
+    return [
+      { label: 'Calculations', value: 0 },
+      { label: 'Leads', value: 0 },
+      { label: 'Contacted', value: 0 },
+      { label: 'Booked', value: 0 },
+    ];
   }
 }
