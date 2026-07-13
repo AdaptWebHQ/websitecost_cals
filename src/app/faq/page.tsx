@@ -27,10 +27,10 @@ export default function FaqPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans relative overflow-hidden transition-colors duration-300">
       {/* Background Gradients & Grid Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-40 pointer-events-none" />
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20 dark:opacity-40 pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Navbar Header */}
       <PublicHeader />
@@ -38,10 +38,10 @@ export default function FaqPage() {
       {/* Main Content */}
       <main className="flex-1 max-w-3xl mx-auto px-6 py-16 space-y-10 relative z-10">
         <div className="text-center space-y-3">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white">
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
             Frequently Asked Questions
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-muted-foreground">
             Get clear, quick answers to common pricing, scoping, and consulting queries.
           </p>
         </div>
@@ -50,10 +50,10 @@ export default function FaqPage() {
           {faqs.map((faq, idx) => (
             <div
               key={idx}
-              className="p-6 rounded-2xl border border-slate-900 bg-slate-900/10 backdrop-blur-sm space-y-2"
+              className="p-6 rounded-2xl border border-border bg-card/40 backdrop-blur-sm space-y-2"
             >
-              <h3 className="font-bold text-white text-base">{faq.question}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed font-normal">
+              <h3 className="font-bold text-foreground text-base">{faq.question}</h3>
+              <p className="text-xs text-muted-foreground leading-relaxed font-normal">
                 {faq.answer}
               </p>
             </div>
@@ -62,12 +62,12 @@ export default function FaqPage() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-slate-900 bg-slate-950 py-8 text-center text-xs text-slate-600">
+      <footer className="mt-auto border-t border-border bg-card py-8 text-center text-xs text-muted-foreground">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© {new Date().getFullYear()} WebCost Pro Calculator SaaS. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-slate-400 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-400 transition-colors">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors font-medium">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors font-medium">Terms of Service</Link>
           </div>
         </div>
       </footer>

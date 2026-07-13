@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -7,9 +8,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-plus-jakarta-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -106,6 +107,10 @@
 }
 
 :root {
+  --font-plus-jakarta-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-geist-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
   --background: #FAFAF8; /* Paper */
   --foreground: #152238; /* Charter (navy) */
   --card: #FFFFFF;
@@ -129,12 +134,12 @@
   --input: #FFFFFF;
   --ring: #152238;
   
-  --success: #A9812E; /* Seal */
-  --warning: #A9812E;
+  --success: #1B6B4A; /* Seal */
+  --warning: #1B6B4A;
   --info: #2F4C6B;
 
   --chart-1: #152238; /* Charter */
-  --chart-2: #A9812E; /* Seal */
+  --chart-2: #1B6B4A; /* Seal */
   --chart-3: #2F4C6B; /* Ledger Blue */
   --chart-4: #8C2F2F; /* Alert */
   --chart-5: #5B6D82;
@@ -142,16 +147,16 @@
   
   --sidebar: #FAFAF8;
   --sidebar-foreground: #152238;
-  --sidebar-primary: #A9812E;
+  --sidebar-primary: #1B6B4A;
   --sidebar-primary-foreground: #FAFAF8;
   --sidebar-accent: #E5E8EC;
   --sidebar-accent-foreground: #152238;
   --sidebar-border: #CFD5DE;
   --sidebar-ring: #152238;
 
-  --gold: #A9812E;
-  --gold-hover: #926E23;
-  --gold-light: #F7EEDB;
+  --gold: #1B6B4A;
+  --gold-hover: #145238;
+  --gold-light: #DEF7ED;
 
   /* Slate Scale for Light Theme */
   --slate-50: #FAFAF8;
@@ -177,13 +182,13 @@
   --card-foreground: #F3F4F6;
   --popover: #181A20;
   --popover-foreground: #F3F4F6;
-  --primary: #A9812E; /* Warm Gold Accent */
-  --primary-hover: #C29A3F;
-  --primary-foreground: #0E0F12; /* Dark text on gold */
+  --primary: #1B6B4A; /* Warm Green Accent */
+  --primary-hover: #248F62;
+  --primary-foreground: #FAFAF8; /* Light text on green */
   --secondary: #121418; /* Surface Neutral */
   --secondary-foreground: #F3F4F6;
-  --accent: #A9812E;
-  --accent-foreground: #0E0F12;
+  --accent: #1B6B4A;
+  --accent-foreground: #FAFAF8;
   --muted: #121418;
   --muted-foreground: #9CA3AF; /* Medium Gray Muted Text */
   --destructive: #8C2F2F; /* Muted Red Alert */
@@ -191,13 +196,13 @@
   --border: #22252C; /* Subtle separation borders */
   --border-muted: #181A20;
   --input: #121418;
-  --ring: #A9812E;
+  --ring: #1B6B4A;
   
-  --success: #A9812E; /* Seal Gold */
+  --success: #1B6B4A; /* Seal Green */
   --warning: #CA8A04;
   --info: #2F4C6B;
 
-  --chart-1: #A9812E; /* Gold Accent */
+  --chart-1: #1B6B4A; /* Green Accent */
   --chart-2: #2F4C6B; /* Ledger Blue */
   --chart-3: #8C2F2F; /* Brick Red Alert */
   --chart-4: #4B5563; /* Muted Gray */
@@ -205,16 +210,16 @@
 
   --sidebar: #090A0C; /* Slightly darker than Content */
   --sidebar-foreground: #F3F4F6;
-  --sidebar-primary: #A9812E;
-  --sidebar-primary-foreground: #0E0F12;
+  --sidebar-primary: #1B6B4A;
+  --sidebar-primary-foreground: #FAFAF8;
   --sidebar-accent: #181A20;
   --sidebar-accent-foreground: #FFFFFF;
   --sidebar-border: #16181D;
-  --sidebar-ring: #A9812E;
+  --sidebar-ring: #1B6B4A;
 
-  --gold: #A9812E;
-  --gold-hover: #C29A3F;
-  --gold-light: #2D2513;
+  --gold: #1B6B4A;
+  --gold-hover: #248F62;
+  --gold-light: #142E21;
 
   /* Slate Scale for Dark Theme - Corporate Charcoal Scale */
   --slate-50: #F9FAFB;
@@ -238,7 +243,7 @@
   }
   body {
     @apply bg-background text-foreground relative min-h-screen;
-    background-image: radial-gradient(circle at 50% 50%, rgba(169, 129, 46, 0.005) 0%, transparent 80%);
+    background-image: radial-gradient(circle at 50% 50%, rgba(27, 107, 74, 0.005) 0%, transparent 80%);
   }
   body::before {
     content: "";
@@ -256,6 +261,9 @@
   }
   html {
     @apply font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), var(--font-sans);
   }
 }
 
@@ -285,7 +293,7 @@
 }
 .dark .haptic-card:hover {
   box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.3);
-  border-color: rgba(169, 129, 46, 0.25);
+  border-color: rgba(27, 107, 74, 0.25);
   background: rgba(24, 32, 48, 0.5);
 }
 
@@ -315,13 +323,13 @@
 
 /* Ambient glow colors - now muted and premium */
 .ambient-glow-purple {
-  box-shadow: 0 0 50px -12px rgba(169, 129, 46, 0.05);
+  box-shadow: 0 0 50px -12px rgba(27, 107, 74, 0.05);
 }
 .ambient-glow-cyan {
   box-shadow: 0 0 50px -12px rgba(47, 76, 107, 0.05);
 }
 .ambient-glow-emerald {
-  box-shadow: 0 0 50px -12px rgba(169, 129, 46, 0.05);
+  box-shadow: 0 0 50px -12px rgba(27, 107, 74, 0.05);
 }
 .ambient-glow-blue {
   box-shadow: 0 0 50px -12px rgba(47, 76, 107, 0.05);
@@ -482,8 +490,8 @@
 
 /* Typography Hierarchies */
 .text-title-executive {
-  @apply font-bold tracking-tight text-foreground font-sans;
-  font-family: 'Manrope', sans-serif;
+  @apply font-bold tracking-tight text-foreground;
+  font-family: var(--font-heading), sans-serif;
   letter-spacing: -0.02em;
 }
 
@@ -540,4 +548,55 @@
 
 .animate-entrance {
   animation: entrance-slide 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ============================================================================
+   Custom Premium Scrollbars (Light & Dark Theme)
+   ============================================================================ */
+
+/* Firefox Scrollbars styling */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.18) transparent;
+}
+
+.dark html {
+  scrollbar-color: rgba(243, 244, 246, 0.18) transparent;
+}
+
+/* Chrome, Safari, Edge Webkit Scrollbars styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18); /* Translucent dark for light theme */
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.35);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(243, 244, 246, 0.18); /* Translucent light for dark theme */
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(243, 244, 246, 0.35);
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }

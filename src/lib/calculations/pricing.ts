@@ -32,28 +32,34 @@ export function calculateQuotation(
   const basePrice = selectedPackage.basePrice;
   let featuresPrice = 0;
 
-  // Process features list and calculate cost contribution
-  const processedFeatures: CalculatedFeature[] = selectedFeatures.map((f) => {
-    let cost = 0;
-    if (f.pricingType === 'fixed') {
-      cost = f.price;
-    } else if (f.pricingType === 'per_page') {
-      cost = f.price * pagesCount;
-    } else if (f.pricingType === 'percentage') {
-      cost = Math.round((f.price / 100) * basePrice);
-    }
+  // Find extra page feature to extract its database-seeded price (defaults to 2000 if not selected/found)
+  const extraPageFeature = selectedFeatures.find((f) => f.id === 'feat-extra-page');
+  const extraPagePrice = extraPageFeature ? extraPageFeature.price : 2000;
 
-    featuresPrice += cost;
+  // Process features list (excluding feat-extra-page) and calculate cost contribution
+  const processedFeatures: CalculatedFeature[] = selectedFeatures
+    .filter((f) => f.id !== 'feat-extra-page')
+    .map((f) => {
+      let cost = 0;
+      if (f.pricingType === 'fixed') {
+        cost = f.price;
+      } else if (f.pricingType === 'per_page') {
+        cost = f.price * pagesCount;
+      } else if (f.pricingType === 'percentage') {
+        cost = Math.round((f.price / 100) * basePrice);
+      }
 
-    return {
-      featureId: f.id,
-      featureName: f.name,
-      categoryName: 'Standard',
-      unitPrice: f.price,
-      pricingType: f.pricingType,
-      calculatedPrice: cost,
-    };
-  });
+      featuresPrice += cost;
+
+      return {
+        featureId: f.id,
+        featureName: f.name,
+        categoryName: 'Standard',
+        unitPrice: f.price,
+        pricingType: f.pricingType,
+        calculatedPrice: cost,
+      };
+    });
 
   // Process custom features
   const processedCustomFeatures: CalculatedFeature[] = customFeatures.map((cf) => {
@@ -68,19 +74,19 @@ export function calculateQuotation(
     };
   });
 
-  // Price additional pages beyond the package inclusion
+  // Price additional pages beyond the package inclusion using the dynamic extra page price
   const extraPages = Math.max(0, pagesCount - selectedPackage.pagesIncluded);
-  const extraPagesCost = extraPages * 1500; // 1,500 INR/unit per extra page
+  const extraPagesCost = extraPages * extraPagePrice;
   featuresPrice += extraPagesCost;
 
   const allProcessedFeatures = [...processedFeatures, ...processedCustomFeatures];
 
-  if (extraPages > 0) {
+  if (extraPages > 0 && extraPageFeature) {
     allProcessedFeatures.push({
-      featureId: 'extra_pages',
+      featureId: 'feat-extra-page',
       featureName: `Extra Pages (${extraPages} additional)`,
       categoryName: 'Pages',
-      unitPrice: 1500,
+      unitPrice: extraPagePrice,
       pricingType: 'per_page',
       calculatedPrice: extraPagesCost,
     });

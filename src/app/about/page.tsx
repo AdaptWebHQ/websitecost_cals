@@ -8,10 +8,10 @@ export const revalidate = 3600; // Cache for 1 hour
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans relative overflow-hidden transition-colors duration-300">
       {/* Background Gradients & Grid Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-40 pointer-events-none" />
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20 dark:opacity-40 pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
 
       {/* Navbar Header */}
       <PublicHeader />
@@ -19,42 +19,42 @@ export default function AboutPage() {
       {/* Main Content */}
       <main className="flex-1 max-w-4xl mx-auto px-6 py-16 space-y-16 relative z-10">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
             About WebCost Pro
           </h1>
-          <p className="text-base text-slate-400 max-w-xl mx-auto leading-relaxed">
+          <p className="text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
             We are dedicated to removing the black box from website pricing, bringing transparency, and accuracy to calculations for software houses.
           </p>
         </div>
 
         {/* Pillars Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-2xl border border-slate-900 bg-slate-900/10 backdrop-blur-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <div className="p-6 rounded-2xl border border-border bg-card/40 backdrop-blur-sm space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <Compass className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-white text-base">Our Mission</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h3 className="font-bold text-foreground text-base">Our Mission</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Empower businesses with direct price estimations so they can budget project costs before engaging developers.
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl border border-slate-900 bg-slate-900/10 backdrop-blur-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <div className="p-6 rounded-2xl border border-border bg-card/40 backdrop-blur-sm space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <Users className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-white text-base">The Team</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h3 className="font-bold text-foreground text-base">The Team</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Built by experienced agency founders who understand the friction of scoping complex website quote requirements.
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl border border-slate-900 bg-slate-900/10 backdrop-blur-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <div className="p-6 rounded-2xl border border-border bg-card/40 backdrop-blur-sm space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
               <Target className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-white text-base">Accurate Scoping</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h3 className="font-bold text-foreground text-base">Accurate Scoping</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Our estimations map complex rate lists including page scales, custom integrations, and priority rushes in real-time.
             </p>
           </div>
@@ -62,12 +62,12 @@ export default function AboutPage() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-slate-900 bg-slate-950 py-8 text-center text-xs text-slate-600">
+      <footer className="mt-auto border-t border-border bg-card py-8 text-center text-xs text-muted-foreground">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© {new Date().getFullYear()} WebCost Pro Calculator SaaS. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="hover:text-slate-400 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-400 transition-colors">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors font-medium">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors font-medium">Terms of Service</Link>
           </div>
         </div>
       </footer>

@@ -21,7 +21,7 @@ export default function PublicHeader() {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Branding Logo */}
         <Link href="/" className="flex items-center gap-2.5 font-bold text-lg text-foreground">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center shadow-md shadow-primary/10">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center shadow-md shadow-primary/10">
             <Calculator className="w-5 h-5 text-white" />
           </div>
           <span>WebCost<span className="text-primary font-semibold">Pro</span></span>

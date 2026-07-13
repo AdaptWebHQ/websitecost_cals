@@ -124,23 +124,17 @@ export default function Header() {
               
               <DropdownMenuSeparator className="bg-border" />
               
-              {/* Profile Route Link */}
-              <DropdownMenuItem 
-                onClick={() => router.push(user.role === 'admin' || user.role === 'super_admin' ? '/admin/profile' : '/public/profile')}
-                className="hover:bg-accent hover:text-accent-foreground cursor-pointer py-2.5"
-              >
-                <User className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>My Profile</span>
-              </DropdownMenuItem>
 
               {/* Settings Route Link */}
-              <DropdownMenuItem 
-                onClick={() => router.push(user.role === 'admin' || user.role === 'super_admin' ? '/admin/settings' : '/public/settings')}
-                className="hover:bg-accent hover:text-accent-foreground cursor-pointer py-2.5"
-              >
-                <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span>Account Settings</span>
-              </DropdownMenuItem>
+              {(user.role === 'admin' || user.role === 'super_admin') && (
+                <DropdownMenuItem 
+                  onClick={() => router.push('/admin/settings')}
+                  className="hover:bg-accent hover:text-accent-foreground cursor-pointer py-2.5"
+                >
+                  <Settings className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <span>Account Settings</span>
+                </DropdownMenuItem>
+              )}
 
               {/* Admin warning marker */}
               {(user.role === 'admin' || user.role === 'super_admin') && (
