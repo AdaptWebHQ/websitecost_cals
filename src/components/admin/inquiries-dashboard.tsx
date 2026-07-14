@@ -11,7 +11,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase/client';
 import { COLLECTIONS } from '@/constants';
-import type { Inquiry, InquiryActivity, InquiryStatus, LeadTemperature } from '@/types';
+import type { Inquiry, InquiryActivity, InquiryStatus, LeadTemperature, User as DbUser } from '@/types';
 import { 
   updateInquiryStatusAction, 
   updateInquiryTemperatureAction, 
@@ -20,6 +20,8 @@ import {
   createInquiryAction
 } from '@/actions/inquiries';
 import { exportInquiriesCsvAction } from '@/actions/reports';
+import { useAuth } from '@/context/auth-context';
+import { getAdminUsersAction } from '@/actions/auth';
 import { 
   Search, 
   Flame, 
@@ -62,13 +64,29 @@ const formatDate = (date: Date | any) => {
 };
 
 export default function InquiriesDashboard() {
+  const { user: currentUser } = useAuth();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [activities, setActivities] = useState<InquiryActivity[]>([]);
   const [calculations, setCalculations] = useState<any[]>([]);
+  const [adminUsers, setAdminUsers] = useState<DbUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [leadLoading, setLeadLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchAdminUsers = async () => {
+      try {
+        const res = await getAdminUsersAction();
+        if (res.success && res.data) {
+          setAdminUsers(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch admin users:', err);
+      }
+    };
+    fetchAdminUsers();
+  }, []);
 
   const handleExportInquiries = async () => {
     setLeadLoading(true);
@@ -242,9 +260,30 @@ export default function InquiriesDashboard() {
 
   const handleStatusChange = async (id: string, newStatus: InquiryStatus) => {
     try {
-      await updateInquiryStatusAction(id, { status: newStatus });
+      const res = await updateInquiryStatusAction(id, { status: newStatus });
+      if (!res.success) {
+        alert(res.error || 'Failed to update status.');
+      }
     } catch (err) {
       console.error(err);
+      alert('An error occurred while updating status.');
+    }
+  };
+
+  const handleAssigneeChange = async (id: string, newAssigneeId: string | null) => {
+    try {
+      const inq = inquiries.find(i => i.id === id);
+      if (!inq) return;
+      const res = await updateInquiryStatusAction(id, { 
+        status: inq.status, 
+        assignedTo: newAssigneeId 
+      });
+      if (!res.success) {
+        alert(res.error || 'Failed to update assignment.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred while updating assignment.');
     }
   };
 
@@ -871,6 +910,12 @@ export default function InquiriesDashboard() {
                         <span className="text-xs text-muted-foreground mt-0.5">
                           {inq.phone}
                         </span>
+                        {inq.assignedTo && (
+                          <div className="mt-1.5 flex items-center gap-1 text-[9px] text-[#06b6d4] font-bold bg-[#06b6d4]/10 border border-[#06b6d4]/20 px-1.5 py-0.5 rounded w-max uppercase tracking-wider">
+                            <User className="w-2.5 h-2.5" />
+                            {adminUsers.find(u => u.id === inq.assignedTo)?.name || 'Assigned'}
+                          </div>
+                        )}
                       </div>
                     </td>
 
@@ -918,23 +963,38 @@ export default function InquiriesDashboard() {
                     </td>
 
                     <td className="px-6 py-4.5">
-                      <select
-                        value={inq.status}
-                        onChange={(e) => handleStatusChange(inq.id, e.target.value as InquiryStatus)}
-                        className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border focus:outline-none transition-all cursor-pointer ${
-                          inq.status === 'new' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
-                          inq.status === 'contacted' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                          inq.status === 'proposal_sent' ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' :
-                          inq.status === 'converted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                          'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                        }`}
-                      >
-                        <option value="new">🆕 New</option>
-                        <option value="contacted">📞 Contacted</option>
-                        <option value="proposal_sent">✉️ Proposal</option>
-                        <option value="converted">✅ Converted</option>
-                        <option value="lost">❌ Lost</option>
-                      </select>
+                      {(() => {
+                        const isDisabled = !!(inq.assignedTo && inq.assignedTo !== currentUser?.id);
+                        return (
+                          <div className="relative group">
+                            <select
+                              value={inq.status}
+                              disabled={isDisabled}
+                              onChange={(e) => handleStatusChange(inq.id, e.target.value as InquiryStatus)}
+                              className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border focus:outline-none transition-all ${
+                                isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                              } ${
+                                inq.status === 'new' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
+                                inq.status === 'contacted' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
+                                inq.status === 'proposal_sent' ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' :
+                                inq.status === 'converted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                                'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                              }`}
+                            >
+                              <option value="new">🆕 New</option>
+                              <option value="contacted">📞 Contacted</option>
+                              <option value="proposal_sent">✉️ Proposal</option>
+                              <option value="converted">✅ Converted</option>
+                              <option value="lost">❌ Lost</option>
+                            </select>
+                            {isDisabled && (
+                              <div className="absolute left-0 bottom-full mb-1.5 hidden group-hover:block z-30 bg-slate-900 border border-slate-800 text-[10px] text-slate-300 font-bold px-2.5 py-1 rounded-xl shadow-md whitespace-nowrap">
+                                Only the assigned member can update status
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     <td className="px-6 py-4.5 text-muted-foreground text-xs">
@@ -1048,6 +1108,30 @@ export default function InquiriesDashboard() {
                       <Phone className="w-3.5 h-3.5 text-cyan-500" /> Phone
                     </span>
                     <a href={`tel:${selectedInquiry.phone}`} className="font-semibold text-foreground hover:text-cyan-500 transition-colors block truncate">{selectedInquiry.phone}</a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lead Assignment Card */}
+              <div className="rounded-2xl border border-border/50 bg-muted/30 p-4 space-y-3.5 animate-in fade-in duration-300">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground block">Assigned Member</span>
+                    <select
+                      value={selectedInquiry.assignedTo || ''}
+                      onChange={(e) => handleAssigneeChange(selectedInquiry.id, e.target.value || null)}
+                      className="mt-1 bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer w-full"
+                    >
+                      <option value="">Unassigned</option>
+                      {adminUsers.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name} ({u.role === 'super_admin' ? 'Super Admin' : 'Admin'})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>

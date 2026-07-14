@@ -4,7 +4,9 @@
 
 import { cookies } from 'next/headers';
 import { verifyIdToken, getOrCreateUser } from '@/lib/auth';
-import type { User } from '@/types';
+import { adminDb } from '@/firebase/admin';
+import { COLLECTIONS } from '@/constants';
+import type { User, ApiResponse } from '@/types';
 
 const COOKIE_TOKEN = 'webcost_session_token';
 const COOKIE_ROLE = 'webcost_user_role';
@@ -117,3 +119,50 @@ export async function getServerUser(): Promise<User | null> {
     return null;
   }
 }
+
+/** Get list of all active users with admin or super_admin role */
+export async function getAdminUsersAction(): Promise<ApiResponse<User[]>> {
+  try {
+    const currentUser = await getServerUser();
+    if (!currentUser) {
+      return {
+        success: false,
+        error: 'Unauthorized.',
+      };
+    }
+
+    const snapshot = await adminDb
+      .collection(COLLECTIONS.USERS)
+      .where('role', 'in', ['admin', 'super_admin'])
+      .where('isActive', '==', true)
+      .get();
+
+    const users: User[] = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      users.push({
+        id: doc.id,
+        name: data.name || 'Unknown User',
+        email: data.email || '',
+        role: data.role || 'admin',
+        profilePicture: data.profilePicture || '',
+        isActive: data.isActive ?? true,
+        lastLogin: data.lastLogin?.toDate() || null,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+      });
+    });
+
+    return {
+      success: true,
+      data: users,
+    };
+  } catch (error) {
+    console.error('Error fetching admin users:', error);
+    return {
+      success: false,
+      error: 'Failed to fetch admin users.',
+    };
+  }
+}
+

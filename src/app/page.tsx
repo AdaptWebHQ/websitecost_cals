@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getPackages } from '@/lib/packages';
+import { getFeatures } from '@/lib/features';
 import { Button } from '@/components/ui/button';
 import PublicHeader from '@/components/shared/public-header';
 import { 
@@ -12,10 +13,14 @@ import {
   LineChart 
 } from 'lucide-react';
 
+import InteractiveNicheCalculator from '@/components/calculator/interactive-niche-calculator';
+import PackagesPricingSection from '@/components/landing/packages-pricing-section';
+
 export const revalidate = 60; // Cache landing page and revalidate every 60s
 
 export default async function LandingPage() {
   const packages = await getPackages(true); // Fetch only active packages
+  const features = await getFeatures(undefined, true); // Fetch only active features
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans relative overflow-hidden transition-colors duration-300">
@@ -61,62 +66,9 @@ export default async function LandingPage() {
         </div>
 
         {/* Floating Mockup Bento Container */}
-        <div className="mt-20 w-full max-w-5xl rounded-[32px] border border-border bg-card p-3.5 shadow-2xl relative transition-all duration-500 hover:scale-[1.005]">
+        <div className="mt-20 w-full max-w-5xl rounded-[32px] border border-border bg-card p-4 sm:p-6 shadow-2xl relative transition-all duration-500 hover:scale-[1.005]">
           <div className="absolute inset-0 bg-primary/5 rounded-[32px] filter blur-2xl -z-10 pointer-events-none" />
-          <div className="rounded-[24px] border border-border overflow-hidden bg-background aspect-[1.7] md:aspect-[1.9]">
-            {/* Mock Dashboard Layout */}
-            <div className="h-full w-full flex flex-col font-sans">
-              <div className="h-11 border-b border-border bg-muted/60 px-4 flex items-center gap-2 flex-shrink-0">
-                <div className="w-3 h-3 rounded-full bg-destructive/30" />
-                <div className="w-3 h-3 rounded-full bg-amber-500/30" />
-                <div className="w-3 h-3 rounded-full bg-emerald-500/30" />
-                <div className="ml-4 h-6 w-52 rounded-lg bg-card border border-border flex items-center justify-center text-[10px] text-muted-foreground font-mono">
-                  adaptweb.co/calculator
-                </div>
-              </div>
-              <div className="flex-1 flex p-6 gap-6 text-left bg-card min-h-0">
-                {/* Mock Form */}
-                <div className="flex-[3] rounded-2xl border border-border bg-muted/40 p-5 space-y-4">
-                  <div className="h-5 w-32 rounded-lg bg-primary/10 border border-primary/20" />
-                  <div className="h-10 w-full rounded-xl bg-card border border-border" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="h-3 w-12 rounded bg-muted" />
-                      <div className="h-10 w-full rounded-xl bg-card border border-border" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-3 w-16 rounded bg-muted" />
-                      <div className="h-10 w-full rounded-xl bg-card border border-border" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="h-3 w-28 rounded bg-muted" />
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="h-11 rounded-xl border border-primary/30 bg-primary/5" />
-                      <div className="h-11 rounded-xl border border-border bg-card" />
-                      <div className="h-11 rounded-xl border border-border bg-card" />
-                    </div>
-                  </div>
-                </div>
-                {/* Mock Estimation Box */}
-                <div className="flex-[2] rounded-2xl border border-primary/25 bg-primary/5 p-5 flex flex-col justify-between">
-                  <div className="space-y-4">
-                    <div className="h-4.5 w-20 rounded bg-card/60" />
-                    <div className="h-11 w-40 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-extrabold text-primary text-lg">
-                      ₹45,500
-                    </div>
-                    <div className="space-y-2.5">
-                      <div className="h-3 w-full rounded bg-card/60" />
-                      <div className="h-3 w-4/5 rounded bg-card/60" />
-                    </div>
-                  </div>
-                  <div className="h-11 w-full rounded-xl bg-primary flex items-center justify-center text-xs font-bold text-white shadow-md shadow-primary/25">
-                    Submit Proposal
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <InteractiveNicheCalculator />
         </div>
       </section>
 
@@ -172,82 +124,7 @@ export default async function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            {packages.length === 0 ? (
-              [1, 2, 3].map((idx) => (
-                <div key={idx} className="p-8 rounded-[24px] border border-border bg-card flex flex-col justify-between animate-pulse">
-                  <div className="h-6 w-24 bg-muted rounded" />
-                  <div className="h-10 w-36 bg-muted rounded my-4" />
-                  <div className="space-y-2">
-                    <div className="h-3 w-full bg-muted rounded" />
-                    <div className="h-3 w-4/5 bg-muted rounded" />
-                  </div>
-                </div>
-              ))
-            ) : (
-              packages.map((pkg) => {
-                const isFeatured = pkg.isPopular;
-                return (
-                  <div 
-                    key={pkg.id} 
-                    className={`p-8 rounded-[24px] flex flex-col justify-between relative transition-all duration-500 hover:-translate-y-1 select-none ${
-                      isFeatured 
-                        ? 'border-2 border-primary bg-primary/5 shadow-xl shadow-primary/5' 
-                        : 'border border-border bg-card hover:border-primary/25'
-                    }`}
-                  >
-                    {isFeatured && (
-                      <span className="absolute top-0 right-6 -translate-y-1/2 bg-gradient-to-r from-primary to-accent text-white font-bold text-[9px] uppercase tracking-wider px-3.5 py-1 rounded-full shadow-lg">
-                        Popular Choice
-                      </span>
-                    )}
-
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-bold text-foreground">{pkg.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-2 max-w-xs leading-relaxed">{pkg.description}</p>
-                      </div>
-
-                      <div className="flex items-baseline gap-1 text-foreground">
-                        <span className="text-2xl font-bold">₹</span>
-                        <span className="text-4xl font-extrabold tracking-tight">{pkg.basePrice.toLocaleString()}</span>
-                        <span className="text-xs text-muted-foreground font-semibold">/ base</span>
-                      </div>
-
-                      <ul className="space-y-3 text-sm pt-6 border-t border-border">
-                        <li className="flex items-center gap-2.5 text-foreground/80">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>Includes up to {pkg.pagesIncluded} pages</span>
-                        </li>
-                        <li className="flex items-center gap-2.5 text-foreground/80">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{pkg.deliveryDays} Days delivery</span>
-                        </li>
-                        <li className="flex items-center gap-2.5 text-foreground/80">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{pkg.revisions} Design revisions</span>
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div className="mt-8">
-                      <Link href="/public/calculator">
-                        <Button 
-                          className={`w-full rounded-xl h-12 text-xs font-bold transition-all cursor-pointer ${
-                            isFeatured 
-                              ? 'bg-primary hover:bg-primary/95 text-white shadow-md shadow-primary/20' 
-                              : 'bg-muted text-muted-foreground border border-border hover:bg-card hover:text-foreground'
-                          }`}
-                        >
-                          Select Package
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+          <PackagesPricingSection packages={packages} allFeatures={features} />
         </div>
       </section>
 

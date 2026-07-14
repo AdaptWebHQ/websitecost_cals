@@ -160,3 +160,61 @@ export async function sendSecurityAlertEmail(user: { name: string; email: string
     html: loginHtml,
   });
 }
+
+/**
+ * Send an email notification to the assignee when a lead is assigned to them
+ */
+export async function sendLeadAssignmentEmail(
+  assignee: { name: string; email: string },
+  inquiry: {
+    id: string;
+    name: string;
+    companyName: string;
+    email: string;
+    phone: string;
+    budget: string;
+    message: string;
+  },
+  assignedBy: string
+) {
+  try {
+    const emailSubject = `🚨 New Lead Assigned to You: ${inquiry.companyName || 'N/A'} (${inquiry.name || 'N/A'})`;
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h2 style="color: #4f46e5; margin-top: 0; margin-bottom: 20px;">Lead Assigned Notification</h2>
+        <p>Hi <strong>${assignee.name}</strong>,</p>
+        <p>You have been assigned a new lead by <strong>${assignedBy}</strong>.</p>
+        
+        <div style="background:#f8fafc; padding: 15px; border-radius: 6px; border: 1px solid #e2e8f0; margin: 20px 0;">
+          <h3 style="margin-top:0; color:#0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Lead Details:</h3>
+          <p><strong>Name:</strong> ${inquiry.name || 'N/A'}</p>
+          <p><strong>Company:</strong> ${inquiry.companyName || 'N/A'}</p>
+          <p><strong>Email:</strong> ${inquiry.email || 'N/A'}</p>
+          <p><strong>Phone:</strong> ${inquiry.phone || 'N/A'}</p>
+          <p><strong>Budget:</strong> ${inquiry.budget || 'N/A'}</p>
+          <p><strong>Message:</strong></p>
+          <blockquote style="background:#ffffff; padding:10px 15px; border-left:4px solid #4f46e5; margin: 10px 0; font-style: italic; border-radius: 4px;">
+            ${inquiry.message || 'N/A'}
+          </blockquote>
+        </div>
+
+        <p style="text-align: center; margin: 30px 0;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard/admin/inquiries/${inquiry.id}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Open Lead in CRM Portal</a>
+        </p>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+        <p style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+          This is an automated CRM system notification. Please do not reply directly to this email.
+        </p>
+      </div>
+    `;
+
+    return await sendMail({
+      to: assignee.email,
+      subject: emailSubject,
+      html: emailHtml,
+    });
+  } catch (error) {
+    console.error('Failed to send lead assignment email:', error);
+    return { success: false, error };
+  }
+}

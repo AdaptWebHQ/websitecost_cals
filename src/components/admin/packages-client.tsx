@@ -23,13 +23,14 @@ import {
   updatePackageAction,
   deletePackageAction,
 } from '@/actions/packages';
-import type { Package } from '@/types';
+import type { Package, Feature } from '@/types';
 
 interface PackagesClientPageProps {
   initialPackages: Package[];
+  allFeatures: Feature[];
 }
 
-export default function PackagesClientPage({ initialPackages }: PackagesClientPageProps) {
+export default function PackagesClientPage({ initialPackages, allFeatures = [] }: PackagesClientPageProps) {
   const [packages, setPackages] = useState<Package[]>(initialPackages);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState<Package | null>(null);
@@ -45,7 +46,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
   const [revisions, setRevisions] = useState(3);
   const [isPopular, setIsPopular] = useState(false);
   const [isActive, setIsActive] = useState(true);
-  const [featuresText, setFeaturesText] = useState('');
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
 
   const openAddModal = () => {
     setEditingPackage(null);
@@ -57,7 +58,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
     setRevisions(3);
     setIsPopular(false);
     setIsActive(true);
-    setFeaturesText('');
+    setSelectedFeatures([]);
     setErrorMsg(null);
     setIsModalOpen(true);
   };
@@ -72,7 +73,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
     setRevisions(pkg.revisions);
     setIsPopular(pkg.isPopular);
     setIsActive(pkg.isActive);
-    setFeaturesText((pkg.features || []).join('\n'));
+    setSelectedFeatures(pkg.features || []);
     setErrorMsg(null);
     setIsModalOpen(true);
   };
@@ -81,11 +82,6 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMsg(null);
-
-    const features = featuresText
-      .split('\n')
-      .map((f) => f.trim())
-      .filter(Boolean);
 
     const formData = {
       name,
@@ -96,7 +92,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
       revisions,
       isPopular,
       isActive,
-      features,
+      features: selectedFeatures,
       sortOrder: editingPackage ? editingPackage.sortOrder : packages.length,
     };
 
@@ -269,14 +265,38 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-muted-foreground text-xs">Included Features / Bullets (One per line)</Label>
-              <Textarea
-                rows={3}
-                value={featuresText}
-                onChange={(e) => setFeaturesText(e.target.value)}
-                placeholder="e.g.&#10;Up to 5 Responsive Pages&#10;Basic SEO Optimization"
-                className="bg-background border-border text-foreground rounded-xl"
-              />
+              <Label className="text-muted-foreground text-xs font-semibold">Included Features Checklist</Label>
+              <div className="bg-background border border-border rounded-xl p-3 max-h-[160px] overflow-y-auto space-y-2.5 scrollbar-thin">
+                {allFeatures.map((feat) => {
+                  const isChecked = selectedFeatures.includes(feat.id);
+                  return (
+                    <div key={feat.id} className="flex items-start space-x-2.5">
+                      <Checkbox
+                        id={`feat-${feat.id}`}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedFeatures((prev) => [...prev, feat.id]);
+                          } else {
+                            setSelectedFeatures((prev) => prev.filter((id) => id !== feat.id));
+                          }
+                        }}
+                      />
+                      <div className="flex flex-col">
+                        <Label
+                          htmlFor={`feat-${feat.id}`}
+                          className="text-xs font-semibold text-foreground cursor-pointer select-none leading-none"
+                        >
+                          {feat.name}
+                        </Label>
+                        <span className="text-[10px] text-muted-foreground mt-1">
+                          {feat.description}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">

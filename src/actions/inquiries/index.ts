@@ -8,7 +8,7 @@ import { contactFormSchema, inquiryUpdateSchema, type ContactFormData, type Inqu
 import { getServerUser } from '@/actions/auth';
 import { revalidatePath } from 'next/cache';
 import type { ApiResponse, Inquiry, InquiryActivity, InquiryStatus, LeadTemperature } from '@/types';
-import { sendInquiryEmail } from '@/lib/email';
+import { sendInquiryEmail, sendLeadAssignmentEmail } from '@/lib/email';
 
 /** Create a new CRM lead Inquiry, optionally linked to a quotation Calculation ID */
 export async function createInquiryAction(
@@ -119,12 +119,28 @@ export async function updateInquiryStatusAction(
     const oldData = docSnap.data();
     const now = new Date();
 
+    // RESTRICTION: Only the assigned member can update the status of the lead.
+    // If the lead is already assigned to a member, and the status of the lead is being changed,
+    // verify if the currently authenticated user's ID matches the assignee.
+    if (oldData?.assignedTo && oldData.assignedTo !== user.id && oldData.status !== status) {
+      return {
+        success: false,
+        error: 'Only the assigned member can update the status of this lead.',
+      };
+    }
+
     const updatedFields: Partial<Inquiry> = {
       status: status as InquiryStatus,
-      assignedTo: assignedTo || null,
-      followUpDate: followUpDate ? new Date(followUpDate) : null,
       updatedAt: now,
     };
+
+    if (assignedTo !== undefined) {
+      updatedFields.assignedTo = assignedTo;
+    }
+
+    if (followUpDate !== undefined) {
+      updatedFields.followUpDate = followUpDate ? new Date(followUpDate) : null;
+    }
 
     if (temperature !== undefined) {
       updatedFields.temperature = temperature;
@@ -140,6 +156,46 @@ export async function updateInquiryStatusAction(
         inquiryId: id,
         action: 'Status Updated',
         note: `Status changed from "${oldData?.status || 'None'}" to "${status}".`,
+        createdBy: user.name,
+        createdAt: now,
+      });
+    }
+
+    if (assignedTo !== undefined && oldData?.assignedTo !== assignedTo) {
+      let assigneeName = 'Unassigned';
+      if (assignedTo) {
+        const userDoc = await adminDb.collection(COLLECTIONS.USERS).doc(assignedTo).get();
+        if (userDoc.exists) {
+          assigneeName = userDoc.data()?.name || 'Unknown User';
+          const assigneeEmail = userDoc.data()?.email;
+          if (assigneeEmail) {
+            // Trigger email notification to the assignee in the background
+            sendLeadAssignmentEmail(
+              { name: assigneeName, email: assigneeEmail },
+              {
+                id,
+                name: oldData?.name || 'N/A',
+                companyName: oldData?.companyName || 'N/A',
+                email: oldData?.email || 'N/A',
+                phone: oldData?.phone || 'N/A',
+                budget: oldData?.budget || 'N/A',
+                message: oldData?.message || 'N/A',
+              },
+              user.name
+            ).catch((err) => {
+              console.error('Failed to trigger lead assignment email:', err);
+            });
+          }
+        } else {
+          assigneeName = `User ID ${assignedTo}`;
+        }
+      }
+      activities.push({
+        inquiryId: id,
+        action: 'Assignment Updated',
+        note: assignedTo
+          ? `Lead assigned to ${assigneeName}.`
+          : 'Lead unassigned.',
         createdBy: user.name,
         createdAt: now,
       });
