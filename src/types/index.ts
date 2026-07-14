@@ -336,3 +336,14 @@ export interface NavItem {
   icon: string;
   badge?: number;
 }
+
+export interface PackageFeature {
+    id: string;
+    name: string;
+    description?: string;
+
+    sortOrder: number;
+
+    createdAt: Date;
+    updatedAt: Date;
+}

@@ -87,6 +87,7 @@ export const DEFAULT_PACKAGES: Package[] = [
   },
 ];
 
+
 /** Fetch all packages sorted by sortOrder */
 export async function getPackages(onlyActive = false): Promise<Package[]> {
   if (!hasCredentials) {
