@@ -4,13 +4,14 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import { useTheme } from '@/context/theme-context';
 import { Button } from '@/components/ui/button';
-import ThemeToggle from '@/components/shared/theme-toggle';
-import { Calculator, ArrowRight } from 'lucide-react';
+import { Calculator, ArrowRight, Sun, Moon } from 'lucide-react';
 
 export default function PublicHeader() {
   const pathname = usePathname();
   const { user, isLoading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const dashboardUrl = user 
     ? (user.role === 'admin' || user.role === 'super_admin' ? '/admin' : '/public')
@@ -57,7 +58,21 @@ export default function PublicHeader() {
 
         {/* Theme Toggle & Auth Buttons */}
         <div className="flex items-center gap-4">
-          <ThemeToggle />
+          
+          {/* Theme Toggle Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className="text-muted-foreground hover:bg-accent hover:text-accent-foreground rounded-xl cursor-pointer"
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-5 h-5 text-amber-500 animate-in fade-in" />
+            ) : (
+              <Moon className="w-5 h-5 text-muted-foreground animate-in fade-in" />
+            )}
+          </Button>
           
           {/* We check isLoading to avoid flashing layout shifts on load */}
           {!isLoading && (
