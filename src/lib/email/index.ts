@@ -7,7 +7,7 @@ const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
 const smtpSecure = process.env.SMTP_SECURE === 'true';
 const smtpUser = process.env.SMTP_USER;
 const smtpPass = process.env.SMTP_PASS;
-const smtpFrom = process.env.SMTP_FROM || 'WebCost Pro <noreply@webcostpro.com>';
+const smtpFrom = process.env.SMTP_FROM || 'AdaptWeb Cost Calculator <noreply@adaptweb.com>';
 
 // Create reusable transporter object using the default SMTP transport
 const transporter = nodemailer.createTransport({
@@ -93,13 +93,13 @@ export async function sendInquiryEmail(inquiry: {
  * Send a welcome email to a newly registered public user
  */
 export async function sendWelcomeEmail(user: { name: string; email: string }) {
-  const welcomeSubject = `Welcome to WebCost Pro, ${user.name}!`;
+  const welcomeSubject = `Welcome to AdaptWeb Cost Calculator, ${user.name}!`;
   const welcomeHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 8px;">
-      <h2 style="color: #4f46e5; margin-bottom: 20px;">Welcome to WebCost Pro!</h2>
+      <h2 style="color: #4f46e5; margin-bottom: 20px;">Welcome to AdaptWeb Cost Calculator!</h2>
       <p>Hi <strong>${user.name}</strong>,</p>
-      <p>Thank you for signing up for <strong>WebCost Pro</strong>. We are thrilled to have you join our community!</p>
-      <p>With WebCost Pro, you can easily:</p>
+      <p>Thank you for signing up for <strong>AdaptWeb Cost Calculator</strong>. We are thrilled to have you join our community!</p>
+      <p>With AdaptWeb Cost Calculator, you can easily:</p>
       <ul style="line-height: 1.6;">
         <li>Calculate instant, dynamic price estimates for web development projects.</li>
         <li>Customize features, pages, tech stacks, and industries to get precise quotes.</li>
@@ -107,11 +107,11 @@ export async function sendWelcomeEmail(user: { name: string; email: string }) {
       </ul>
       <p style="margin-top: 30px;">Get started now by creating your first project estimation:</p>
       <p style="text-align: center; margin: 30px 0;">
-        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://webcostpro.com'}/public/calculator" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Launch Cost Calculator</a>
+        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://adaptweb.com'}/public/calculator" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Launch Cost Calculator</a>
       </p>
       <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
       <p style="font-size: 12px; color: #64748b; line-height: 1.4;">
-        This email was sent to ${user.email} as a registration confirmation. If you did not sign up for WebCost Pro, please ignore this email.
+        This email was sent to ${user.email} as a registration confirmation. If you did not sign up for AdaptWeb Cost Calculator, please ignore this email.
       </p>
     </div>
   `;
@@ -126,12 +126,12 @@ export async function sendWelcomeEmail(user: { name: string; email: string }) {
  * Send a sign-in security alert to a public user
  */
 export async function sendSecurityAlertEmail(user: { name: string; email: string }, loginTime: string) {
-  const loginSubject = "Security Alert: New Sign-in to WebCost Pro";
+  const loginSubject = "Security Alert: New Sign-in to AdaptWeb Cost Calculator";
   const loginHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 25px; border: 1px solid #e2e8f0; border-radius: 8px;">
       <h3 style="color: #0f172a; margin-bottom: 20px;">New Sign-In Detected</h3>
       <p>Hi <strong>${user.name}</strong>,</p>
-      <p>Your WebCost Pro account was recently accessed on <strong>${loginTime}</strong>.</p>
+      <p>Your AdaptWeb Cost Calculator account was recently accessed on <strong>${loginTime}</strong>.</p>
       
       <table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;">
         <tr>

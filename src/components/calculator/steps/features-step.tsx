@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useCalculatorStore } from '@/store/calculator-store';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
-import type { Feature, FeatureCategory, Package } from '@/types';
+import type { AddonFeature, AddonCategory, Package } from '@/types';
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -22,8 +22,8 @@ import {
 } from 'lucide-react';
 
 interface FeaturesStepProps {
-  categories: FeatureCategory[];
-  features: Feature[];
+  categories: AddonCategory[];
+  features: AddonFeature[];
   packages: Package[];
 }
 

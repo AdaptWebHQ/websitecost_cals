@@ -7,6 +7,7 @@ import { COLLECTIONS } from '@/constants';
 import { industrySchema, type IndustryFormData } from '@/schemas';
 import { slugify } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
+import { getServerUser } from '@/actions/auth';
 import type { ApiResponse, Industry } from '@/types';
 
 /** Create a new industry */
@@ -14,6 +15,13 @@ export async function createIndustryAction(
   data: IndustryFormData
 ): Promise<ApiResponse<Industry>> {
   try {
+    // TODO(PRODUCTION): Enable Rate Limiting for this API endpoint
+    // TODO(PRODUCTION): Add Firestore Security Rules for this collection
+    const user = await getServerUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return { success: false, error: 'Unauthorized administrative operation.' };
+    }
+
     const validated = industrySchema.safeParse(data);
     if (!validated.success) {
       return {
@@ -72,6 +80,12 @@ export async function updateIndustryAction(
   data: IndustryFormData
 ): Promise<ApiResponse<Industry>> {
   try {
+    // TODO(PRODUCTION): Enable Rate Limiting for this API endpoint
+    const user = await getServerUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return { success: false, error: 'Unauthorized administrative operation.' };
+    }
+
     const validated = industrySchema.safeParse(data);
     if (!validated.success) {
       return {
@@ -140,6 +154,11 @@ export async function updateIndustryAction(
 /** Delete an industry */
 export async function deleteIndustryAction(id: string): Promise<ApiResponse<void>> {
   try {
+    const user = await getServerUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return { success: false, error: 'Unauthorized administrative operation.' };
+    }
+
     const industryRef = adminDb.collection(COLLECTIONS.INDUSTRIES).doc(id);
     const docSnap = await industryRef.get();
     if (!docSnap.exists) {
@@ -169,6 +188,11 @@ export async function toggleIndustryActiveAction(
   isActive: boolean
 ): Promise<ApiResponse<void>> {
   try {
+    const user = await getServerUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return { success: false, error: 'Unauthorized administrative operation.' };
+    }
+
     const industryRef = adminDb.collection(COLLECTIONS.INDUSTRIES).doc(id);
     await industryRef.update({
       isActive,

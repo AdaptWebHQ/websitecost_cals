@@ -7,7 +7,7 @@ import { TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { PlusCircle, Edit, Trash, Loader2 } from 'lucide-react';
 import {
   Dialog,
@@ -23,18 +23,18 @@ import {
   deletePackageAction,
 } from '@/actions/packages';
 import {
+  getPackageFeatureCategoriesAction,
   getPackageFeaturesAction,
-  createPackageFeatureAction,
-  updatePackageFeatureAction,
-  deletePackageFeatureAction,
-} from '@/actions/package-feature/index';
-import type { Package, PackageFeature } from '@/types';
+} from '@/actions/package-features-library/index';
+import type { Package, PackageFeatureCategory, PackageFeature } from '@/types';
 
 interface PackagesClientPageProps {
   initialPackages: Package[];
 }
 
-export default function PackagesClientPage({ initialPackages }: PackagesClientPageProps) {
+export default function PackagesClientPage({
+  initialPackages,
+}: PackagesClientPageProps) {
   const [packages, setPackages] = useState<Package[]>(initialPackages);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState<Package | null>(null);
@@ -51,44 +51,39 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
   const [isPopular, setIsPopular] = useState(false);
   const [isActive, setIsActive] = useState(true);
 
-  // Package Features State
-  const [packageFeatures, setPackageFeatures] = useState<PackageFeature[]>([]);
-  const [isLoadingFeatures, setIsLoadingFeatures] = useState(false);
+  // Centralized package features checklist selection state
+  const [includedFeatureIds, setIncludedFeatureIds] = useState<string[]>([]);
 
-  // Feature Dialog State
-  const [isFeatureModalOpen, setIsFeatureModalOpen] = useState(false);
-  const [editingFeature, setEditingFeature] = useState<PackageFeature | null>(null);
-  const [featureName, setFeatureName] = useState('');
-  const [featureDescription, setFeatureDescription] = useState('');
-  const [isFeatureSubmitting, setIsFeatureSubmitting] = useState(false);
-  const [featureErrorMsg, setFeatureErrorMsg] = useState<string | null>(null);
+  // Global library states
+  const [globalCategories, setGlobalCategories] = useState<PackageFeatureCategory[]>([]);
+  const [globalFeatures, setGlobalFeatures] = useState<PackageFeature[]>([]);
+  const [isLoadingGlobal, setIsLoadingGlobal] = useState(true);
 
-  const loadPackageFeatures = useCallback(async (packageId: string) => {
-    setIsLoadingFeatures(true);
+  const loadGlobalFeatures = useCallback(async () => {
     try {
-      const response = await getPackageFeaturesAction(packageId);
-
-      if (response.success && response.data) {
-        setPackageFeatures(response.data);
-      } else {
-        setPackageFeatures([]);
-        console.error(response.error);
+      const [catsRes, featsRes] = await Promise.all([
+        getPackageFeatureCategoriesAction(true), // only active
+        getPackageFeaturesAction(undefined, true), // only active
+      ]);
+      if (catsRes.success && catsRes.data) {
+        setGlobalCategories(catsRes.data.sort((a, b) => a.displayOrder - b.displayOrder));
+      }
+      if (featsRes.success && featsRes.data) {
+        setGlobalFeatures(featsRes.data.sort((a, b) => a.displayOrder - b.displayOrder));
       }
     } catch (err) {
-      console.error('Failed to load package features:', err);
+      console.error('Failed to load global features:', err);
     } finally {
-      setIsLoadingFeatures(false);
+      setIsLoadingGlobal(false);
     }
   }, []);
 
-  // Load features when editing package changes
+  // Load global feature catalog on mount
   useEffect(() => {
-    if (editingPackage) {
-      loadPackageFeatures(editingPackage.id);
-    } else {
-      setPackageFeatures([]);
-    }
-  }, [editingPackage, loadPackageFeatures]);
+    setTimeout(() => {
+      loadGlobalFeatures();
+    }, 0);
+  }, [loadGlobalFeatures]);
 
   const openAddModal = useCallback(() => {
     setEditingPackage(null);
@@ -100,6 +95,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
     setRevisions(3);
     setIsPopular(false);
     setIsActive(true);
+    setIncludedFeatureIds([]);
     setErrorMsg(null);
     setIsModalOpen(true);
   }, []);
@@ -114,6 +110,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
     setRevisions(pkg.revisions);
     setIsPopular(pkg.isPopular);
     setIsActive(pkg.isActive);
+    setIncludedFeatureIds(pkg.includedFeatureIds || []);
     setErrorMsg(null);
     setIsModalOpen(true);
   }, []);
@@ -133,7 +130,6 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    // Explicit type casting inline matches the schema's required features parameter dynamically
     const formData = {
       name: trimmedName,
       description: trimmedDescription,
@@ -143,9 +139,9 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
       revisions,
       isPopular,
       isActive,
-      features: editingPackage?.features || [],
+      includedFeatureIds,
       sortOrder: editingPackage ? editingPackage.sortOrder : packages.length,
-    } as any;
+    };
 
     try {
       if (editingPackage) {
@@ -183,6 +179,7 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
     revisions,
     isPopular,
     isActive,
+    includedFeatureIds,
     editingPackage,
     packages.length,
   ]);
@@ -202,80 +199,6 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
       window.alert('Failed to delete package.');
     }
   }, []);
-
-  // Feature Handlers
-  const openAddFeatureModal = useCallback(() => {
-    setEditingFeature(null);
-    setFeatureName('');
-    setFeatureDescription('');
-    setFeatureErrorMsg(null);
-    setIsFeatureModalOpen(true);
-  }, []);
-
-  const openEditFeatureModal = useCallback((feat: PackageFeature) => {
-    setEditingFeature(feat);
-    setFeatureName(feat.name);
-    setFeatureDescription(feat.description || '');
-    setFeatureErrorMsg(null);
-    setIsFeatureModalOpen(true);
-  }, []);
-
-  const handleFeatureSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingPackage || isFeatureSubmitting) return;
-
-    const trimmedFeatureName = featureName.trim();
-    const trimmedFeatureDescription = featureDescription.trim();
-
-    if (!trimmedFeatureName) {
-      setFeatureErrorMsg('Feature name is required.');
-      return;
-    }
-
-    setIsFeatureSubmitting(true);
-    setFeatureErrorMsg(null);
-
-    try {
-      if (editingFeature) {
-        await updatePackageFeatureAction(editingPackage.id, editingFeature.id, {
-          name: trimmedFeatureName,
-          description: trimmedFeatureDescription,
-        });
-      } else {
-        await createPackageFeatureAction(editingPackage.id, {
-          name: trimmedFeatureName,
-          description: trimmedFeatureDescription,
-          sortOrder: packageFeatures.length + 1,
-        });
-      }
-      await loadPackageFeatures(editingPackage.id);
-      setIsFeatureModalOpen(false);
-    } catch (err) {
-      console.error('Error saving feature:', err);
-      setFeatureErrorMsg('Failed to save feature.');
-    } finally {
-      setIsFeatureSubmitting(false);
-    }
-  }, [
-    editingPackage,
-    isFeatureSubmitting,
-    featureName,
-    featureDescription,
-    editingFeature,
-    packageFeatures.length,
-    loadPackageFeatures,
-  ]);
-
-  const handleDeleteFeature = useCallback(async (featureId: string) => {
-    if (!editingPackage || !window.confirm('Are you sure you want to delete this feature?')) return;
-    try {
-      await deletePackageFeatureAction(editingPackage.id, featureId);
-      await loadPackageFeatures(editingPackage.id);
-    } catch (err) {
-      console.error('Error deleting feature:', err);
-      window.alert('Failed to delete feature.');
-    }
-  }, [editingPackage, loadPackageFeatures]);
 
   const columns = [
     { key: 'name', label: 'Package Name' },
@@ -369,185 +292,183 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
 
       {/* Package Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-popover border border-border shadow-2xl rounded-2xl w-full max-w-lg p-6 relative text-popover-foreground">
+        <DialogContent className="bg-popover border border-border shadow-2xl rounded-2xl w-full sm:max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative text-popover-foreground">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-foreground">
               {editingPackage ? 'Edit Quotation Package' : 'Create Quotation Package'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {errorMsg && (
               <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg">
                 {errorMsg}
               </p>
             )}
-            <div className="space-y-1">
-              <Label className="text-muted-foreground text-xs">Package Name</Label>
-              <Input
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Basic Brochure"
-                className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-muted-foreground text-xs">Description</Label>
-              <Textarea
-                required
-                rows={2}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Summarize target audience and main values..."
-                className="bg-background border-border text-foreground rounded-xl"
-              />
-            </div>
 
-            {/* Included Features Section */}
-            <div className="space-y-2">
-              <Label className="text-muted-foreground text-xs font-semibold">Included Features</Label>
-              {editingPackage ? (
-                <div className="bg-background border border-border rounded-xl p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground font-medium">Manage specific package details</span>
-                    <Button
-                      type="button"
-                      onClick={openAddFeatureModal}
-                      variant="ghost"
-                      size="sm"
-                      className="text-indigo-400 hover:text-indigo-300 gap-1 text-xs px-2 h-8 rounded-lg"
-                    >
-                      <PlusCircle className="w-3.5 h-3.5" />
-                      Add Feature
-                    </Button>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+              {/* Left Column: Package Details (Col-span 3) */}
+              <div className="lg:col-span-3 space-y-4">
+                <div className="space-y-1">
+                  <Label className="text-muted-foreground text-xs">Package Name</Label>
+                  <Input
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Basic Brochure"
+                    className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-muted-foreground text-xs">Description</Label>
+                  <Textarea
+                    required
+                    rows={3}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Summarize target audience and main values..."
+                    className="bg-background border-border text-foreground rounded-xl resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground text-xs">Base Price (INR)</Label>
+                    <Input
+                      required
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={basePrice}
+                      onChange={(e) => setBasePrice(Number(e.target.value))}
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
+                    />
                   </div>
-                  {isLoadingFeatures ? (
-                    <div className="flex items-center justify-center py-6">
-                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground text-xs">Pages Included</Label>
+                    <Input
+                      required
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={pagesIncluded}
+                      onChange={(e) => setPagesIncluded(Number(e.target.value))}
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground text-xs">Delivery (Days)</Label>
+                    <Input
+                      required
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={deliveryDays}
+                      onChange={(e) => setDeliveryDays(Number(e.target.value))}
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground text-xs">Revisions Allowed</Label>
+                    <Input
+                      required
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={revisions}
+                      onChange={(e) => setRevisions(Number(e.target.value))}
+                      className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-6 pt-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="isPopular"
+                      checked={isPopular}
+                      onCheckedChange={(checked) => setIsPopular(!!checked)}
+                    />
+                    <Label htmlFor="isPopular" className="text-sm font-medium text-foreground cursor-pointer select-none">
+                      Mark as Popular
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="isActive"
+                      checked={isActive}
+                      onCheckedChange={(checked) => setIsActive(!!checked)}
+                    />
+                    <Label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer select-none">
+                      Active Listing
+                    </Label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: In-Built Features Checklist */}
+              <div className="lg:col-span-2 flex flex-col space-y-4">
+                <div>
+                  <Label className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                    Included Features
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Select in-built features from the central library to include in this package tier.
+                  </p>
+                </div>
+
+                <div className="flex-1 bg-background border border-border rounded-xl p-4 space-y-4 max-h-[340px] overflow-y-auto scrollbar-thin">
+                  {isLoadingGlobal ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
                     </div>
-                  ) : packageFeatures.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8 bg-background border border-border border-dashed rounded-xl space-y-2">
-                      <span className="text-3xl mb-1">📦</span>
-                      <p className="text-sm font-semibold text-foreground">No included features yet.</p>
-                      <p className="text-xs text-muted-foreground">Add your first package feature.</p>
+                  ) : globalCategories.length === 0 ? (
+                    <div className="text-center py-12 text-xs text-muted-foreground border border-dashed border-border rounded-xl">
+                      No categories defined in the library yet. Set them up under the Feature Library menu first.
                     </div>
                   ) : (
-                    <div className="max-h-[160px] overflow-y-auto space-y-2 scrollbar-thin pr-1">
-                      {packageFeatures.map((feat) => (
-                        <div key={feat.id} className="flex items-center justify-between p-2 rounded-lg border border-border bg-muted/20">
-                          <div className="flex flex-col min-w-0 flex-1 pr-2">
-                            <span className="text-xs font-semibold text-foreground truncate">{feat.name}</span>
-                            {feat.description && (
-                              <span className="text-[10px] text-muted-foreground truncate">{feat.description}</span>
-                            )}
+                    <div className="space-y-4">
+                      {globalCategories.map((cat) => {
+                        const catFeatures = globalFeatures.filter((f) => f.categoryId === cat.id);
+                        if (catFeatures.length === 0) return null;
+                        return (
+                          <div key={cat.id} className="space-y-2 border-b border-border/40 pb-3 last:border-0 last:pb-0">
+                            <span className="text-[11px] font-bold text-indigo-400 block uppercase tracking-wider">
+                              {cat.name}
+                            </span>
+                            <div className="grid grid-cols-1 gap-2 pl-2">
+                              {catFeatures.map((feat) => {
+                                const isChecked = includedFeatureIds.includes(feat.id);
+                                return (
+                                  <div key={feat.id} className="flex items-start space-x-2">
+                                    <Checkbox
+                                      id={`feat-${feat.id}`}
+                                      checked={isChecked}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setIncludedFeatureIds((prev) => [...prev, feat.id]);
+                                        } else {
+                                          setIncludedFeatureIds((prev) => prev.filter((id) => id !== feat.id));
+                                        }
+                                      }}
+                                    />
+                                    <Label
+                                      htmlFor={`feat-${feat.id}`}
+                                      className="text-xs font-medium text-foreground cursor-pointer leading-snug select-none"
+                                    >
+                                      {feat.name}
+                                    </Label>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <Button
-                              type="button"
-                              onClick={() => openEditFeatureModal(feat)}
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground rounded-md"
-                              aria-label="Edit feature"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              type="button"
-                              onClick={() => handleDeleteFeature(feat.id)}
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-red-400 hover:text-red-300 rounded-md"
-                              aria-label="Delete feature"
-                            >
-                              <Trash className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
-              ) : (
-                <p className="text-xs text-muted-foreground italic bg-background border border-border border-dashed rounded-xl p-3 text-center">
-                  Save this package first before managing included features.
-                </p>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label className="text-muted-foreground text-xs">Base Price (INR)</Label>
-                <Input
-                  required
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={basePrice}
-                  onChange={(e) => setBasePrice(Number(e.target.value))}
-                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-muted-foreground text-xs">Pages Included</Label>
-                <Input
-                  required
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={pagesIncluded}
-                  onChange={(e) => setPagesIncluded(Number(e.target.value))}
-                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label className="text-muted-foreground text-xs">Delivery (Days)</Label>
-                <Input
-                  required
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={deliveryDays}
-                  onChange={(e) => setDeliveryDays(Number(e.target.value))}
-                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-muted-foreground text-xs">Revisions Allowed</Label>
-                <Input
-                  required
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={revisions}
-                  onChange={(e) => setRevisions(Number(e.target.value))}
-                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-6 pt-2">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isPopular"
-                  checked={isPopular}
-                  onCheckedChange={(checked) => setIsPopular(!!checked)}
-                />
-                <Label htmlFor="isPopular" className="text-sm font-medium text-foreground cursor-pointer select-none">
-                  Mark as Popular
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isActive"
-                  checked={isActive}
-                  onCheckedChange={(checked) => setIsActive(!!checked)}
-                />
-                <Label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer select-none">
-                  Active Listing
-                </Label>
               </div>
             </div>
 
@@ -573,70 +494,6 @@ export default function PackagesClientPage({ initialPackages }: PackagesClientPa
                   </span>
                 ) : (
                   'Save Changes'
-                )}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Feature Dialog */}
-      <Dialog open={isFeatureModalOpen} onOpenChange={setIsFeatureModalOpen}>
-        <DialogContent className="bg-popover border border-border shadow-2xl rounded-2xl w-full max-w-md p-6 relative text-popover-foreground z-[60]">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-foreground">
-              {editingFeature ? 'Edit Feature' : 'Add Feature'}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleFeatureSubmit} className="space-y-4">
-            {featureErrorMsg && (
-              <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg">
-                {featureErrorMsg}
-              </p>
-            )}
-            <div className="space-y-1">
-              <Label className="text-muted-foreground text-xs">Feature Name</Label>
-              <Input
-                required
-                value={featureName}
-                onChange={(e) => setFeatureName(e.target.value)}
-                placeholder="e.g. Responsive Design"
-                className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-muted-foreground text-xs">Description</Label>
-              <Textarea
-                rows={3}
-                value={featureDescription}
-                onChange={(e) => setFeatureDescription(e.target.value)}
-                placeholder="Describe the feature details..."
-                className="bg-background border-border text-foreground rounded-xl"
-              />
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-border">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsFeatureModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground rounded-xl h-10 px-5"
-                disabled={isFeatureSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isFeatureSubmitting}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-10 px-6 font-semibold shadow-lg shadow-indigo-600/10 disabled:opacity-50"
-              >
-                {isFeatureSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                    Saving...
-                  </span>
-                ) : (
-                  'Save Feature'
                 )}
               </Button>
             </div>

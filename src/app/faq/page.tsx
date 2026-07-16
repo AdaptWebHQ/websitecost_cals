@@ -3,26 +3,48 @@ import { Button } from '@/components/ui/button';
 import PublicHeader from '@/components/shared/public-header';
 import { Calculator } from 'lucide-react';
 import ThemeToggle from '@/components/shared/theme-toggle';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'AdaptWeb Cost Calculator | FAQ',
+  description: 'Professional Website Estimation & Lead Management Platform.',
+};
 
 export const revalidate = 3600; // Cache for 1 hour
 
 export default function FaqPage() {
   const faqs = [
     {
-      question: 'How accurate are the website cost estimations?',
-      answer: 'The estimates are highly accurate approximations based on dynamic pricing configurations defined by our administrators. They map package baselines, page sizes, feature complexity, and delivery speed.',
+      question: 'How accurate are the website estimates?',
+      answer: 'The estimates generated are highly accurate approximations based on our current base rates, add-on features, and project scope. However, they serve as a starting point for discussion.',
     },
     {
-      question: 'Can I download the generated quotation estimates?',
-      answer: 'Yes! Once you complete the multi-step cost calculation wizard, you can review the breakdown and download a professionally compiled PDF quotation directly to your device.',
+      question: 'Can I customize my quotation?',
+      answer: 'Yes, you can customize your quotation by selecting different packages, adding features, adjusting the page count, and changing the delivery timeline.',
     },
     {
-      question: 'Is it possible to request follow-up customization consulting?',
-      answer: 'Absolutely. Every logged estimate details screen includes a "Consult an Expert" lead capture callback form. You can submit details to request a call with our project management team.',
+      question: 'Can I download a PDF proposal?',
+      answer: 'Absolutely. Once your estimate is generated, you can download a beautifully formatted, branded PDF proposal instantly.',
     },
     {
-      question: 'How does rush delivery pricing work?',
-      answer: 'Selecting rush delivery schedules increases the overall quote subtotal by a fixed percentage (e.g. 25% rush charge markup) to prioritize resources for faster turnaround times.',
+      question: 'Will my estimate become the final project price?',
+      answer: 'The generated estimate is a strong baseline. The final price may be adjusted slightly during our consultation call to account for specific bespoke requirements.',
+    },
+    {
+      question: 'Can AdaptWeb build my website?',
+      answer: 'Yes! AdaptWeb Cost Calculator is built by AdaptWeb IT Solutions, a full-service agency. You can request a consultation directly from your estimate to have us build your project.',
+    },
+    {
+      question: 'How long are quotations valid?',
+      answer: 'Unless otherwise stated during consultation, quotations generated on the platform are typically valid for 30 days.',
+    },
+    {
+      question: 'Can I save multiple estimates?',
+      answer: 'Yes. By creating a free account, you can generate, save, and manage as many project estimates as you need in your dashboard.',
+    },
+    {
+      question: 'Do I need an account?',
+      answer: 'You can use the calculator without an account, but you will need to create a free account to save your estimates, download PDFs, and manage your projects.',
     },
   ];
 
@@ -64,7 +86,7 @@ export default function FaqPage() {
       {/* Footer */}
       <footer className="mt-auto border-t border-border bg-card py-8 text-center text-xs text-muted-foreground">
         <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} WebCost Pro Calculator SaaS. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} AdaptWeb Cost Calculator. An AdaptWeb Product.</p>
           <div className="flex gap-6">
             <Link href="/privacy" className="hover:text-foreground transition-colors font-medium">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-foreground transition-colors font-medium">Terms of Service</Link>

@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import CreativePortfolioPreview from './creative-portfolio-preview';
 
-interface NicheImageSlideshowProps {
-  index: number;
-}
-
-export default function NicheImageSlideshow({ index }: NicheImageSlideshowProps) {
+export default function NicheImageSlideshow({ index }: { index: number }) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [prevIndex, setPrevIndex] = useState(index);
+
+  if (index !== prevIndex) {
+    setPrevIndex(index);
+    setCurrentSlide(0);
+  }
 
   const getImages = (idx: number) => {
     switch (idx) {
@@ -39,11 +40,6 @@ export default function NicheImageSlideshow({ index }: NicheImageSlideshowProps)
     return () => clearInterval(timer);
   }, [images.length]);
 
-  // Reset to first slide if index changes (i.e. user selects a different niche)
-  useEffect(() => {
-    setCurrentSlide(0);
-  }, [index]);
-
   // Get promotional details for floating badges
   const getPromoTags = (idx: number) => {
     switch (idx) {
@@ -64,14 +60,8 @@ export default function NicheImageSlideshow({ index }: NicheImageSlideshowProps)
   const promo = getPromoTags(index);
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#07090e] select-none">
+    <div className="relative w-full h-full overflow-hidden bg-slate-950 select-none border border-slate-800 rounded-none">
       
-      {/* Background ambient mesh glows for high-end studio aesthetic */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-primary/10 blur-[60px] animate-pulse" style={{ animationDuration: '6s' }} />
-        <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-64 h-64 rounded-full bg-indigo-500/10 blur-[65px] animate-pulse" style={{ animationDuration: '8s' }} />
-      </div>
-
       <AnimatePresence mode="wait">
         <motion.div
           key={`${index}-${activeImage}`}
@@ -89,26 +79,26 @@ export default function NicheImageSlideshow({ index }: NicheImageSlideshowProps)
             transition={{
               duration: 10,
               repeat: Infinity,
-              ease: 'easeInOut'
+              ease: 'linear'
             }}
-            className="w-full h-full object-contain drop-shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
+            className="w-full h-full object-contain drop-shadow-none rounded-none"
           />
         </motion.div>
       </AnimatePresence>
 
-      {/* Luxury physical screen glass reflection glare overlay */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.02] to-white/[0.06] pointer-events-none z-20" />
+      {/* Luxury physical screen glass reflection glare overlay replaced with hard line */}
+      <div className="absolute inset-0 border border-slate-800 pointer-events-none z-20" />
       
-      {/* Floating promotional glassmorphic badges */}
-      <div className="absolute top-3 left-3 bg-[#0a0f1d]/75 backdrop-blur-md border border-white/10 px-2.5 py-0.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.4)] z-30 flex items-center gap-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
-        <span className="text-[7px] font-mono font-black uppercase tracking-widest text-primary-foreground/90">
+      {/* Floating promotional glassmorphic badges replaced with hard technical badges */}
+      <div className="absolute top-3 left-3 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-none shadow-none z-30 flex items-center gap-1.5">
+        <span className="w-1.5 h-1.5 rounded-none bg-white" />
+        <span className="text-[7px] font-mono font-black uppercase tracking-widest text-slate-300">
           {promo.category}
         </span>
       </div>
 
-      <div className="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur-md border border-slate-700/60 px-2.5 py-0.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.4)] z-30">
-        <span className="text-[7.5px] font-sans font-bold text-slate-100 flex items-center gap-1">
+      <div className="absolute bottom-3 right-3 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-none shadow-none z-30">
+        <span className="text-[7.5px] font-mono font-bold text-slate-300 flex items-center gap-1 uppercase tracking-widest">
           {promo.detail}
         </span>
       </div>

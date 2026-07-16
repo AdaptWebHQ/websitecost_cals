@@ -4,13 +4,13 @@ import { useRouter } from 'next/navigation';
 import { useCalculatorStore } from '@/store/calculator-store';
 import { calculateQuotation } from '@/lib/calculations/pricing';
 import { formatCurrency } from '@/lib/utils';
-import type { Package, Feature, PriceConfig, Industry, Calculation } from '@/types';
+import type { Package, AddonFeature, PriceConfig, Industry, Calculation } from '@/types';
 import { ArrowLeft, Loader2, Sparkles, CheckCircle2, ChevronRight, ShieldCheck, Cpu, Trash2, Plus } from 'lucide-react';
 import PdfDownloadButton from '../pdf-download-button';
 
 interface SummaryStepProps {
   packages: Package[];
-  features: Feature[];
+  features: AddonFeature[];
   industries: Industry[];
   priceConfig: PriceConfig;
   isLoading: boolean;

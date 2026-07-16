@@ -37,9 +37,8 @@ const NICHES = [
     deliveryDays: 4,
     revisions: 2,
     domain: 'alexcarter.me',
-    themeClass: 'from-amber-500/10 to-orange-500/5',
     icon: <User className="w-5 h-5" />,
-    badgeColor: 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+    badgeColor: 'text-muted-foreground border-border'
   },
   {
     id: 'niche-salon',
@@ -50,9 +49,8 @@ const NICHES = [
     deliveryDays: 7,
     revisions: 4,
     domain: 'elixir-spa.co',
-    themeClass: 'from-rose-500/10 to-stone-500/5',
     icon: <Sparkles className="w-5 h-5" />,
-    badgeColor: 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+    badgeColor: 'text-muted-foreground border-border'
   },
   {
     id: 'niche-restaurant',
@@ -63,9 +61,8 @@ const NICHES = [
     deliveryDays: 14,
     revisions: 6,
     domain: 'gustobistro.com',
-    themeClass: 'from-amber-500/10 to-orange-500/5',
     icon: <Utensils className="w-5 h-5" />,
-    badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20'
+    badgeColor: 'text-muted-foreground border-border'
   },
   {
     id: 'niche-gym',
@@ -76,9 +73,8 @@ const NICHES = [
     deliveryDays: 28,
     revisions: 10,
     domain: 'rippedgym.in',
-    themeClass: 'from-cyan-500/10 to-emerald-500/5',
     icon: <Dumbbell className="w-5 h-5" />,
-    badgeColor: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20'
+    badgeColor: 'text-muted-foreground border-border'
   },
   {
     id: 'niche-saas',
@@ -89,9 +85,8 @@ const NICHES = [
     deliveryDays: 45,
     revisions: 99,
     domain: 'saasdashboard.io',
-    themeClass: 'from-indigo-500/10 to-blue-500/5',
     icon: <BarChart3 className="w-5 h-5" />,
-    badgeColor: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20'
+    badgeColor: 'text-muted-foreground border-border'
   }
 ];
 
@@ -129,10 +124,10 @@ export default function InteractiveNicheCalculator() {
     return () => clearInterval(timer);
   }, []);
 
-  // Sync pages count with niche defaults when niche switches
-  useEffect(() => {
-    setPages(NICHES[nicheIdx].pagesIncluded);
-  }, [nicheIdx]);
+  const handleNicheChange = (idx: number) => {
+    setNicheIdx(idx);
+    setPages(NICHES[idx].pagesIncluded);
+  };
 
   const activeNiche = NICHES[nicheIdx];
 
@@ -174,19 +169,21 @@ export default function InteractiveNicheCalculator() {
     <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch min-h-[460px] text-left">
       
       {/* Left Column: Interactive Controls (7 Columns) */}
-      <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-8 bg-card border border-border rounded-3xl relative overflow-hidden">
+      <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-8 bg-card border border-border rounded-none relative overflow-hidden">
         
         {/* Top Progress bar and Header */}
         <div className="w-full">
           <div className="flex justify-between items-center text-xs mb-3 font-mono font-bold text-muted-foreground uppercase tracking-widest">
             <span>Configure Project</span>
-            <span className="text-primary font-black">Slide {slide + 1} of 4</span>
+            <span className="text-foreground font-black">Segment 0{slide + 1} // 04</span>
           </div>
-          <div className="w-full h-1 bg-muted rounded-full overflow-hidden mb-6">
-            <div 
-              className="h-full bg-primary transition-all duration-300 ease-out rounded-full" 
-              style={{ width: `${(slide + 1) * 25}%` }} 
-            />
+          <div className="w-full h-1 bg-border flex rounded-none overflow-hidden mb-6">
+            {[0, 1, 2, 3].map((step) => (
+              <div 
+                key={step}
+                className={`flex-1 h-full border-r border-background last:border-0 transition-colors duration-300 ${step <= slide ? 'bg-primary' : 'bg-transparent'}`}
+              />
+            ))}
           </div>
 
           {/* Slides switcher */}
@@ -201,39 +198,39 @@ export default function InteractiveNicheCalculator() {
                 className="space-y-4"
               >
                 <div>
-                  <h3 className="text-xl font-black text-foreground tracking-tight leading-none">Select Niche Category</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Select a starting theme package corresponding to your project niche.</p>
+                  <h3 className="text-xl font-black text-foreground tracking-tight leading-none uppercase">Select Core Architecture</h3>
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">Select a starting theme package corresponding to your project niche.</p>
                 </div>
 
-                <div className="grid grid-cols-1 gap-2.5 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
+                <div className="grid grid-cols-1 gap-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
                   {NICHES.map((niche, idx) => (
                     <div
                       key={niche.id}
-                      onClick={() => setNicheIdx(idx)}
-                      className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all duration-300 ${
+                      onClick={() => handleNicheChange(idx)}
+                      className={`p-3 rounded-none border flex items-center justify-between cursor-pointer transition-all duration-300 ${
                         nicheIdx === idx 
-                          ? 'border-primary bg-primary/[0.03] shadow-xs' 
-                          : 'border-border bg-card hover:bg-muted/50'
+                          ? 'border-primary bg-muted/50' 
+                          : 'border-border bg-card hover:bg-muted/30'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg border flex items-center justify-center ${
+                        <div className={`w-8 h-8 rounded-none border flex items-center justify-center ${
                           nicheIdx === idx 
-                            ? 'bg-primary text-white border-primary' 
+                            ? 'bg-primary text-primary-foreground border-primary' 
                             : 'bg-muted text-muted-foreground border-border'
                         }`}>
                           {niche.icon}
                         </div>
                         <div>
-                          <h4 className="text-xs font-bold text-foreground">{niche.name}</h4>
-                          <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{niche.description}</p>
+                          <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">{niche.name}</h4>
+                          <p className="text-[10px] text-muted-foreground font-mono mt-0.5">{niche.description}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 font-mono text-[10px] font-bold">
-                        <span className="text-foreground">₹{niche.basePrice.toLocaleString('en-IN')}</span>
+                        <span className="text-muted-foreground">₹{niche.basePrice.toLocaleString('en-IN')}</span>
                         {nicheIdx === idx && (
-                          <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                            <Check className="w-2.5 h-2.5 text-white" />
+                          <div className="w-4 h-4 rounded-none bg-primary flex items-center justify-center">
+                            <Check className="w-2.5 h-2.5 text-primary-foreground" />
                           </div>
                         )}
                       </div>
@@ -253,15 +250,15 @@ export default function InteractiveNicheCalculator() {
                 className="space-y-6"
               >
                 <div>
-                  <h3 className="text-xl font-black text-foreground tracking-tight leading-none">Determine Scope & Speed</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Specify total page outputs and customize build delivery timeline speed.</p>
+                  <h3 className="text-xl font-black text-foreground tracking-tight leading-none uppercase">Determine Scope & Speed</h3>
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">Specify total page outputs and customize build delivery timeline speed.</p>
                 </div>
 
                 {/* Page Count Slider */}
-                <div className="space-y-3 bg-muted/40 border border-border/80 p-4 rounded-2xl">
+                <div className="space-y-3 bg-muted/30 border border-border p-4 rounded-none">
                   <div className="flex justify-between items-baseline text-xs font-bold font-mono">
-                    <span className="text-muted-foreground">Page Count Scope</span>
-                    <span className="text-primary text-sm font-black">{pages} Pages</span>
+                    <span className="text-muted-foreground uppercase">Page Count Scope</span>
+                    <span className="text-foreground text-sm font-black">{pages} Pages</span>
                   </div>
                   <input
                     type="range"
@@ -269,12 +266,12 @@ export default function InteractiveNicheCalculator() {
                     max={activeNiche.pagesIncluded + 15}
                     value={pages}
                     onChange={(e) => setPages(parseInt(e.target.value))}
-                    className="w-full accent-primary h-1 bg-muted border border-border rounded-lg appearance-none cursor-pointer"
+                    className="w-full h-1 bg-border border-none appearance-none cursor-pointer rounded-none outline-none accent-primary"
                   />
                   <div className="flex justify-between items-center text-[10px] font-mono text-muted-foreground">
                     <span>Base Included: {activeNiche.pagesIncluded} pages</span>
                     {additionalPages > 0 ? (
-                      <span className="text-amber-600 font-bold">+{additionalPages} extra pages (+₹{(additionalPages * 2000).toLocaleString('en-IN')})</span>
+                      <span className="text-foreground font-bold">+{additionalPages} extra pages (+₹{(additionalPages * 2000).toLocaleString('en-IN')})</span>
                     ) : (
                       <span>No extra page charges</span>
                     )}
@@ -284,33 +281,33 @@ export default function InteractiveNicheCalculator() {
                 {/* Rush Delivery Speed */}
                 <div 
                   onClick={() => setRushDelivery(!rushDelivery)}
-                  className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all duration-300 ${
+                  className={`p-4 rounded-none border flex items-center justify-between cursor-pointer transition-all duration-300 ${
                     rushDelivery 
-                      ? 'border-primary bg-primary/[0.03] shadow-xs' 
-                      : 'border-border bg-card hover:bg-muted/50'
+                      ? 'border-primary bg-muted/50' 
+                      : 'border-border bg-card hover:bg-muted/30'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg border flex items-center justify-center ${
+                    <div className={`w-8 h-8 rounded-none border flex items-center justify-center ${
                       rushDelivery 
-                        ? 'bg-primary text-white border-primary' 
+                        ? 'bg-primary text-primary-foreground border-primary' 
                         : 'bg-muted text-muted-foreground border-border'
                     }`}>
                       <Clock className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-foreground">Rush Delivery Option</h4>
-                      <p className="text-[10px] text-muted-foreground font-medium mt-0.5">Speed up roadmap timeline by 35% (adds 25% markup).</p>
+                      <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Rush Delivery Option</h4>
+                      <p className="text-[10px] text-muted-foreground font-mono mt-0.5">Speed up roadmap timeline by 35% (adds 25% markup).</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] font-bold text-foreground">
+                    <span className="font-mono text-[10px] font-bold text-muted-foreground">
                       {rushDelivery ? 'Active' : '+25%'}
                     </span>
-                    <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
-                      rushDelivery ? 'bg-primary border-primary text-white' : 'border-slate-300 bg-white'
+                    <div className={`w-5 h-5 rounded-none border flex items-center justify-center transition-all ${
+                      rushDelivery ? 'bg-primary border-primary text-primary-foreground' : 'border-border bg-muted text-transparent'
                     }`}>
-                      {rushDelivery && <Check className="w-3.5 h-3.5" />}
+                      <Check className="w-3.5 h-3.5" />
                     </div>
                   </div>
                 </div>
@@ -327,34 +324,34 @@ export default function InteractiveNicheCalculator() {
                 className="space-y-4"
               >
                 <div>
-                  <h3 className="text-xl font-black text-foreground tracking-tight leading-none">Add-on Feature Power-ups</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Select optional features to integrate into your baseline application framework.</p>
+                  <h3 className="text-xl font-black text-foreground tracking-tight leading-none uppercase">Integration Modules</h3>
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">Select optional features to integrate into your baseline application framework.</p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin">
                   {INTEGRATIONS.map((feat) => (
                     <div
                       key={feat.id}
                       onClick={() => toggleFeature(feat.id)}
-                      className={`p-3 rounded-xl border flex flex-col justify-between text-left cursor-pointer transition-all duration-300 ${
+                      className={`p-3 rounded-none border flex flex-col justify-between text-left cursor-pointer transition-all duration-300 ${
                         selectedFeatures[feat.id]
-                          ? 'border-primary bg-primary/[0.02] shadow-xs'
-                          : 'border-border bg-card hover:bg-muted/50'
+                          ? 'border-primary bg-muted/50'
+                          : 'border-border bg-card hover:bg-muted/30'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-md border flex items-center justify-center ${
+                        <div className={`w-6 h-6 rounded-none border flex items-center justify-center ${
                           selectedFeatures[feat.id]
-                            ? 'bg-primary text-white border-primary'
+                            ? 'bg-primary text-primary-foreground border-primary'
                             : 'bg-muted text-muted-foreground border-border'
                         }`}>
                           {feat.icon}
                         </div>
-                        <h4 className="text-[10px] font-bold text-foreground leading-tight">{feat.name}</h4>
+                        <h4 className="text-[10px] font-bold text-foreground leading-tight uppercase tracking-widest">{feat.name}</h4>
                       </div>
                       <div className="flex justify-between items-center mt-3 font-mono text-[9px] font-bold">
-                        <span className="text-slate-400 font-normal leading-none">{feat.desc}</span>
-                        <span className="text-primary leading-none">+₹{feat.price.toLocaleString('en-IN')}</span>
+                        <span className="text-muted-foreground font-normal leading-none">{feat.desc}</span>
+                        <span className="text-foreground leading-none">+₹{feat.price.toLocaleString('en-IN')}</span>
                       </div>
                     </div>
                   ))}
@@ -372,12 +369,12 @@ export default function InteractiveNicheCalculator() {
                 className="space-y-4"
               >
                 <div>
-                  <h3 className="text-xl font-black text-foreground tracking-tight leading-none">Quotation Cost Invoice</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Detailed pricing report matching active project configuration selections.</p>
+                  <h3 className="text-xl font-black text-foreground tracking-tight leading-none uppercase">Quotation Cost Invoice</h3>
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">Detailed pricing report matching active project configuration selections.</p>
                 </div>
 
                 {/* Pricing Table Itemized */}
-                <div className="space-y-2.5 border border-border p-4 bg-muted/40 rounded-2xl text-xs font-mono">
+                <div className="space-y-2.5 border border-border p-4 bg-muted/30 rounded-none text-xs font-mono">
                   <div className="flex justify-between items-center text-muted-foreground font-medium">
                     <span>Base: {activeNiche.name}</span>
                     <span className="text-foreground font-bold">₹{basePrice.toLocaleString('en-IN')}</span>
@@ -398,20 +395,20 @@ export default function InteractiveNicheCalculator() {
                   )}
 
                   {rushDelivery && (
-                    <div className="flex justify-between items-center text-amber-700 font-bold border-t border-dashed border-border pt-2">
+                    <div className="flex justify-between items-center text-foreground font-bold border-t border-dashed border-border pt-2">
                       <span>Rush Speed (25% markup)</span>
-                      <span className="font-extrabold">₹{(subtotal * 0.25).toLocaleString('en-IN')}</span>
+                      <span className="font-extrabold text-foreground">₹{(subtotal * 0.25).toLocaleString('en-IN')}</span>
                     </div>
                   )}
 
                   <div className="flex justify-between items-baseline border-t border-border pt-3.5">
-                    <span className="text-xs font-black uppercase text-foreground">Estimated Total</span>
-                    <span className="text-xl font-black text-primary">₹{totalCost.toLocaleString('en-IN')}</span>
+                    <span className="text-xs font-black uppercase text-foreground tracking-widest">Estimated Total</span>
+                    <span className="text-xl font-black text-foreground">₹{totalCost.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono bg-amber-500/5 border border-amber-500/10 px-3 py-2 rounded-xl">
-                  <ShieldCheck className="w-4 h-4 text-amber-500 shrink-0" />
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono bg-muted/30 border border-border px-3 py-2 rounded-none">
+                  <ShieldCheck className="w-4 h-4 text-muted-foreground shrink-0" />
                   <span>These prices represent approximate cost indices based on AdaptWeb benchmarks.</span>
                 </div>
               </motion.div>
@@ -425,7 +422,7 @@ export default function InteractiveNicheCalculator() {
             type="button"
             onClick={prevSlide}
             disabled={slide === 0}
-            className="px-4 py-2 border border-border bg-card hover:bg-muted text-foreground rounded-xl text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-4 py-2 border border-border bg-muted hover:bg-muted/80 text-muted-foreground rounded-none text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-all cursor-pointer uppercase tracking-widest font-mono"
           >
             <ChevronLeft className="w-4 h-4" /> Back
           </button>
@@ -434,7 +431,7 @@ export default function InteractiveNicheCalculator() {
             <button
               type="button"
               onClick={nextSlide}
-              className="px-5 py-2.5 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+              className="px-5 py-2.5 bg-foreground hover:bg-foreground/90 text-background rounded-none text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer uppercase tracking-widest font-mono"
             >
               Continue <ChevronRight className="w-4 h-4" />
             </button>
@@ -442,9 +439,9 @@ export default function InteractiveNicheCalculator() {
             <Link href="/register" className="w-auto">
               <button
                 type="button"
-                className="px-6 py-2.5 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-primary/10"
+                className="px-6 py-2.5 bg-foreground hover:bg-foreground/90 text-background rounded-none text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer uppercase tracking-widest font-mono"
               >
-                Launch Full Calculator <ArrowRight className="w-4 h-4" />
+                Deploy Engine <ArrowRight className="w-4 h-4" />
               </button>
             </Link>
           )}
@@ -452,26 +449,26 @@ export default function InteractiveNicheCalculator() {
       </div>
 
       {/* Right Column: Premium Browser View Mockup (5 Columns) */}
-      <div className="lg:col-span-5 min-h-[350px] lg:min-h-full bg-muted/20 relative overflow-hidden flex items-center justify-center p-4 rounded-3xl border border-border">
+      <div className="lg:col-span-5 min-h-[350px] lg:min-h-full bg-muted/50 relative overflow-hidden flex items-center justify-center p-4 rounded-none border border-border">
         
         {/* Browser shell container */}
-        <div className="absolute top-6 bottom-[-40px] left-6 right-[-40px] rounded-tl-2xl border border-border bg-background shadow-xl flex flex-col overflow-hidden transition-all duration-500 hover:translate-y-[-4px] hover:translate-x-[-4px] hover:shadow-2xl">
+        <div className="absolute top-6 bottom-[-40px] left-6 right-[-40px] rounded-none border border-border bg-card flex flex-col overflow-hidden transition-all duration-500 hover:border-primary/50 shadow-xl">
           
           {/* Header Bar */}
-          <div className="bg-muted px-3.5 py-1.5 border-b border-border/80 flex items-center justify-between shrink-0 select-none">
+          <div className="bg-muted px-3.5 py-1.5 border-b border-border flex items-center justify-between shrink-0 select-none">
             <div className="flex gap-1">
-              <span className="w-2 h-2 rounded-full bg-red-400/80"></span>
-              <span className="w-2 h-2 rounded-full bg-yellow-400/80"></span>
-              <span className="w-2 h-2 rounded-full bg-green-400/80"></span>
+              <span className="w-2 h-2 rounded-none bg-border"></span>
+              <span className="w-2 h-2 rounded-none bg-border"></span>
+              <span className="w-2 h-2 rounded-none bg-border"></span>
             </div>
-            <div className="bg-background/90 border border-border px-2.5 py-0.5 rounded-md text-[7px] text-muted-foreground font-mono w-36 text-center truncate">
+            <div className="bg-card border border-border px-2.5 py-0.5 rounded-none text-[7px] text-muted-foreground font-mono w-36 text-center truncate tracking-widest">
               {activeNiche.domain}
             </div>
             <div className="w-8"></div>
           </div>
 
           {/* Browser Content */}
-          <div className="flex-1 bg-background relative overflow-hidden">
+          <div className="flex-1 bg-card relative overflow-hidden">
             {renderActiveMockup()}
           </div>
         </div>

@@ -1,4 +1,4 @@
-import type { Package, Feature, PriceConfig } from '@/types';
+import type { Package, AddonFeature, PriceConfig } from '@/types';
 
 interface CalculatedFeature {
   featureId: string;
@@ -23,7 +23,7 @@ interface QuotationResult {
 /** Recalculate quotation quote values server-side using current DB pricing and package options */
 export function calculateQuotation(
   selectedPackage: Package,
-  selectedFeatures: Feature[],
+  selectedFeatures: AddonFeature[],
   pagesCount: number,
   isRushDelivery: boolean,
   priceConfig: PriceConfig,
@@ -105,7 +105,7 @@ export function calculateQuotation(
   
   // Total quote value must be at least minimumProjectPrice
   const totalRaw = netTotal + gstAmount;
-  const total = totalRaw;
+  const total = Math.max(totalRaw, priceConfig.minimumProjectPrice);
 
   return {
     basePrice,

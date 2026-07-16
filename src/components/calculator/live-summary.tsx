@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useCalculatorStore } from '@/store/calculator-store';
 import { calculateQuotation } from '@/lib/calculations/pricing';
 import { formatCurrency } from '@/lib/utils';
-import type { Package, Feature, PriceConfig } from '@/types';
+import type { Package, AddonFeature, PriceConfig } from '@/types';
 import { 
   ShieldCheck, 
   Calendar, 
@@ -21,7 +21,7 @@ import {
 
 interface LiveSummaryProps {
   packages: Package[];
-  features: Feature[];
+  features: AddonFeature[];
   priceConfig: PriceConfig;
   onFinalize: () => void;
   isLoading: boolean;

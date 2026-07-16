@@ -6,10 +6,20 @@ import { businessDetailsSchema, type BusinessDetailsFormData } from '@/schemas';
 import { useCalculatorStore } from '@/store/calculator-store';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building2, Mail, Phone, ArrowRight, ShieldCheck, BarChart2, Cloud } from 'lucide-react';
+import { Loader2, Building2, Mail, Phone, ArrowRight, ShieldCheck, BarChart2, Cloud, CheckCircle2 } from 'lucide-react';
+import type { Calculation } from '@/types';
+import PdfDownloadButton from '../pdf-download-button';
+import { useRouter } from 'next/navigation';
 
-export default function BusinessDetailsStep() {
-  const { businessName, businessEmail, businessPhone, updateFields, nextStep } = useCalculatorStore();
+interface BusinessDetailsStepProps {
+  isSubmitting: boolean;
+  calcResult: Calculation | null;
+  onFinalize: () => void;
+}
+
+export default function BusinessDetailsStep({ isSubmitting, calcResult, onFinalize }: BusinessDetailsStepProps) {
+  const router = useRouter();
+  const { businessName, businessEmail, businessPhone, updateFields, nextStep, reset } = useCalculatorStore();
 
   const {
     register,
@@ -26,14 +36,56 @@ export default function BusinessDetailsStep() {
 
   const onSubmit = (data: BusinessDetailsFormData) => {
     updateFields(data);
-    nextStep();
+    onFinalize();
   };
 
+  if (calcResult) {
+    return (
+      <div className="text-center space-y-5 max-w-md mx-auto py-6 animate-in fade-in duration-500">
+        <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-sm">
+          <CheckCircle2 className="w-6 h-6" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-lg font-bold text-foreground">Quotation Generated!</h2>
+          <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+            Your quotation has been securely calculated, signed, and saved in database records.
+          </p>
+        </div>
+        
+        <div className="p-4 bg-muted/40 rounded-xl border border-border space-y-3">
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-muted-foreground font-semibold">Reference ID:</span>
+            <span className="font-mono text-foreground font-bold">{calcResult.id.substring(0, 8).toUpperCase()}</span>
+          </div>
+          <div className="h-px bg-border w-full" />
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-muted-foreground font-semibold">Total Investment:</span>
+            <span className="text-primary font-bold">₹{calcResult.total.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+
+        <div className="space-y-2.5 pt-2">
+          <PdfDownloadButton calculationId={calcResult.id} />
+          
+          <button
+            onClick={() => {
+              reset();
+              router.push('/dashboard');
+            }}
+            className="w-full h-9 bg-card hover:bg-muted text-foreground font-semibold rounded-lg border border-border flex items-center justify-center transition-colors text-xs cursor-pointer shadow-sm"
+          >
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4 animate-in fade-in duration-500">
+    <div className="space-y-4 animate-in fade-in duration-500 w-full max-w-xl mx-auto">
       <div className="bg-card rounded-xl p-4 shadow-sm border border-border">
         <header className="mb-4">
-          <h2 className="text-sm font-bold text-foreground mb-0.5">Business Details</h2>
+          <h1 className="text-sm font-bold text-foreground mb-0.5">Final Review & Contact</h1>
           <p className="text-[10px] text-muted-foreground">Provide your contact details to save and secure your quotation.</p>
         </header>
 
@@ -47,7 +99,8 @@ export default function BusinessDetailsStep() {
               <Input
                 id="businessName"
                 placeholder="e.g. Acme Corporation"
-                className="w-full h-9 pr-10 pl-3 rounded-lg border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50"
+                autoComplete="organization"
+                className="w-full h-9 pr-10 pl-3 rounded-lg border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground"
                 {...register('businessName')}
               />
               <Building2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
@@ -65,7 +118,8 @@ export default function BusinessDetailsStep() {
                 id="businessEmail"
                 type="email"
                 placeholder="name@company.com"
-                className="w-full h-9 pr-10 pl-3 rounded-lg border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50"
+                autoComplete="email"
+                className="w-full h-9 pr-10 pl-3 rounded-lg border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground"
                 {...register('businessEmail')}
               />
               <Mail className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
@@ -81,8 +135,10 @@ export default function BusinessDetailsStep() {
             <div className="relative">
               <Input
                 id="businessPhone"
+                type="tel"
                 placeholder="+1 (555) 000-0000"
-                className="w-full h-9 pr-10 pl-3 rounded-lg border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50"
+                autoComplete="tel"
+                className="w-full h-9 pr-10 pl-3 rounded-lg border border-border bg-card text-foreground text-xs focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground"
                 {...register('businessPhone')}
               />
               <Phone className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
@@ -94,10 +150,20 @@ export default function BusinessDetailsStep() {
           <div className="pt-3 mt-4 border-t border-border">
             <button
               type="submit"
-              className="w-full md:w-auto min-w-[160px] h-9 bg-primary text-white font-semibold rounded-lg flex items-center justify-center gap-1.5 hover:bg-primary/95 transition-colors shadow-sm cursor-pointer text-xs"
+              disabled={isSubmitting}
+              className="w-full md:w-auto min-w-[160px] h-9 bg-primary text-white font-semibold rounded-lg flex items-center justify-center gap-1.5 hover:bg-primary/95 transition-colors shadow-sm cursor-pointer text-xs disabled:opacity-50"
             >
-              Next Step
-              <ArrowRight className="w-3.5 h-3.5" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  Generate Quotation
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -106,7 +172,7 @@ export default function BusinessDetailsStep() {
         <div className="mt-4 p-3 bg-muted rounded-lg flex items-start gap-2 border border-border">
           <ShieldCheck className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
           <p className="text-[10px] text-muted-foreground leading-relaxed">
-            Your information is strictly confidential. By clicking 'Next Step', you agree to our processing of these details to generate your tailored quote.
+            Your information is strictly confidential. By clicking &apos;Next Step&apos;, you agree to our processing of these details to generate your tailored quote.
           </p>
         </div>
       </div>

@@ -11,13 +11,15 @@ import { getPriceConfig } from '@/lib/price-config';
 import { calculateQuotation } from '@/lib/calculations/pricing';
 import { getServerUser } from '@/actions/auth';
 import { revalidatePath } from 'next/cache';
-import type { ApiResponse, Calculation, Feature } from '@/types';
+import type { ApiResponse, Calculation, AddonFeature } from '@/types';
 
 /** Recalculate quotation quote values server-side and save to Firestore calculations collection */
 export async function createCalculationAction(
   data: CalculatorSubmissionData
 ): Promise<ApiResponse<Calculation>> {
   try {
+    // TODO(PRODUCTION): Enable Rate Limiting for this API endpoint (Anti-Spam)
+    // TODO(PRODUCTION): Configure reCAPTCHA for this submission endpoint
     const validated = calculatorSubmissionSchema.safeParse(data);
     if (!validated.success) {
       return {
@@ -62,17 +64,17 @@ export async function createCalculationAction(
     }
 
     // Fetch selected features from database
-    let selectedFeatures: Feature[] = [];
+    let selectedFeatures: AddonFeature[] = [];
     if (selectedFeatureIds.length > 0) {
       const featuresSnap = await adminDb
-         .collection(COLLECTIONS.FEATURES)
+         .collection(COLLECTIONS.ADDON_FEATURES)
          .where('__name__', 'in', selectedFeatureIds)
          .get();
          
       selectedFeatures = featuresSnap.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-      })) as Feature[];
+      })) as AddonFeature[];
     }
 
     // Run server-side pricing engine recalculation
@@ -139,6 +141,11 @@ export async function createCalculationAction(
 /** Delete a calculation */
 export async function deleteCalculationAction(id: string): Promise<ApiResponse<void>> {
   try {
+    const user = await getServerUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return { success: false, error: 'Unauthorized administrative operation.' };
+    }
+
     const calcRef = adminDb.collection(COLLECTIONS.CALCULATIONS).doc(id);
     const docSnap = await calcRef.get();
     if (!docSnap.exists) {

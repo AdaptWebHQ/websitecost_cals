@@ -85,10 +85,6 @@ export default function PackageStep({ packages }: PackageStepProps) {
           const isSelected = packageId === pkg.id;
           const isFeatured = pkg.isPopular;
           const label = PACKAGE_LABELS[pkg.id] || 'Product Option';
-          const items = pkg.features && pkg.features.length > 0
-            ? pkg.features
-            : (PACKAGE_FEATURES[pkg.id] || ['Responsive Design', 'SEO Optimization', 'Contact Form']);
-
           return (
             <div
               key={pkg.id}
@@ -121,14 +117,39 @@ export default function PackageStep({ packages }: PackageStepProps) {
                   <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">{pkg.description}</p>
                 </div>
 
-                <ul className="space-y-2 pt-3 border-t border-border flex-grow">
-                  {items.map((featItem, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-primary fill-primary/10 shrink-0 mt-0.5" />
-                      <span className="text-[10px] leading-relaxed text-foreground/80 font-medium">{featItem}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="space-y-2 pt-3 border-t border-border flex-grow">
+                  {pkg.featureCategories && pkg.featureCategories.length > 0 ? (
+                    pkg.featureCategories.map((cat) => (
+                      <details
+                        key={cat.id}
+                        onClick={(e) => e.stopPropagation()} // Prevent card selection toggle when clicking details
+                        className="group border border-border/40 rounded-lg overflow-hidden transition-all duration-300 bg-muted/5"
+                      >
+                        <summary className="flex items-center justify-between p-2 text-[10px] font-bold text-foreground bg-muted/20 cursor-pointer hover:bg-muted/40 select-none outline-none">
+                          <span>{cat.name} ({cat.features.length})</span>
+                          <span className="text-[8px] transition-transform duration-300 group-open:rotate-180">▼</span>
+                        </summary>
+                        <ul className="p-2 space-y-1.5 bg-card">
+                          {cat.features.map((feat) => (
+                            <li key={feat.id} className="flex items-start gap-1.5 pl-1 text-[10px] text-foreground/80 font-medium">
+                              <CheckCircle2 className="w-3 h-3 text-primary fill-primary/10 shrink-0 mt-0.5" />
+                              <span>{feat.name}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ))
+                  ) : (
+                    <ul className="space-y-2 flex-grow">
+                      {(PACKAGE_FEATURES[pkg.id] || ['Responsive Design', 'SEO Optimization', 'Contact Form']).map((featItem, idx) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-primary fill-primary/10 shrink-0 mt-0.5" />
+                          <span className="text-[10px] leading-relaxed text-foreground/80 font-medium">{featItem}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
 
               <div className="mt-5">

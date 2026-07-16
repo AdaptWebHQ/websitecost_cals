@@ -1,0 +1,106 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // =========================================================================
+    // Core Functions
+    // =========================================================================
+
+    // Checks if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Checks if the user is an admin by reading their user document
+    // Note: In a large-scale production app, consider using Custom Claims (e.g., request.auth.token.role == 'admin')
+    // to save on document read costs. 
+    function isAdmin() {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin'
+      );
+    }
+
+    // =========================================================================
+    // Public Read / Admin Write Collections
+    // (Data needed to render the public calculator but managed securely)
+    // =========================================================================
+
+    match /priceConfig/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /packages/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /package_feature_categories/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /package_features/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /addon_categories/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /addon_features/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /industries/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // =========================================================================
+    // Public Create / Admin Full Access Collections
+    // (Lead generation data submitted by the public calculator users)
+    // =========================================================================
+
+    match /calculations/{document=**} {
+      // Anyone can generate a calculation
+      allow create: if true;
+      // Only admins can view, modify, or delete them
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /inquiries/{document=**} {
+      // Anyone can submit a lead inquiry
+      allow create: if true;
+      // Only admins can view, modify, or delete leads
+      allow read, update, delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // Admin Only Collections
+    // (System logs, activities)
+    // =========================================================================
+
+    match /inquiry_activities/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // =========================================================================
+    // Users Collection
+    // =========================================================================
+
+    match /users/{userId} {
+      // Users can read their own data; Admins can read everything
+      allow read: if (isAuthenticated() && request.auth.uid == userId) || isAdmin();
+      // Only admins can create/update/delete users directly in Firestore
+      // (Self-registration logic should happen via Cloud Functions or Server Actions)
+      allow write: if isAdmin();
+    }
+
+  }
+}

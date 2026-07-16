@@ -12,12 +12,12 @@ const hasCredentials =
 export const STATIC_PRICE_CONFIG: PriceConfig = {
   id: 'global',
   ...DEFAULT_PRICE_CONFIG,
-  companyName: 'WebCost Pro Solutions Ltd.',
-  companyEmail: 'quotations@webcostpro.com',
-  companyPhone: '+91 98765 43210',
-  companyAddress: '404 Suite, Cyber Towers, Hitec City, Hyderabad, TG, India',
-  termsAndConditions: '1. Quotations generated dynamically are valid for 30 days.\n2. Design revisions apply strictly to baseline themes before code phases.\n3. Content provisioning is the client\'s responsibility.',
-  pdfFooter: 'Thank you for choosing WebCost Pro.',
+  companyName: 'AdaptWeb IT Solutions',
+  companyEmail: 'quotations@adaptweb.com',
+  companyPhone: '+1 555 0123 456',
+  companyAddress: '123 Innovation Drive\nTech District\nSan Francisco, CA 94103',
+  termsAndConditions: '1. Quotations generated dynamically are valid for 30 days.\n2. Design phase commences post initial 50% retainer.\n3. Revisions outside scope billed at standard rate.',
+  pdfFooter: 'Thank you for choosing AdaptWeb.',
   privacyPolicy: 'Your details are stored securely.',
   isCalculatorEnabled: true,
   createdAt: new Date(),
@@ -48,12 +48,13 @@ export async function getPriceConfig(): Promise<PriceConfig> {
     const now = new Date();
     const initialConfig = {
       ...DEFAULT_PRICE_CONFIG,
-      companyName: 'WebCost Pro Solutions Ltd.',
-      companyEmail: 'quotations@webcostpro.com',
-      companyPhone: '+91 98765 43210',
-      companyAddress: '404 Suite, Cyber Towers, Hitec City, Hyderabad, TG, India',
+      companyName: 'AdaptWeb IT Solutions',
+      companyEmail: 'quotations@adaptweb.com',
+      companyPhone: '+1 555 0123 456',
+      companyAddress: '123 Innovation Drive\nTech District\nSan Francisco, CA 94103',
+      companyVat: 'VAT-US-987654321',
       termsAndConditions: '1. Quotations generated dynamically are valid for 30 days.\n2. Design revisions apply strictly to baseline themes before code phases.\n3. Content provisioning is the client\'s responsibility.',
-      pdfFooter: 'Thank you for choosing WebCost Pro.',
+      pdfFooter: 'Thank you for choosing AdaptWeb.',
       privacyPolicy: 'Your details are stored securely.',
       isCalculatorEnabled: true,
       createdAt: now,
@@ -65,7 +66,7 @@ export async function getPriceConfig(): Promise<PriceConfig> {
       id: 'global',
       ...initialConfig,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Quiet fallback to static assets
     return STATIC_PRICE_CONFIG;
   }

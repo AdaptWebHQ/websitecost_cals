@@ -16,7 +16,7 @@ export async function getInquiries(): Promise<Inquiry[]> {
         updatedAt: data.updatedAt?.toDate(),
       };
     }) as Inquiry[];
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Quiet fallback
     return [];
   }
@@ -35,7 +35,7 @@ export async function getInquiryById(id: string): Promise<Inquiry | null> {
       createdAt: data?.createdAt?.toDate(),
       updatedAt: data?.updatedAt?.toDate(),
     } as Inquiry;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Quiet fallback
     return null;
   }
@@ -63,7 +63,7 @@ export async function getInquiryActivities(inquiryId: string): Promise<InquiryAc
       const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return timeB - timeA;
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Quiet fallback
     return [];
   }

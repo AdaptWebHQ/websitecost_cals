@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Eye, Calculator, ChevronDown, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import type { Calculation } from '@/types';
 
 interface EstimatesClientProps {
-  initialCalculations: any[];
+  initialCalculations: Calculation[];
 }
 
 export default function EstimatesClient({ initialCalculations }: EstimatesClientProps) {

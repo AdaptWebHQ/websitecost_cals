@@ -22,7 +22,7 @@ export default function BusinessCardQRCode({ isDesign, isGlow }: QRCodeProps) {
       <div className="text-left">
         <h5 className="text-[7px] font-bold text-slate-200">Share Contact</h5>
         <p className="text-[5.5px] text-slate-400 font-mono mt-0.5 leading-tight">
-          Scan QR to save Alex Carter's corporate vCard instantly.
+          Scan QR to save Alex Carter&apos;s corporate vCard instantly.
         </p>
       </div>
     </div>

@@ -9,15 +9,15 @@ import PackageStep from './steps/package-step';
 import FeaturesStep from './steps/features-step';
 import DeliveryStep from './steps/delivery-step';
 import SummaryStep from './steps/summary-step';
-import type { Package, Feature, FeatureCategory, PriceConfig, Industry, Calculation } from '@/types';
+import type { Package, AddonFeature, AddonCategory, PriceConfig, Industry, Calculation } from '@/types';
 import { createCalculationAction } from '@/actions/calculations';
 import { ShieldCheck, BarChart2, DollarSign, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 interface CalculatorWizardProps {
   packages: Package[];
-  features: Feature[];
-  categories: FeatureCategory[];
+  features: AddonFeature[];
+  categories: AddonCategory[];
   industries: Industry[];
   priceConfig: PriceConfig;
 }
@@ -129,32 +129,32 @@ export default function CalculatorWizard({
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <BusinessDetailsStep />;
-      case 2:
         return <IndustryStep industries={industries} />;
-      case 3:
+      case 2:
         return <WebsiteTypeStep />;
-      case 4:
+      case 3:
         return <PackageStep packages={packages} />;
-      case 5:
+      case 4:
         return <FeaturesStep categories={categories} features={features} packages={packages} />;
-      case 6:
+      case 5:
         return <DeliveryStep />;
-      case 7:
+      case 6:
         return (
           <SummaryStep
             packages={packages}
             features={features}
             industries={industries}
             priceConfig={priceConfig}
-            isLoading={isLoading}
-            errorMessage={errorMessage}
-            calcResult={calcResult}
-            onFinalize={handleFinalize}
+            isLoading={false}
+            errorMessage={null}
+            calcResult={null}
+            onFinalize={nextStep}
           />
         );
+      case 7:
+        return <BusinessDetailsStep isSubmitting={isLoading} onFinalize={handleFinalize} calcResult={calcResult} />;
       default:
-        return <BusinessDetailsStep />;
+        return <IndustryStep industries={industries} />;
     }
   };
 
@@ -173,7 +173,7 @@ export default function CalculatorWizard({
           <div className="space-y-3 pt-3 border-t border-border">
             <div className="flex items-center gap-2.5">
               <div className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold bg-primary text-white">1</div>
-              <span className="text-xs font-bold text-foreground">Business Details</span>
+              <span className="text-xs font-bold text-foreground">Industry</span>
             </div>
             <div className="flex items-center gap-2.5 opacity-55">
               <div className="w-6 h-6 rounded border border-border flex items-center justify-center text-[10px] font-bold">2</div>
@@ -188,7 +188,7 @@ export default function CalculatorWizard({
           {/* Atmospheric Card */}
           <div className="p-4 bg-muted rounded-lg border border-border mt-4 space-y-2.5">
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              "Accurate pricing starts with understanding who you are. These details ensure we tailor the roadmap to your specific industry standards."
+              &quot;Accurate pricing starts with understanding who you are. These details ensure we tailor the roadmap to your specific industry standards.&quot;
             </p>
             <div className="flex items-center gap-1.5 text-primary">
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -205,8 +205,8 @@ export default function CalculatorWizard({
     );
   }
 
-  // Step 5: Two Column Layout with right Cost Summary sidebar card
-  if (currentStep === 5) {
+  // Step 4: Two Column Layout with right Cost Summary sidebar card
+  if (currentStep === 4) {
     const selectedPkg = packages.find((p) => p.id === packageId) || packages[0];
     const basePrice = selectedPkg?.basePrice || 0;
     const pagesIncluded = selectedPkg?.pagesIncluded || 0;
@@ -273,7 +273,7 @@ export default function CalculatorWizard({
           {/* Stepper Progress bar */}
           <div className="space-y-2 mb-4">
             <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-primary">Step 5 of 7</span>
+              <span className="font-bold text-primary">Step 4 of 7</span>
               <span className="text-muted-foreground font-semibold">Features Selection</span>
             </div>
             <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
@@ -361,23 +361,23 @@ export default function CalculatorWizard({
   switch (currentStep) {
     case 2:
       progressPct = '28.5%';
-      stepLabel = 'Step 2 of 7: Industry';
+      stepLabel = 'Step 2 of 7: Website Type';
       break;
     case 3:
       progressPct = '42.8%';
-      stepLabel = 'Step 3 of 7: Website Type';
+      stepLabel = 'Step 3 of 7: Base Package';
       break;
-    case 4:
-      progressPct = '57.1%';
-      stepLabel = 'Step 4 of 7: Base Package';
+    case 5:
+      progressPct = '71.4%';
+      stepLabel = 'Step 5 of 7: Delivery speed';
       break;
     case 6:
       progressPct = '85.7%';
-      stepLabel = 'Step 6 of 7: Delivery speed';
+      stepLabel = 'Step 6 of 7: Final Summary';
       break;
     case 7:
       progressPct = '100%';
-      stepLabel = 'Step 7 of 7: Finalize';
+      stepLabel = 'Step 7 of 7: Finalize & Quote';
       break;
   }
 

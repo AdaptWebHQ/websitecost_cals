@@ -28,7 +28,7 @@ export async function getCalculations(userId?: string): Promise<Calculation[]> {
       const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return timeB - timeA;
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Quiet fallback
     return [];
   }
@@ -47,7 +47,7 @@ export async function getCalculationById(id: string): Promise<Calculation | null
       createdAt: data?.createdAt?.toDate(),
       updatedAt: data?.updatedAt?.toDate(),
     } as Calculation;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Quiet fallback
     return null;
   }

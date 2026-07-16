@@ -20,8 +20,9 @@ export async function signInWithGoogle(): Promise<FirebaseUser> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
-  } catch (error: any) {
-    console.warn('Google Popup Sign-In blocked/failed. Redirecting...', error?.message || error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    console.warn('Google Popup Sign-In blocked/failed. Redirecting...', msg);
     try {
       await signInWithRedirect(auth, googleProvider);
       return new Promise(() => {}); // Page redirects, return unresolved promise

@@ -65,14 +65,17 @@ const formatDate = (date: Date | any) => {
 
 export default function InquiriesDashboard() {
   const { user: currentUser } = useAuth();
+  const searchParams = useSearchParams();
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [activities, setActivities] = useState<InquiryActivity[]>([]);
   const [calculations, setCalculations] = useState<any[]>([]);
   const [adminUsers, setAdminUsers] = useState<DbUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+  const [selectedInquiryId, setSelectedInquiryId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [leadLoading, setLeadLoading] = useState(false);
+
+  const selectedInquiry = inquiries.find(i => i.id === selectedInquiryId) || null;
 
   useEffect(() => {
     const fetchAdminUsers = async () => {
@@ -113,7 +116,7 @@ export default function InquiriesDashboard() {
   };
 
   // New Inquiry form state
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(() => searchParams.get('new') === 'true');
   const [name, setName] = useState('');
   const [company, setCompany] = useState('');
   const [email, setEmail] = useState('');
@@ -122,14 +125,6 @@ export default function InquiriesDashboard() {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (searchParams.get('new') === 'true') {
-      setShowCreateForm(true);
-    }
-  }, [searchParams]);
 
   const handleCreateInquiry = async (status: 'new' | 'contacted' = 'new') => {
     if (!name.trim() || !company.trim() || !email.trim() || !phone.trim() || !message.trim()) {
@@ -182,8 +177,6 @@ export default function InquiriesDashboard() {
   const [submittingNote, setSubmittingNote] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    
     const inquiriesQuery = query(
       collection(db, COLLECTIONS.INQUIRIES), 
       orderBy('createdAt', 'desc')
@@ -203,11 +196,6 @@ export default function InquiriesDashboard() {
       });
       setInquiries(inqList);
       setLoading(false);
-
-      if (selectedInquiry) {
-        const updatedSelected = inqList.find(i => i.id === selectedInquiry.id);
-        if (updatedSelected) setSelectedInquiry(updatedSelected);
-      }
     }, (error) => {
       console.error("Firestore Inquiries error:", error);
       setLoading(false);
@@ -251,7 +239,7 @@ export default function InquiriesDashboard() {
       unsubscribeActivities();
       unsubscribeCalculations();
     };
-  }, [selectedInquiry?.id]);
+  }, []);
 
   const handleRefresh = () => {
     setLoading(true);
@@ -299,9 +287,9 @@ export default function InquiriesDashboard() {
     if (confirm("Are you sure you want to delete this inquiry? This will also remove its audit trail.")) {
       try {
         await deleteInquiryAction(id);
-        if (selectedInquiry?.id === id) {
+        if (selectedInquiryId === id) {
           setDrawerOpen(false);
-          setSelectedInquiry(null);
+          setSelectedInquiryId(null);
         }
       } catch (err) {
         console.error(err);
@@ -393,9 +381,12 @@ export default function InquiriesDashboard() {
     }, 400);
   };
 
-  useEffect(() => {
+  const [prevFilterKeys, setPrevFilterKeys] = useState('');
+  const currentFilterKeys = `${searchTerm}-${tempFilter}-${statusFilter}-${budgetFilter}-${startDate}-${endDate}`;
+  if (currentFilterKeys !== prevFilterKeys) {
+    setPrevFilterKeys(currentFilterKeys);
     setVisibleCount(7);
-  }, [searchTerm, tempFilter, statusFilter, budgetFilter, startDate, endDate]);
+  }
 
   const kpiData = useMemo(() => {
     const total = inquiries.length;
@@ -1005,7 +996,7 @@ export default function InquiriesDashboard() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => {
-                            setSelectedInquiry(inq);
+                            setSelectedInquiryId(inq.id);
                             setDrawerOpen(true);
                           }}
                           title="View Details"

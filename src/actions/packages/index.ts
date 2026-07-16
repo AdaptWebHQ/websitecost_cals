@@ -7,6 +7,7 @@ import { COLLECTIONS } from '@/constants';
 import { packageSchema, type PackageFormData } from '@/schemas';
 import { slugify } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
+import { getServerUser } from '@/actions/auth';
 import type { ApiResponse, Package } from '@/types';
 
 /** Create a new package */
@@ -14,6 +15,13 @@ export async function createPackageAction(
   data: PackageFormData
 ): Promise<ApiResponse<Package>> {
   try {
+    // TODO(PRODUCTION): Enable Rate Limiting for this API endpoint
+    // TODO(PRODUCTION): Add Firestore Security Rules for this collection
+    const user = await getServerUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return { success: false, error: 'Unauthorized administrative operation.' };
+    }
+
     const validated = packageSchema.safeParse(data);
     if (!validated.success) {
       return {
@@ -72,6 +80,12 @@ export async function updatePackageAction(
   data: PackageFormData
 ): Promise<ApiResponse<Package>> {
   try {
+    // TODO(PRODUCTION): Enable Rate Limiting for this API endpoint
+    const user = await getServerUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return { success: false, error: 'Unauthorized administrative operation.' };
+    }
+
     const validated = packageSchema.safeParse(data);
     if (!validated.success) {
       return {
@@ -140,6 +154,11 @@ export async function updatePackageAction(
 /** Delete a package */
 export async function deletePackageAction(id: string): Promise<ApiResponse<void>> {
   try {
+    const user = await getServerUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return { success: false, error: 'Unauthorized administrative operation.' };
+    }
+
     const packageRef = adminDb.collection(COLLECTIONS.PACKAGES).doc(id);
     const docSnap = await packageRef.get();
     if (!docSnap.exists) {
@@ -169,6 +188,11 @@ export async function togglePackageActiveAction(
   isActive: boolean
 ): Promise<ApiResponse<void>> {
   try {
+    const user = await getServerUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return { success: false, error: 'Unauthorized administrative operation.' };
+    }
+
     const packageRef = adminDb.collection(COLLECTIONS.PACKAGES).doc(id);
     await packageRef.update({
       isActive,
@@ -191,6 +215,11 @@ export async function reorderPackagesAction(
   packageIds: string[]
 ): Promise<ApiResponse<void>> {
   try {
+    const user = await getServerUser();
+    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+      return { success: false, error: 'Unauthorized administrative operation.' };
+    }
+
     const batch = adminDb.batch();
     
     packageIds.forEach((id, idx) => {

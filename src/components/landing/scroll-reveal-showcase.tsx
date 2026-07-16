@@ -426,7 +426,7 @@ export default function ScrollRevealShowcase() {
                   ADAPTWEB
                 </h4>
                 <p className="text-[9px] font-mono font-bold text-zinc-400 uppercase tracking-widest">
-                  Website Cost Configurator Platform
+                  AdaptWeb Cost Calculator
                 </p>
               </div>
             </motion.div>

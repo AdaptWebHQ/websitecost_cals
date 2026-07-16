@@ -1,6 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface CalculatorState {
   currentStep: number;
@@ -39,8 +40,10 @@ const initialFields = {
   customFeatures: [],
 };
 
-export const useCalculatorStore = create<CalculatorState>((set) => ({
-  ...initialFields,
+export const useCalculatorStore = create<CalculatorState>()(
+  persist(
+    (set) => ({
+      ...initialFields,
 
   setStep: (step) => set({ currentStep: Math.min(Math.max(step, 1), 7) }),
   
@@ -65,5 +68,10 @@ export const useCalculatorStore = create<CalculatorState>((set) => ({
     customFeatures: state.customFeatures.filter((f) => f.id !== id)
   })),
 
-  reset: () => set(initialFields),
-}));
+      reset: () => set(initialFields),
+    }),
+    {
+      name: 'website-calculator-storage',
+    }
+  )
+);

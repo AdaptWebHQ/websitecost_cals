@@ -19,7 +19,8 @@ import {
   Calculator,
   FolderTree,
   User,
-  Building2
+  Building2,
+  Library
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -166,16 +167,29 @@ export default function Sidebar({ className }: SidebarProps) {
                 </Link>
 
                 <Link
-                  href="/admin/features"
+                  href="/admin/package-features"
                   className={cn(
                     'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
-                    pathname.startsWith('/admin/features')
+                    pathname.startsWith('/admin/package-features')
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  <Library className="w-4 h-4 shrink-0" />
+                  {!isCollapsed && <span>Feature Library</span>}
+                </Link>
+
+                <Link
+                  href="/admin/addons"
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-xl text-xs font-bold transition-all duration-200 px-3.5 py-3',
+                    pathname.startsWith('/admin/addons')
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   )}
                 >
                   <FolderTree className="w-4 h-4 shrink-0" />
-                  {!isCollapsed && <span>Features</span>}
+                  {!isCollapsed && <span>Add-ons</span>}
                 </Link>
 
                 <Link

@@ -35,17 +35,18 @@ export interface Package {
   isPopular: boolean;
   isActive: boolean;
   sortOrder: number;
-  features?: string[];
   createdAt: Date;
   updatedAt: Date;
+  includedFeatureIds?: string[];
+  featureCategories?: Array<PackageFeatureCategory & { features: PackageFeature[] }>;
 }
 
 // ============================================================================
-// Feature Types
+// Add-on Types (Global Paid Upgrades)
 // ============================================================================
 
-/** Feature category (e.g., Core Features, Authentication, Marketing) */
-export interface FeatureCategory {
+/** Add-on category (e.g., Core Features, Authentication, Marketing) */
+export interface AddonCategory {
   id: string;
   name: string;
   slug: string;
@@ -60,8 +61,8 @@ export interface FeatureCategory {
 /** How a feature's price is calculated */
 export type PricingType = 'fixed' | 'per_page' | 'percentage';
 
-/** Individual feature belonging to a category */
-export interface Feature {
+/** Individual add-on feature belonging to a category */
+export interface AddonFeature {
   id: string;
   categoryId: string;
   name: string;
@@ -72,6 +73,32 @@ export interface Feature {
   defaultSelected: boolean;
   isActive: boolean;
   sortOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================================
+// Package In-Built Feature Types (Global Reusable Library)
+// ============================================================================
+
+export interface PackageFeatureCategory {
+  id: string;
+  name: string;
+  description?: string;
+  icon: string;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PackageFeature {
+  id: string;
+  categoryId: string;
+  name: string;
+  description?: string;
+  displayOrder: number;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -336,14 +363,4 @@ export interface NavItem {
   icon: string;
   badge?: number;
 }
-
-export interface PackageFeature {
-    id: string;
-    name: string;
-    description?: string;
-
-    sortOrder: number;
-
-    createdAt: Date;
-    updatedAt: Date;
-}
+

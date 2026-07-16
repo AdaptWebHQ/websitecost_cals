@@ -110,7 +110,7 @@ export async function seedDatabaseAction(): Promise<ApiResponse<string>> {
     });
 
     // 2. Seed Feature Categories
-    const existingCatsSnap = await adminDb.collection(COLLECTIONS.FEATURE_CATEGORIES).get();
+    const existingCatsSnap = await adminDb.collection(COLLECTIONS.ADDON_CATEGORIES).get();
     existingCatsSnap.docs.forEach((doc) => {
       batch.delete(doc.ref);
     });
@@ -151,12 +151,12 @@ export async function seedDatabaseAction(): Promise<ApiResponse<string>> {
     ];
 
     categories.forEach((cat) => {
-      const ref = adminDb.collection(COLLECTIONS.FEATURE_CATEGORIES).doc(cat.id);
+      const ref = adminDb.collection(COLLECTIONS.ADDON_CATEGORIES).doc(cat.id);
       batch.set(ref, cat);
     });
 
     // 3. Seed Features
-    const existingFeatsSnap = await adminDb.collection(COLLECTIONS.FEATURES).get();
+    const existingFeatsSnap = await adminDb.collection(COLLECTIONS.ADDON_FEATURES).get();
     existingFeatsSnap.docs.forEach((doc) => {
       batch.delete(doc.ref);
     });
@@ -359,7 +359,7 @@ export async function seedDatabaseAction(): Promise<ApiResponse<string>> {
     ];
 
     features.forEach((feat) => {
-      const ref = adminDb.collection(COLLECTIONS.FEATURES).doc(feat.id);
+      const ref = adminDb.collection(COLLECTIONS.ADDON_FEATURES).doc(feat.id);
       batch.set(ref, feat);
     });
 
@@ -409,8 +409,8 @@ export async function seedDatabaseAction(): Promise<ApiResponse<string>> {
         gstPercentage: 18,
         rushDeliveryPercentage: 25,
         quotationValidityDays: 30,
-        companyName: 'WebCost Pro Solutions Ltd.',
-        companyEmail: 'quotations@webcostpro.com',
+        companyName: 'AdaptWeb IT Solutions',
+        companyEmail: 'quotations@adaptweb.com',
         companyPhone: '+91 98765 43210',
         companyAddress: '404 Suite, Cyber Towers, Hitec City, Hyderabad, TG, India',
         termsAndConditions: '1. Quotations generated dynamically are valid for 30 days.\n2. Design revisions apply strictly to baseline themes before code phases.\n3. Content provisioning is the client\'s responsibility.',

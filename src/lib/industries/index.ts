@@ -74,8 +74,8 @@ export async function getIndustries(onlyActive = false): Promise<Industry[]> {
     })) as Industry[];
 
     // Sort in-memory to bypass composite index requirements
-    return list.sort((a, b) => ((a as any).sortOrder || 0) - ((b as any).sortOrder || 0));
-  } catch (error: any) {
+    return list.sort((a, b) => ((a as Industry & { sortOrder?: number }).sortOrder || 0) - ((b as Industry & { sortOrder?: number }).sortOrder || 0));
+  } catch (error: unknown) {
     // Quiet fallback to static assets
     return onlyActive ? DEFAULT_INDUSTRIES.filter((i) => i.isActive) : DEFAULT_INDUSTRIES;
   }

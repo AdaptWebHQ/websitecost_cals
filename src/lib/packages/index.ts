@@ -1,6 +1,7 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
 import type { Package } from '@/types';
+import { getPackageFeatureCategories, getPackageFeatures } from './package-features-library';
 
 // Check if credentials are loaded to verify whether database is fully queryable
 const hasCredentials = 
@@ -111,7 +112,7 @@ export async function getPackages(onlyActive = false): Promise<Package[]> {
 
     // Sort in-memory to bypass composite index requirements
     return list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Quiet fallback to static assets
     return onlyActive ? DEFAULT_PACKAGES.filter((p) => p.isActive) : DEFAULT_PACKAGES;
   }
@@ -166,5 +167,89 @@ export async function getPackageBySlug(slug: string): Promise<Package | null> {
   } catch (error) {
     console.error(`Error fetching package by slug (${slug}):`, error);
     return DEFAULT_PACKAGES.find((p) => p.slug === slug) || null;
+  }
+}
+
+/** Fetch all packages with their nested in-built features categories & features */
+export async function getPackagesWithInbuiltFeatures(onlyActive = false): Promise<Package[]> {
+  const pkgs = await getPackages(onlyActive);
+
+  try {
+    // 1. Fetch all master categories and features globally
+    const [allCategories, allFeatures] = await Promise.all([
+      getPackageFeatureCategories(onlyActive),
+      getPackageFeatures(undefined, onlyActive)
+    ]);
+
+    // 2. Resolve features per package
+    return pkgs.map((pkg) => {
+      const includedIds = pkg.includedFeatureIds || [];
+      const packageFeatures = allFeatures.filter((f) => includedIds.includes(f.id));
+
+      const categoriesWithFeatures = allCategories
+        .map((cat) => {
+          const catFeatures = packageFeatures
+            .filter((f) => f.categoryId === cat.id)
+            .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          return {
+            ...cat,
+            features: catFeatures,
+          };
+        })
+        .filter((cat) => cat.features.length > 0)
+        .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+      return {
+        ...pkg,
+        featureCategories: categoriesWithFeatures,
+      };
+    });
+  } catch (error) {
+    console.error('Error loading packages with inbuilt features:', error);
+    return pkgs;
+  }
+}
+
+/** Fetch a single package with its nested in-built features categories & features */
+export async function getPackageWithInbuiltFeaturesById(id: string): Promise<Package | null> {
+  const pkg = await getPackageById(id);
+  if (!pkg) return null;
+
+  try {
+    const includedIds = pkg.includedFeatureIds || [];
+    if (includedIds.length === 0) {
+      return {
+        ...pkg,
+        featureCategories: [],
+      };
+    }
+
+    const [allCategories, allFeatures] = await Promise.all([
+      getPackageFeatureCategories(true),
+      getPackageFeatures(undefined, true)
+    ]);
+
+    const packageFeatures = allFeatures.filter((f) => includedIds.includes(f.id));
+
+    const categoriesWithFeatures = allCategories
+      .map((cat) => {
+        const catFeatures = packageFeatures
+          .filter((f) => f.categoryId === cat.id)
+          .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+        return {
+          ...cat,
+          features: catFeatures,
+        };
+      })
+      .filter((cat) => cat.features.length > 0)
+      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+    return {
+      ...pkg,
+      featureCategories: categoriesWithFeatures,
+    };
+  } catch (error) {
+    console.error(`Error loading package inbuilt features for ${id}:`, error);
+    return pkg;
   }
 }

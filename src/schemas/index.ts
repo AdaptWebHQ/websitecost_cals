@@ -9,21 +9,45 @@ export const packageSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters').max(500),
   basePrice: z.coerce.number().min(0, 'Price must be positive'),
   deliveryDays: z.coerce.number().min(1, 'Delivery days must be at least 1').max(365),
-  revisions: z.coerce.number().min(0).max(50),
+  revisions: z.coerce.number().min(0).max(999),
   pagesIncluded: z.coerce.number().min(1, 'Must include at least 1 page').max(100),
   isPopular: z.boolean().default(false),
   isActive: z.boolean().default(true),
   sortOrder: z.coerce.number().min(0).default(0),
-  features: z.array(z.string()).optional().default([]),
+  includedFeatureIds: z.array(z.string()).default([]),
 });
 
 export type PackageFormData = z.infer<typeof packageSchema>;
 
 // ============================================================================
-// Feature Category Schemas
+// Package In-built Feature & Category Schemas
 // ============================================================================
 
-export const featureCategorySchema = z.object({
+export const packageFeatureCategorySchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  description: z.string().max(500).default(''),
+  icon: z.string().min(1, 'Icon is required'),
+  displayOrder: z.coerce.number().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+
+export type PackageFeatureCategoryFormData = z.infer<typeof packageFeatureCategorySchema>;
+
+export const packageFeatureSchema = z.object({
+  categoryId: z.string().min(1, 'Category is required'),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  description: z.string().max(500).default(''),
+  displayOrder: z.coerce.number().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+
+export type PackageFeatureFormData = z.infer<typeof packageFeatureSchema>;
+
+// ============================================================================
+// Addon Category Schemas
+// ============================================================================
+
+export const addonCategorySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   description: z.string().max(500).default(''),
   icon: z.string().min(1, 'Icon is required'),
@@ -31,13 +55,13 @@ export const featureCategorySchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export type FeatureCategoryFormData = z.infer<typeof featureCategorySchema>;
+export type AddonCategoryFormData = z.infer<typeof addonCategorySchema>;
 
 // ============================================================================
-// Feature Schemas
+// Addon Feature Schemas
 // ============================================================================
 
-export const featureSchema = z.object({
+export const addonFeatureSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   description: z.string().max(500).default(''),
@@ -48,7 +72,7 @@ export const featureSchema = z.object({
   sortOrder: z.coerce.number().min(0).default(0),
 });
 
-export type FeatureFormData = z.infer<typeof featureSchema>;
+export type AddonFeatureFormData = z.infer<typeof addonFeatureSchema>;
 
 // ============================================================================
 // Industry Schemas
@@ -94,7 +118,9 @@ export type PriceConfigFormData = z.infer<typeof priceConfigSchema>;
 export const businessDetailsSchema = z.object({
   businessName: z.string().min(2, 'Business name is required'),
   businessEmail: z.string().email('Valid email is required'),
-  businessPhone: z.string().min(10, 'Valid phone number is required'),
+  businessPhone: z.string()
+    .min(10, 'Valid phone number must be at least 10 digits')
+    .regex(/^[+]?[0-9\s-()]{10,20}$/, 'Invalid phone number format'),
 });
 
 export type BusinessDetailsFormData = z.infer<typeof businessDetailsSchema>;

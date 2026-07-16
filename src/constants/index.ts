@@ -41,7 +41,8 @@ export const CALCULATOR_STEPS: {
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
   { label: 'Packages', href: '/admin/packages', icon: 'Package' },
-  { label: 'Features', href: '/admin/features', icon: 'FolderTree' },
+  { label: 'Feature Library', href: '/admin/package-features', icon: 'Library' },
+  { label: 'Add-ons', href: '/admin/addons', icon: 'FolderTree' },
   { label: 'Industries', href: '/admin/industries', icon: 'Building2' },
   { label: 'Price Config', href: '/admin/price-config', icon: 'IndianRupee' },
   { label: 'Calculations', href: '/admin/calculations', icon: 'Calculator' },
@@ -162,9 +163,9 @@ export const CHART_COLORS = [
 // Application Metadata
 // ============================================================================
 
-export const APP_NAME = 'WebCost Pro';
+export const APP_NAME = 'AdaptWeb Cost Calculator';
 export const APP_DESCRIPTION =
-  'Dynamic Website Cost Calculator — Get instant estimates for your web development project';
+  'Professional Website Estimation & Lead Management Platform.';
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 // ============================================================================
@@ -174,8 +175,10 @@ export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000
 export const COLLECTIONS = {
   USERS: 'users',
   PACKAGES: 'packages',
-  FEATURE_CATEGORIES: 'feature_categories',
-  FEATURES: 'features',
+  PACKAGE_FEATURE_CATEGORIES: 'package_feature_categories',
+  PACKAGE_FEATURES: 'package_features',
+  ADDON_CATEGORIES: 'addon_categories',
+  ADDON_FEATURES: 'addon_features',
   INDUSTRIES: 'industries',
   PRICE_CONFIG: 'price_config',
   CALCULATIONS: 'calculations',
