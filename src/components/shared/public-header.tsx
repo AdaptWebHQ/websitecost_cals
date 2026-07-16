@@ -24,7 +24,7 @@ export default function PublicHeader() {
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center shadow-md shadow-primary/10">
             <Calculator className="w-5 h-5 text-white" />
           </div>
-          <span>WebCost<span className="text-primary font-semibold">Pro</span></span>
+          <span>AdaptWeb <span className="text-primary font-semibold">Cost Calculator</span></span>
         </Link>
 
         {/* Navigation Links */}
