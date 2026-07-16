@@ -1,3 +1,4 @@
+// @/lib/industries.ts
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
 import type { Industry } from '@/types';
@@ -14,9 +15,12 @@ export const DEFAULT_INDUSTRIES: Industry[] = [
     id: 'ind-tech',
     name: 'Technology & SaaS Enterprises',
     slug: 'tech-saas',
+    // <-- ADDED DESCRIPTION BELOW
+    description: 'Bespoke web solutions optimized for scalable software-as-a-service platforms and fast-growing tech startups.', 
     basePrice: 0,
     recommendedPackageId: 'pkg-enterprise',
     isActive: true,
+    sortOrder: 1,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -24,9 +28,12 @@ export const DEFAULT_INDUSTRIES: Industry[] = [
     id: 'ind-retail',
     name: 'Retail, E-commerce, & Logistics',
     slug: 'retail-ecommerce',
+    // <-- ADDED DESCRIPTION BELOW
+    description: 'Conversion-focused digital storefronts and integrated systems to streamline online retail operations and supply chain visibility.',
     basePrice: 0,
     recommendedPackageId: 'pkg-professional',
     isActive: true,
+    sortOrder: 2,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -34,9 +41,12 @@ export const DEFAULT_INDUSTRIES: Industry[] = [
     id: 'ind-finance',
     name: 'Finance, Banking & Insurtech',
     slug: 'finance-banking',
+    // <-- ADDED DESCRIPTION BELOW
+    description: 'High-security, compliant digital experiences tailored for financial institutions, fintech innovators, and insurance providers.',
     basePrice: 0,
     recommendedPackageId: 'pkg-enterprise',
     isActive: true,
+    sortOrder: 3,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -44,9 +54,12 @@ export const DEFAULT_INDUSTRIES: Industry[] = [
     id: 'ind-healthcare',
     name: 'Healthcare, Clinical & Well-being',
     slug: 'healthcare-clinical',
+    // <-- ADDED DESCRIPTION BELOW
+    description: 'Patient-centric, HIPAA-compliant web applications designed for clinics, telehealth services, and medical practitioners.',
     basePrice: 0,
     recommendedPackageId: 'pkg-professional',
     isActive: true,
+    sortOrder: 4,
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -68,15 +81,15 @@ export async function getIndustries(onlyActive = false): Promise<Industry[]> {
     const snap = await query.get();
     const list = snap.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data(),
+      ...doc.data(), // <-- Description field is automatically included here from Firestore
       createdAt: doc.data().createdAt?.toDate(),
       updatedAt: doc.data().updatedAt?.toDate(),
     })) as Industry[];
 
     // Sort in-memory to bypass composite index requirements
-    return list.sort((a, b) => ((a as Industry & { sortOrder?: number }).sortOrder || 0) - ((b as Industry & { sortOrder?: number }).sortOrder || 0));
+    return list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   } catch (error: unknown) {
-    // Quiet fallback to static assets
+    console.error('Error fetching industries, falling back to defaults:', error);
     return onlyActive ? DEFAULT_INDUSTRIES.filter((i) => i.isActive) : DEFAULT_INDUSTRIES;
   }
 }
@@ -94,7 +107,7 @@ export async function getIndustryById(id: string): Promise<Industry | null> {
     const data = docSnap.data();
     return {
       id: docSnap.id,
-      ...data,
+      ...data, // <-- Description field is automatically included here from Firestore
       createdAt: data?.createdAt?.toDate(),
       updatedAt: data?.updatedAt?.toDate(),
     } as Industry;

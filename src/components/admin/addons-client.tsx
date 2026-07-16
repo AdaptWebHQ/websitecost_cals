@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import DataTable from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from '@/components/ui/table';
@@ -155,19 +156,28 @@ export default function AddonsClientPage({
     }
   };
 
-  const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category? All its addon features will lose their reference.')) return;
-    try {
-      const res = await deleteAddonCategoryAction(id);
-      if (res.success) {
-        setCategories((prev) => prev.filter((c) => c.id !== id));
-      } else {
-        alert(res.error || 'Failed to delete category.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Failed to delete category.');
-    }
+  const handleDeleteCategory = (id: string) => {
+    toast('Delete this category?', {
+      description: 'All its addon features will lose their reference.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const res = await deleteAddonCategoryAction(id);
+            if (res.success) {
+              setCategories((prev) => prev.filter((c) => c.id !== id));
+              toast.success('Category deleted successfully.');
+            } else {
+              toast.error(res.error || 'Failed to delete category.');
+            }
+          } catch (err) {
+            console.error(err);
+            toast.error('Failed to delete category.');
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    });
   };
 
   const toggleExpandCategory = (id: string) => {
@@ -251,19 +261,28 @@ export default function AddonsClientPage({
     }
   };
 
-  const handleDeleteFeature = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this addon feature?')) return;
-    try {
-      const res = await deleteAddonFeatureAction(id);
-      if (res.success) {
-        setAddons((prev) => prev.filter((f) => f.id !== id));
-      } else {
-        alert(res.error || 'Failed to delete addon feature.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Failed to delete addon feature.');
-    }
+  const handleDeleteFeature = (id: string) => {
+    toast('Delete this addon feature?', {
+      description: 'This action cannot be undone.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const res = await deleteAddonFeatureAction(id);
+            if (res.success) {
+              setAddons((prev) => prev.filter((f) => f.id !== id));
+              toast.success('Addon feature deleted successfully.');
+            } else {
+              toast.error(res.error || 'Failed to delete addon feature.');
+            }
+          } catch (err) {
+            console.error(err);
+            toast.error('Failed to delete addon feature.');
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    });
   };
 
   const handleToggleFeatureActive = async (id: string, currentActive: boolean) => {
@@ -277,7 +296,7 @@ export default function AddonsClientPage({
         setAddons((prev) =>
           prev.map((f) => (f.id === id ? { ...f, isActive: currentActive } : f))
         );
-        alert(res.error || 'Failed to toggle active status.');
+        toast.error(res.error || 'Failed to toggle active status.');
       }
     } catch (err) {
       console.error(err);
@@ -497,7 +516,7 @@ export default function AddonsClientPage({
                                         const orderedIds = newCatFeatures.map((f) => f.id);
                                         reorderAddonFeaturesAction(orderedIds).then((res) => {
                                           if (!res.success) {
-                                            alert(res.error || 'Failed to save new order.');
+                                            toast.error(res.error || 'Failed to save new order.');
                                           }
                                         });
                                         

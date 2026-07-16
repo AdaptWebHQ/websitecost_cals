@@ -103,22 +103,27 @@ export interface PackageFeature {
   updatedAt: Date;
 }
 
+// @/types/index.ts (Snippet - locate Industry interface)
+
 // ============================================================================
 // Industry Types
 // ============================================================================
 
-/** Industry vertical (e.g., Salon, Restaurant, Hospital) */
+/** Industry vertical definition used for personalization and recommended routing */
 export interface Industry {
   id: string;
   name: string;
   slug: string;
+  /** Brief overview of web needs for this vertical (Premium requirement) */
+  description: string; // <-- ADDED THIS FIELD
   basePrice: number;
   recommendedPackageId: string;
   isActive: boolean;
+  /** UI sort order field */
+  sortOrder?: number;
   createdAt: Date;
   updatedAt: Date;
 }
-
 // ============================================================================
 // Price Configuration
 // ============================================================================
@@ -363,4 +368,4 @@ export interface NavItem {
   icon: string;
   badge?: number;
 }
-
+

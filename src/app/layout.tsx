@@ -3,6 +3,7 @@ import './globals.css';
 import { AuthProvider, AuthWrapper } from '@/context/auth-context';
 import { ThemeProvider } from '@/context/theme-context';
 import { APP_NAME, APP_DESCRIPTION } from '@/constants';
+import { Toaster } from '@/components/ui/sonner';
 
 export const metadata: Metadata = {
   title: {
@@ -46,6 +47,7 @@ export default function RootLayout({
               {children}
             </AuthWrapper>
           </AuthProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

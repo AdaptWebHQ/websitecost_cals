@@ -74,15 +74,19 @@ export const addonFeatureSchema = z.object({
 
 export type AddonFeatureFormData = z.infer<typeof addonFeatureSchema>;
 
+
+
 // ============================================================================
 // Industry Schemas
 // ============================================================================
 
 export const industrySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
+  description: z.string().min(10, 'Description must be at least 10 characters').max(500), // <-- ADDED THIS FIELD WITH VALIDATION
   basePrice: z.coerce.number().min(0, 'Price must be positive'),
   recommendedPackageId: z.string().min(1, 'Recommended package is required'),
   isActive: z.boolean().default(true),
+  sortOrder: z.coerce.number().min(0).default(0),
 });
 
 export type IndustryFormData = z.infer<typeof industrySchema>;
@@ -176,6 +180,8 @@ export const calculatorSubmissionSchema = z.object({
 });
 
 export type CalculatorSubmissionData = z.infer<typeof calculatorSubmissionSchema>;
+
+
 
 // ============================================================================
 // Contact / Inquiry Schemas

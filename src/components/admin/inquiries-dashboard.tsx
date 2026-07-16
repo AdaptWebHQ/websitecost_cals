@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { 
@@ -105,11 +106,11 @@ export default function InquiriesDashboard() {
         link.click();
         document.body.removeChild(link);
       } else {
-        alert(response.error || 'Failed to export inquiries.');
+        toast.error(response.error || 'Failed to export inquiries.');
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to trigger CRM CSV export.');
+      toast.error('Failed to trigger CRM CSV export.');
     } finally {
       setLeadLoading(false);
     }
@@ -250,11 +251,11 @@ export default function InquiriesDashboard() {
     try {
       const res = await updateInquiryStatusAction(id, { status: newStatus });
       if (!res.success) {
-        alert(res.error || 'Failed to update status.');
+        toast.error(res.error || 'Failed to update status.');
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred while updating status.');
+      toast.error('An error occurred while updating status.');
     }
   };
 
@@ -267,11 +268,11 @@ export default function InquiriesDashboard() {
         assignedTo: newAssigneeId 
       });
       if (!res.success) {
-        alert(res.error || 'Failed to update assignment.');
+        toast.error(res.error || 'Failed to update assignment.');
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred while updating assignment.');
+      toast.error('An error occurred while updating assignment.');
     }
   };
 
@@ -283,18 +284,27 @@ export default function InquiriesDashboard() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this inquiry? This will also remove its audit trail.")) {
-      try {
-        await deleteInquiryAction(id);
-        if (selectedInquiryId === id) {
-          setDrawerOpen(false);
-          setSelectedInquiryId(null);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
+  const handleDelete = (id: string) => {
+    toast('Delete this inquiry?', {
+      description: 'This will also remove its audit trail.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            await deleteInquiryAction(id);
+            if (selectedInquiryId === id) {
+              setDrawerOpen(false);
+              setSelectedInquiryId(null);
+            }
+            toast.success('Inquiry deleted.');
+          } catch (err) {
+            console.error(err);
+            toast.error('Failed to delete inquiry.');
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    });
   };
 
   const handleAddNote = async (e: React.FormEvent) => {

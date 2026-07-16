@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import DataTable from '@/components/shared/data-table';
 import { Button } from '@/components/ui/button';
 import { TableRow, TableCell } from '@/components/ui/table';
@@ -185,19 +186,27 @@ export default function PackagesClientPage({
   ]);
 
   const handleDeletePackage = useCallback(async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this package?')) return;
-
-    try {
-      const res = await deletePackageAction(id);
-      if (res.success) {
-        setPackages((prev) => prev.filter((p) => p.id !== id));
-      } else {
-        window.alert(res.error || 'Failed to delete package.');
-      }
-    } catch (err) {
-      console.error('Error deleting package:', err);
-      window.alert('Failed to delete package.');
-    }
+    toast('Delete this package?', {
+      description: 'This action cannot be undone.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            const res = await deletePackageAction(id);
+            if (res.success) {
+              setPackages((prev) => prev.filter((p) => p.id !== id));
+              toast.success('Package deleted successfully.');
+            } else {
+              toast.error(res.error || 'Failed to delete package.');
+            }
+          } catch (err) {
+            console.error('Error deleting package:', err);
+            toast.error('Failed to delete package.');
+          }
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    });
   }, []);
 
   const columns = [

@@ -1,296 +1,314 @@
+// @/components/admin/industries-client.tsx
 'use client';
 
-import { useState } from 'react';
-import DataTable from '@/components/shared/data-table';
-import { Button } from '@/components/ui/button';
-import { TableRow, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
-import { PlusCircle, Edit, Trash, Loader2 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
+import React, { useState, useTransition } from 'react';
+import { toast } from 'sonner';
+import { Plus, Pencil, Trash2, Loader2, Building2 } from 'lucide-react';
+
+import type { Industry, Package } from '@/types';
 import {
   createIndustryAction,
   updateIndustryAction,
   deleteIndustryAction,
+  toggleIndustryActiveAction
 } from '@/actions/industries';
-import type { Industry, Package } from '@/types';
 
-interface IndustriesClientPageProps {
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import DataTable from '@/components/shared/data-table';
+import { TableCell, TableRow } from '@/components/ui/table';
+
+interface Props {
   initialIndustries: Industry[];
   packages: Package[];
 }
 
-export default function IndustriesClientPage({ initialIndustries, packages }: IndustriesClientPageProps) {
+interface IndustryFormData {
+  name: string;
+  description: string;
+  basePrice: number;
+  recommendedPackageId: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+const COLUMNS = [
+  { key: 'sortOrder', label: '#', className: 'w-12 text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4' },
+  { key: 'name', label: 'Industry Name', className: 'text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4' },
+  { key: 'recommendedPackageId', label: 'Rec. Package', className: 'text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4' },
+  { key: 'isActive', label: 'Status', className: 'w-24 text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4' },
+  { key: 'actions', label: '', className: 'w-24' },
+];
+
+export default function IndustriesClientPage({ initialIndustries, packages }: Props) {
   const [industries, setIndustries] = useState<Industry[]>(initialIndustries);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingIndustry, setEditingIndustry] = useState<Industry | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  // Form Fields
-  const [name, setName] = useState('');
-  const [basePrice, setBasePrice] = useState(0);
-  const [recommendedPackageId, setRecommendedPackageId] = useState(packages[0]?.id || '');
-  const [isActive, setIsActive] = useState(true);
-
-  const packageMap = packages.reduce<Record<string, string>>((acc, pkg) => {
-    acc[pkg.id] = pkg.name;
-    return acc;
-  }, {});
-
-  const openAddModal = () => {
-    setEditingIndustry(null);
-    setName('');
-    setBasePrice(5000);
-    setRecommendedPackageId(packages[0]?.id || '');
-    setIsActive(true);
-    setErrorMsg(null);
-    setIsModalOpen(true);
+  const defaultForm: IndustryFormData = {
+    name: '',
+    description: '',
+    basePrice: 0,
+    recommendedPackageId: packages[0]?.id || '',
+    isActive: true,
+    sortOrder: 0,
   };
 
-  const openEditModal = (ind: Industry) => {
-    setEditingIndustry(ind);
-    setName(ind.name);
-    setBasePrice(ind.basePrice);
-    setRecommendedPackageId(ind.recommendedPackageId);
-    setIsActive(ind.isActive);
-    setErrorMsg(null);
-    setIsModalOpen(true);
+  const [formData, setFormData] = useState<IndustryFormData>(defaultForm);
+  const [errors, setErrors] = useState<Partial<Record<keyof IndustryFormData, string>>>({});
+
+  const validate = (data: IndustryFormData): boolean => {
+    const newErrors: Partial<Record<keyof IndustryFormData, string>> = {};
+    if (!data.name.trim()) newErrors.name = 'Name is required.';
+    if (data.description && data.description.length > 500) newErrors.description = 'Max 500 characters.';
+    if (!data.recommendedPackageId) newErrors.recommendedPackageId = 'Package is required.';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const openCreateDialog = () => {
+    setEditingIndustry(null);
+    setFormData({ ...defaultForm, sortOrder: industries.length + 1, recommendedPackageId: packages[0]?.id || '' });
+    setErrors({});
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (industry: Industry) => {
+    setEditingIndustry(industry);
+    setFormData({
+      name: industry.name,
+      description: industry.description || '',
+      basePrice: industry.basePrice,
+      recommendedPackageId: industry.recommendedPackageId,
+      isActive: industry.isActive,
+      sortOrder: industry.sortOrder || 0,
+    });
+    setErrors({});
+    setIsDialogOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMsg(null);
+    if (!validate(formData)) return;
 
-    const formData = {
-      name,
-      basePrice,
-      recommendedPackageId,
-      isActive,
-    };
-
-    try {
+    startTransition(async () => {
       if (editingIndustry) {
-        const res = await updateIndustryAction(editingIndustry.id, formData);
-        if (res.success && res.data) {
-          setIndustries((prev) =>
-            prev.map((i) => (i.id === editingIndustry.id ? res.data! : i))
-          );
-          setIsModalOpen(false);
+        const response = await updateIndustryAction(editingIndustry.id, formData);
+        if (response.success && response.data) {
+          setIndustries(prev => prev.map(ind => ind.id === editingIndustry.id ? response.data! : ind));
+          toast.success('Industry updated successfully.');
+          setIsDialogOpen(false);
         } else {
-          setErrorMsg(res.error || 'Failed to update industry.');
+          toast.error(response.error || 'Failed to update industry.');
         }
       } else {
-        const res = await createIndustryAction(formData);
-        if (res.success && res.data) {
-          setIndustries((prev) => [...prev, res.data!]);
-          setIsModalOpen(false);
+        const response = await createIndustryAction(formData);
+        if (response.success && response.data) {
+          setIndustries(prev => [...prev, response.data!]);
+          toast.success('Industry created successfully.');
+          setIsDialogOpen(false);
         } else {
-          setErrorMsg(res.error || 'Failed to create industry.');
+          toast.error(response.error || 'Failed to create industry.');
         }
       }
-    } catch (err) {
-      console.error(err);
-      setErrorMsg('An unexpected error occurred.');
-    } finally {
-      setIsSubmitting(false);
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    toast('Delete this industry?', {
+      description: 'This action cannot be undone.',
+      action: {
+        label: 'Delete',
+        onClick: () => {
+          startTransition(async () => {
+            const response = await deleteIndustryAction(id);
+            if (response.success) {
+              setIndustries(prev => prev.filter(ind => ind.id !== id));
+              toast.success('Industry deleted successfully.');
+            } else {
+              toast.error(response.error || 'Failed to delete industry.');
+            }
+          });
+        },
+      },
+      cancel: { label: 'Cancel', onClick: () => {} },
+    });
+  };
+
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    const newStatus = !currentStatus;
+    setIndustries(prev => prev.map(ind => ind.id === id ? { ...ind, isActive: newStatus } : ind));
+
+    const response = await toggleIndustryActiveAction(id, newStatus);
+    if (!response.success) {
+      setIndustries(prev => prev.map(ind => ind.id === id ? { ...ind, isActive: currentStatus } : ind));
+      toast.error(response.error || 'Failed to update status.');
     }
   };
 
-  const handleDeleteIndustry = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this industry?')) return;
-    try {
-      const res = await deleteIndustryAction(id);
-      if (res.success) {
-        setIndustries((prev) => prev.filter((i) => i.id !== id));
-      } else {
-        alert(res.error || 'Failed to delete industry.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Failed to delete industry.');
-    }
-  };
-
-  const columns = [
-    { key: 'name', label: 'Industry Name', className: 'pl-6' },
-    { key: 'basePrice', label: 'Industry Base price' },
-    { key: 'recommendedPackage', label: 'Recommended Tier' },
-    { key: 'status', label: 'Status' },
-    { key: 'actions', label: 'Actions', className: 'text-right py-4 pr-6' },
-  ];
+  const renderRow = (industry: Industry, index: number) => (
+    <TableRow key={industry.id} className="hover:bg-muted/30 border-border transition-colors">
+      <TableCell className="font-mono text-xs text-muted-foreground py-3">{industry.sortOrder}</TableCell>
+      <TableCell className="py-3">
+        <div className="flex flex-col gap-0.5">
+          <span className="font-semibold text-foreground text-sm">{industry.name}</span>
+          {industry.description && (
+            <span className="text-xs text-muted-foreground truncate max-w-md">{industry.description}</span>
+          )}
+        </div>
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground py-3">
+        {packages.find(p => p.id === industry.recommendedPackageId)?.name || 'N/A'}
+      </TableCell>
+      <TableCell className="py-3">
+        <Switch
+          checked={industry.isActive}
+          onCheckedChange={() => handleToggleActive(industry.id, industry.isActive)}
+          disabled={isPending}
+        />
+      </TableCell>
+      <TableCell className="py-3">
+        <div className="flex items-center justify-end gap-2">
+          <Button variant="ghost" size="icon" onClick={() => openEditDialog(industry)} disabled={isPending}>
+            <Pencil className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(industry.id)} disabled={isPending}>
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Industries</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Define industry verticals (e.g. Healthcare, Real Estate, Salon) and their baseline pricing offsets.
-          </p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-3 rounded-xl bg-primary/10 text-primary">
+            <Building2 className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Industry Verticals</h1>
+            <p className="text-muted-foreground">Manage industries used for personalization and recommended routing.</p>
+          </div>
         </div>
-        <Button
-          onClick={openAddModal}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 rounded-xl h-11 px-5"
-        >
-          <PlusCircle className="w-5 h-5" />
+        <Button onClick={openCreateDialog} className="gap-2">
+          <Plus className="w-4 h-4" />
           Add Industry
         </Button>
       </div>
 
-      {/* Listing Table */}
       <DataTable
-        columns={columns}
+        columns={COLUMNS}
         data={industries}
-        emptyMessage="No industries configured yet. Click Add Industry above."
-        renderRow={(ind) => (
-          <TableRow key={ind.id} className="hover:bg-muted/40 border-border transition-colors">
-            <TableCell className="font-semibold text-foreground py-4 pl-6 text-sm">
-              {ind.name}
-            </TableCell>
-            <TableCell className="text-muted-foreground font-medium text-xs">
-              {formatCurrency(ind.basePrice)}
-            </TableCell>
-            <TableCell className="text-muted-foreground font-medium text-xs">
-              <Badge variant="outline" className="border-border text-muted-foreground hover:bg-transparent rounded-lg">
-                {packageMap[ind.recommendedPackageId] || 'Custom'}
-              </Badge>
-            </TableCell>
-            <TableCell>
-              {ind.isActive ? (
-                <Badge className="bg-emerald-500/5 text-emerald-400 border border-emerald-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 inline-block"></span>
-                  Active
-                </Badge>
-              ) : (
-                <Badge className="bg-slate-500/5 text-slate-400 border border-slate-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 inline-block"></span>
-                  Inactive
-                </Badge>
-              )}
-            </TableCell>
-            <TableCell className="text-right py-4 pr-6">
-              <div className="flex items-center justify-end gap-2">
-                <Button
-                  onClick={() => openEditModal(ind)}
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-foreground rounded-lg"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  onClick={() => handleDeleteIndustry(ind.id)}
-                  variant="ghost"
-                  size="icon"
-                  className="text-red-400 hover:text-red-300 rounded-lg"
-                >
-                  <Trash className="w-4 h-4" />
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        )}
+        emptyMessage="No industries found. Create your first one!"
+        renderRow={renderRow}
       />
 
-      {/* shadcn Dialog Component */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-popover border border-border shadow-2xl rounded-2xl w-full max-w-lg p-6 relative text-popover-foreground">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-foreground">
-              {editingIndustry ? 'Edit Industry Vertical' : 'Create Industry Vertical'}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {errorMsg && (
-              <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg">
-                {errorMsg}
-              </p>
-            )}
-            <div className="space-y-1">
-              <Label className="text-muted-foreground text-xs">Industry Name</Label>
-              <Input
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Healthcare & Medical"
-                className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
-              />
-            </div>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <DialogHeader>
+              <DialogTitle>{editingIndustry ? 'Edit Industry' : 'Create Industry'}</DialogTitle>
+              <DialogDescription>
+                Define the industry vertical name and brief description for the public calculator.
+              </DialogDescription>
+            </DialogHeader>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label className="text-muted-foreground text-xs">Base Markup Price (INR)</Label>
+            <div className="grid grid-cols-1 gap-5">
+              {/* Name */}
+              <div className="space-y-1.5">
+                <Label htmlFor="industry-name">Industry Vertical Name</Label>
                 <Input
-                  required
-                  type="number"
-                  value={basePrice}
-                  onChange={(e) => setBasePrice(Number(e.target.value))}
-                  className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
+                  id="industry-name"
+                  placeholder="e.g. Luxury Salons & Spas"
+                  value={formData.name}
+                  onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
                 />
+                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
               </div>
-              <div className="space-y-1">
-                <Label className="text-muted-foreground text-xs">Recommended Package</Label>
-                <select
-                  value={recommendedPackageId}
-                  onChange={(e) => setRecommendedPackageId(e.target.value)}
-                  className="w-full h-10 bg-background border border-border text-foreground rounded-xl px-3 text-sm focus:outline-none focus:border-indigo-500"
-                >
-                  {packages.map((pkg) => (
-                    <option key={pkg.id} value={pkg.id} className="bg-popover text-foreground">
-                      {pkg.name}
-                    </option>
-                  ))}
-                </select>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <Label htmlFor="industry-description">Calculator Description</Label>
+                <Textarea
+                  id="industry-description"
+                  placeholder="Briefly describe web needs (e.g., Patient scheduling, secure HIPAA intake forms...)"
+                  className="resize-none h-24 font-sans text-sm"
+                  value={formData.description}
+                  onChange={e => setFormData(p => ({ ...p, description: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">Visible on the public pricing page. Max 500 characters.</p>
+                {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-5">
+                {/* Recommended Package */}
+                <div className="space-y-1.5">
+                  <Label>Recommended Base Package</Label>
+                  <Select
+                    value={formData.recommendedPackageId}
+                    onValueChange={val => setFormData(p => ({ ...p, recommendedPackageId: val ?? '' }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select package" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {packages.map(pkg => (
+                        <SelectItem key={pkg.id} value={pkg.id}>{pkg.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Calculator auto-selects this.</p>
+                  {errors.recommendedPackageId && <p className="text-xs text-destructive">{errors.recommendedPackageId}</p>}
+                </div>
+
+                {/* Sort Order */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="industry-sort">Sort Order</Label>
+                  <Input
+                    id="industry-sort"
+                    type="number"
+                    value={formData.sortOrder}
+                    onChange={e => setFormData(p => ({ ...p, sortOrder: parseInt(e.target.value) || 0 }))}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox
-                id="isActive"
-                checked={isActive}
-                onCheckedChange={(checked) => setIsActive(!!checked)}
-              />
-              <Label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer select-none">
-                Active Industry Vertical
-              </Label>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-4 border-t border-border">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground rounded-xl h-10 px-5"
-              >
+            <DialogFooter className="pt-5 border-t">
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isPending}>
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-10 px-6 font-semibold shadow-lg shadow-indigo-600/10 disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                    Saving...
-                  </>
+              <Button type="submit" className="gap-2" disabled={isPending}>
+                {isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : editingIndustry ? (
+                  'Update Industry'
                 ) : (
-                  'Save Changes'
+                  'Create Industry'
                 )}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

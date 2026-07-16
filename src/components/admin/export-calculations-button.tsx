@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { exportCalculationsCsvAction } from '@/actions/reports';
 import { Button } from '@/components/ui/button';
 import { FileDown, Loader2 } from 'lucide-react';
@@ -22,11 +23,11 @@ export default function ExportCalculationsButton() {
         link.click();
         document.body.removeChild(link);
       } else {
-        alert(response.error || 'Failed to export calculations.');
+        toast.error(response.error || 'Failed to export calculations.');
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to trigger calculations CSV export.');
+      toast.error('Failed to trigger calculations CSV export.');
     } finally {
       setLoading(false);
     }
