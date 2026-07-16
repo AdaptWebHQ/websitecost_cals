@@ -1,32 +1,32 @@
 'use client';
 
 import { motion, Variants } from 'framer-motion';
-import { Settings2, Calculator, FileCheck, Send } from 'lucide-react';
+import { Briefcase, Layers, Calculator, Rocket } from 'lucide-react';
 
 const STEPS = [
   {
-    icon: Settings2,
-    label: 'Configure',
-    title: 'Pick a package, tune the scope',
-    body: "Start from a base package, then adjust pages, add-ons, and industry multipliers to match the actual project.",
+    icon: Briefcase,
+    label: 'Business',
+    title: 'Select Your Business Type',
+    body: "Define your industry, and we will recommend the essential pages and features your specific business needs to thrive.",
+  },
+  {
+    icon: Layers,
+    label: 'Features',
+    title: 'Choose Your Features',
+    body: 'Add exactly what you want—from secure payment gateways to scheduling systems—and skip what you don’t.',
   },
   {
     icon: Calculator,
-    label: 'Calculate',
-    title: 'Pricing engine does the math',
-    body: 'Centralized rules and live formulas turn your inputs into a defensible number — instantly, and consistently.',
+    label: 'Estimate',
+    title: 'Review Your Estimate',
+    body: 'Watch the cost update instantly. Get a transparent, itemized breakdown of your website project.',
   },
   {
-    icon: FileCheck,
-    label: 'Generate',
-    title: 'Turn the number into a quote',
-    body: 'One click produces a branded PDF proposal, itemized and ready to attach to an email.',
-  },
-  {
-    icon: Send,
-    label: 'Send',
-    title: 'Deliver it and track the reply',
-    body: 'Email the estimate straight from the platform, then watch it move through your inquiry pipeline.',
+    icon: Rocket,
+    label: 'Launch',
+    title: 'Connect & Launch',
+    body: 'Send your approved estimate directly to our team, and let us turn your vision into a professional digital experience.',
   },
 ];
 
@@ -44,12 +44,12 @@ export default function ProcessTimeline() {
   return (
     <section className="max-w-7xl mx-auto px-6 py-28 border-t border-border bg-background z-10 relative">
       <div className="text-center max-w-xl mx-auto mb-20">
-        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-bold block mb-3 border border-border bg-card px-3 py-1.5 mx-auto w-max">Est. No. 0142 &rarr; Sent</span>
+        <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-bold block mb-3 border border-border bg-card px-3 py-1.5 mx-auto w-max">How It Works</span>
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mt-3 uppercase">
-          From Blank Page to Signed Quote
+          From idea to accurate estimate.
         </h2>
         <p className="text-sm text-muted-foreground mt-3 leading-relaxed font-mono">
-          Four steps, no spreadsheets. This is the whole workflow.
+          A clear, straightforward path to understanding your website investment. No guesswork required.
         </p>
       </div>
 

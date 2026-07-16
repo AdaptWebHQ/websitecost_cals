@@ -109,7 +109,7 @@ export default function AnimatedHero() {
           variants={itemVars}
           className="mb-8 font-mono text-xs uppercase tracking-[0.25em] text-muted-foreground border border-border px-4 py-2 bg-card rounded-none"
         >
-          Estimation Technology v2.0
+          Smart Estimation
         </motion.div>
 
         {/* High-Contrast Headline */}
@@ -117,7 +117,7 @@ export default function AnimatedHero() {
           variants={itemVars}
           className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-foreground m-0 leading-tight"
         >
-          Website Estimation <br className="hidden sm:block" /> Reinvented
+          Estimate your website cost <br className="hidden sm:block" /> before you build.
         </motion.h1>
 
         {/* Technical Paragraph */}
@@ -125,7 +125,7 @@ export default function AnimatedHero() {
           variants={itemVars}
           className="mt-6 text-sm sm:text-base text-muted-foreground max-w-2xl leading-relaxed font-mono"
         >
-          Reinventing agency workflows with revolutionary estimation technology. Build accurate quotes, instantly.
+          Get an accurate price for your project instantly. Choose your features, plan your budget, and launch your modern website with complete transparency.
         </motion.p>
 
         {/* Solid CTA */}
@@ -136,12 +136,12 @@ export default function AnimatedHero() {
           <Link href="/public/calculator">
             <button className="bg-primary hover:bg-primary-hover text-primary-foreground rounded-none border border-border h-14 px-10 text-sm font-bold tracking-widest uppercase transition-colors flex items-center shadow-none">
               <Calculator className="w-4 h-4 mr-3 text-primary-foreground" />
-              Start Estimating
+              Calculate My Cost
             </button>
           </Link>
         </motion.div>
 
-        {/* 3D Model Showcase without the floaty styles */}
+        {/* 3D Model Showcase */}
         <motion.div
           variants={itemVars}
           className="w-full mt-24 mb-16 relative"

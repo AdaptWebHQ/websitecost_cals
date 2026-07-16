@@ -47,13 +47,14 @@ export default function AboutIntro() {
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
           className="flex flex-col items-start"
         >
+          <span className="text-sm font-semibold text-primary tracking-wide uppercase mb-4 block">Interactive Pricing</span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold leading-snug text-foreground mb-8">
-            Always pushing agency operations forward with revolutionary technology, we build premium estimation tools trusted by agencies who value advanced engineering, efficiency, and remarkable design.
+            Every business is unique. Use our transparent calculator to explore different pages, features, and custom integrations. Shape your project exactly how you want it, and know the price before you make a commitment.
           </h2>
           
-          <Link href="/about" className="group flex items-center gap-2 text-primary font-semibold hover:text-primary-hover transition-colors">
+          <Link href="/public/calculator" className="group flex items-center gap-2 text-primary font-semibold hover:text-primary-hover transition-colors">
             <span className="relative">
-              Read more about us
+              Calculate your cost
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
             </span>
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

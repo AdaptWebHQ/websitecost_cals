@@ -29,21 +29,21 @@ export default function CtaStamp() {
           className="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono uppercase tracking-widest text-white/70"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          Ready to Deploy
+          Ready to start?
         </motion.div>
 
         <h2 className="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 mt-2 tracking-tight">
-          Start Your Website Estimation
+          Plan your project today.
         </h2>
         <p className="mt-6 text-white/60 text-base max-w-md leading-relaxed">
-          Create an account to save estimates, download professional proposals, and manage your projects in one place.
+          Take the uncertainty out of web design. Get a clear, professional estimate and take the first step toward launching your new website.
         </p>
         
         <div className="mt-10 relative">
           <div className="absolute -inset-1 bg-gradient-to-r from-primary to-accent rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
-          <Link href="/register">
+          <Link href="/public/calculator">
             <Button className="relative bg-white text-black hover:bg-white/90 rounded-xl h-14 px-8 gap-3 text-base font-bold shadow-[0_0_40px_rgba(255,255,255,0.1)] cursor-pointer transition-all hover:scale-105">
-              Create Free Account
+              Start Your Estimate
               <ArrowRight className="w-5 h-5" />
             </Button>
           </Link>

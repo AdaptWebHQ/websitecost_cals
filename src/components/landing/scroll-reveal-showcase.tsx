@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { Layers, Cpu, Code, ShieldCheck, Sparkles } from 'lucide-react';
+import { CreditCard, CalendarCheck, LayoutDashboard, Link2, Layers } from 'lucide-react';
 
 export default function ScrollRevealShowcase() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -118,17 +118,17 @@ export default function ScrollRevealShowcase() {
                   className="flex flex-col justify-center"
                 >
                   <span className="text-[10px] font-mono font-bold tracking-widest text-amber-500 uppercase mb-3 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-spin" style={{ animationDuration: '4s' }} />
-                    01 • The Conception
+                    <CreditCard className="w-3.5 h-3.5 text-amber-500" />
+                    01 • Transactions
                   </span>
                   <h3 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-[1.05]">
-                    A Business Idea <br />
+                    Secure Payment <br />
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-500 via-orange-400 to-rose-500">
-                      Is Born.
+                      Gateways.
                     </span>
                   </h3>
                   <p className="mt-6 text-sm text-zinc-400 leading-relaxed max-w-sm font-medium">
-                    Every digital masterpiece begins as a raw concept node, floating in translucent architectural glass space.
+                    Accept transactions safely and seamlessly. Perfect for modern e-commerce brands and service businesses.
                   </p>
                 </motion.div>
               )}
@@ -143,17 +143,17 @@ export default function ScrollRevealShowcase() {
                   className="flex flex-col justify-center"
                 >
                   <span className="text-[10px] font-mono font-bold tracking-widest text-violet-400 uppercase mb-3 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-violet-400 animate-pulse" />
-                    02 • Craftsmanship
+                    <CalendarCheck className="w-3.5 h-3.5 text-violet-400" />
+                    02 • Scheduling
                   </span>
                   <h3 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-[1.05]">
-                    Unfolding the <br />
+                    Streamlined <br />
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-indigo-500">
-                      Structural Grid.
+                      Booking Systems.
                     </span>
                   </h3>
                   <p className="mt-6 text-sm text-zinc-400 leading-relaxed max-w-sm font-medium">
-                    Layout structures materialize. Frosted acrylic components emerge along coordinate paths, building responsiveness.
+                    Let clients schedule and manage appointments directly on your site. Ideal for clinics, salons, and consultants.
                   </p>
                 </motion.div>
               )}
@@ -168,17 +168,17 @@ export default function ScrollRevealShowcase() {
                   className="flex flex-col justify-center"
                 >
                   <span className="text-[10px] font-mono font-bold tracking-widest text-teal-400 uppercase mb-3 flex items-center gap-1.5">
-                    <Cpu className="w-3.5 h-3.5 text-teal-400" />
-                    03 • The Evaluation
+                    <LayoutDashboard className="w-3.5 h-3.5 text-teal-400" />
+                    03 • Management
                   </span>
                   <h3 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-[1.05]">
-                    Intelligent <br />
+                    Intuitive <br />
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-teal-400 to-emerald-500">
-                      Budget Estimation.
+                      Admin Panels.
                     </span>
                   </h3>
                   <p className="mt-6 text-sm text-zinc-400 leading-relaxed max-w-sm font-medium">
-                    Laser-precise calculations sweep through the workspace, analyzing vectors and resolving custom costs in real-time.
+                    Manage your content, update your services, and track your leads effortlessly through a clean, simple dashboard.
                   </p>
                 </motion.div>
               )}
@@ -193,17 +193,17 @@ export default function ScrollRevealShowcase() {
                   className="flex flex-col justify-center"
                 >
                   <span className="text-[10px] font-mono font-bold tracking-widest text-primary uppercase mb-3 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-                    04 • The Signature
+                    <Link2 className="w-3.5 h-3.5 text-primary" />
+                    04 • Connections
                   </span>
                   <h3 className="text-4xl sm:text-5xl font-black text-white tracking-tight leading-[1.05]">
-                    Premium Signed <br />
+                    Custom <br />
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-                      Quote Issued.
+                      Integrations.
                     </span>
                   </h3>
                   <p className="mt-6 text-sm text-zinc-400 leading-relaxed max-w-sm font-medium">
-                    Everything compresses into an elegant signed proposal sheet. Craftsmanship locked. Estimates guaranteed.
+                    Connect your website to the tools you already use. From CRM platforms to marketing software, we keep your business synced.
                   </p>
                 </motion.div>
               )}
@@ -236,7 +236,7 @@ export default function ScrollRevealShowcase() {
                   className="w-24 h-24 border border-dashed border-amber-500/60 rounded-full flex items-center justify-center"
                 >
                   <div className="w-12 h-12 border border-amber-500 rounded-full flex items-center justify-center bg-amber-500/10">
-                    <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
+                    <CreditCard className="w-5 h-5 text-amber-500" />
                   </div>
                 </motion.div>
               </div>
