@@ -88,7 +88,7 @@ export default function CalculatorWizard({
     
     // Pages cost
     const pagesIncluded = selectedPkg?.pagesIncluded || 0;
-    const additionalPages = Math.max(0, pages - pagesIncluded);
+    const additionalPages = pagesIncluded === -1 ? 0 : Math.max(0, pages - pagesIncluded);
     const extraPageFeature = features.find((f) => f.id === 'feat-extra-page');
     const extraPagePrice = extraPageFeature ? extraPageFeature.price : 2000;
     const pagesCost = additionalPages * extraPagePrice;
@@ -207,7 +207,7 @@ export default function CalculatorWizard({
     const selectedPkg = packages.find((p) => p.id === packageId) || packages[0];
     const basePrice = selectedPkg?.basePrice || 0;
     const pagesIncluded = selectedPkg?.pagesIncluded || 0;
-    const additionalPages = Math.max(0, pages - pagesIncluded);
+    const additionalPages = pagesIncluded === -1 ? 0 : Math.max(0, pages - pagesIncluded);
     const extraPageFeature = features.find((f) => f.id === 'feat-extra-page');
     const extraPagePrice = extraPageFeature ? extraPageFeature.price : 2000;
 

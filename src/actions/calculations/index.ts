@@ -66,15 +66,29 @@ export async function createCalculationAction(
     // Fetch selected features from database
     let selectedFeatures: AddonFeature[] = [];
     if (selectedFeatureIds.length > 0) {
-      const featuresSnap = await adminDb
-         .collection(COLLECTIONS.ADDON_FEATURES)
-         .where('__name__', 'in', selectedFeatureIds)
-         .get();
-         
-      selectedFeatures = featuresSnap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as AddonFeature[];
+      // Chunk selectedFeatureIds into groups of 10 to prevent Firestore 'in' operator limitations
+      const chunkSize = 10;
+      const chunks = [];
+      for (let i = 0; i < selectedFeatureIds.length; i += chunkSize) {
+        chunks.push(selectedFeatureIds.slice(i, i + chunkSize));
+      }
+
+      const queryPromises = chunks.map((chunk) =>
+        adminDb
+          .collection(COLLECTIONS.ADDON_FEATURES)
+          .where('__name__', 'in', chunk)
+          .get()
+      );
+
+      const snapshots = await Promise.all(queryPromises);
+      for (const snap of snapshots) {
+        snap.docs.forEach((doc) => {
+          selectedFeatures.push({
+            id: doc.id,
+            ...doc.data(),
+          } as AddonFeature);
+        });
+      }
     }
 
     // Run server-side pricing engine recalculation

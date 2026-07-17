@@ -19,7 +19,8 @@ import {
   ToggleLeft,
   ToggleRight,
   Sparkles,
-  GripVertical
+  GripVertical,
+  Search
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import {
@@ -55,6 +56,7 @@ export default function PackageFeaturesClientPage({
 }: PackageFeaturesClientPageProps) {
   const [categories, setCategories] = useState<PackageFeatureCategory[]>(initialCategories);
   const [features, setFeatures] = useState<PackageFeature[]>(initialFeatures);
+  const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategoryIds, setExpandedCategoryIds] = useState<Record<string, boolean>>({});
 
   // Drag and drop states
@@ -301,6 +303,22 @@ export default function PackageFeaturesClientPage({
     { key: 'actions', label: 'Actions', className: 'text-right py-4 pr-6' },
   ];
 
+  const filteredCategories = categories.filter((cat) => {
+    const search = searchTerm.toLowerCase();
+    const catMatches = 
+      cat.name?.toLowerCase().includes(search) ||
+      cat.description?.toLowerCase().includes(search);
+      
+    const hasMatchingFeatures = features.some(
+      (f) => f.categoryId === cat.id && (
+        f.name?.toLowerCase().includes(search) ||
+        f.description?.toLowerCase().includes(search)
+      )
+    );
+    
+    return catMatches || hasMatchingFeatures;
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -320,15 +338,39 @@ export default function PackageFeaturesClientPage({
         </Button>
       </div>
 
+      {/* Search Filter */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search category or feature name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full h-10 bg-background border border-border rounded-xl pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-indigo-500/50 transition-colors"
+        />
+      </div>
+
       {/* Listing Table */}
       <DataTable
         columns={columns}
-        data={categories}
-        emptyMessage="No categories defined yet. Get started by clicking Add Category."
+        data={filteredCategories}
+        emptyMessage={searchTerm ? "No categories match your search criteria." : "No categories defined yet. Get started by clicking Add Category."}
         renderRow={(cat) => {
           const IconComponent = (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[cat.icon] || HelpCircle;
           const isExpanded = !!expandedCategoryIds[cat.id];
-          const catFeatures = features.filter((f) => f.categoryId === cat.id);
+          const catFeatures = features.filter((f) => {
+            if (f.categoryId !== cat.id) return false;
+            if (!searchTerm) return true;
+            const search = searchTerm.toLowerCase();
+            const catMatches = 
+              cat.name?.toLowerCase().includes(search) ||
+              cat.description?.toLowerCase().includes(search);
+            if (catMatches) return true;
+            return (
+              f.name?.toLowerCase().includes(search) ||
+              f.description?.toLowerCase().includes(search)
+            );
+          });
 
           return (
             <React.Fragment key={cat.id}>

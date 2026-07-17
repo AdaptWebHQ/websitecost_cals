@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { getCalculationById } from '@/lib/calculations';
 import { getServerUser } from '@/actions/auth';
 import PdfDownloadButton from '@/components/calculator/pdf-download-button';
@@ -12,6 +13,20 @@ import { notFound, redirect } from 'next/navigation';
 
 interface EstimateDetailPageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateMetadata({ params }: EstimateDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const calculation = await getCalculationById(id);
+  if (!calculation) {
+    return {
+      title: 'Estimate Not Found',
+    };
+  }
+  return {
+    title: `Quotation Estimate: ${calculation.businessName}`,
+    description: `Quotation cost estimate details for ${calculation.businessName}. Ref ID: ${calculation.id}.`,
+  };
 }
 
 export const revalidate = 0;

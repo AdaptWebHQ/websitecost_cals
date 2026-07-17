@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -555,12 +555,12 @@
    ============================================================================ */
 
 /* Firefox Scrollbars styling */
-html {
+* {
   scrollbar-width: thin;
   scrollbar-color: rgba(15, 23, 42, 0.18) transparent;
 }
 
-.dark html {
+.dark * {
   scrollbar-color: rgba(243, 244, 246, 0.18) transparent;
 }
 
@@ -568,6 +568,12 @@ html {
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 ::-webkit-scrollbar-track {
@@ -697,4 +703,27 @@ html {
 
   background-color: var(--background);
   color: var(--foreground);
+}
+
+/* ============================================================================
+   Browser Input Autofill Style Overrides (Uniform UI)
+   ============================================================================ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important; /* slate-900 */
+  caret-color: #0f172a;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover, 
+.dark input:-webkit-autofill:focus, 
+.dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #121418 inset !important; /* matches dark:bg-input */
+  -webkit-text-fill-color: #f3f4f6 !important; /* slate-100 */
+  caret-color: #f3f4f6;
+  transition: background-color 5000s ease-in-out 0s;
 }

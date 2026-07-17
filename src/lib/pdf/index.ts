@@ -49,13 +49,24 @@ export async function generateQuotationPdf(
     doc.text(text, x, y, { align });
   };
 
-  // 1. Decorative Brand Border (Top & Left Edge Accent)
-  doc.setFillColor(27, 107, 74); // Brand Green
-  doc.rect(0, 0, 210, 4, 'F');
-  doc.setFillColor(240, 253, 244); // Light tint green background on left margin accent
-  doc.rect(0, 4, 6, 293, 'F');
-  doc.setFillColor(27, 107, 74);
-  doc.rect(0, 4, 1.5, 293, 'F'); // Dark green left border line
+  let currentPageNum = 1;
+
+  const drawPageDecorations = () => {
+    // Decorative Brand Border (Top & Left Edge Accent)
+    doc.setFillColor(27, 107, 74); // Brand Green
+    doc.rect(0, 0, 210, 4, 'F');
+    doc.setFillColor(240, 253, 244); // Light tint green background on left margin accent
+    doc.rect(0, 4, 6, 293, 'F');
+    doc.setFillColor(27, 107, 74);
+    doc.rect(0, 4, 1.5, 293, 'F'); // Dark green left border line
+
+    // Footer Watermark & Security Stamp
+    doc.setDrawColor(240, 253, 244);
+    doc.line(20, 282, 190, 282);
+    addText(`Page ${currentPageNum} | Issued dynamically via ${priceConfig.companyName} Automated Estimate Desk.`, 105, 287, 7, false, 'muted', 'center');
+  };
+
+  drawPageDecorations();
 
   // 2. Document Title and Corporate Header
   addText(priceConfig.companyName || 'AdaptWeb HQ', 20, 18, 16, true, 'primary');
@@ -86,7 +97,7 @@ export async function generateQuotationPdf(
   addText(priceConfig.companyName, 24, currentY + 5, 9.5, true, 'dark');
   addText(priceConfig.companyAddress || 'Bangalore, Karnataka', 24, currentY + 9, 7.5, false, 'secondary');
   addText(`Email: ${priceConfig.companyEmail}`, 24, currentY + 13, 7.5, false, 'secondary');
-  addText(`Phone: ${priceConfig.companyPhone}`, 24, currentY + 17, 7.5, false, 'secondary');
+  addText('Phone: +919342624226, +918072268570', 24, currentY + 17, 7.5, false, 'secondary');
 
   // Col 2: Client
   doc.setFillColor(27, 107, 74);
@@ -127,7 +138,7 @@ export async function generateQuotationPdf(
   addText(calculation.packageName, 120, 76.5, 9, true, 'dark');
 
   addText('TOTAL PAGES', 160, 71, 7, true, 'muted');
-  addText(`${calculation.pages} Pages`, 160, 76.5, 9, true, 'dark');
+  addText(calculation.pages === -1 ? 'Unlimited' : `${calculation.pages} Pages`, 160, 76.5, 9, true, 'dark');
 
   // 5. Line Items Table (Boxed Grid Layout with Zebra Rows)
   currentY = 91;
@@ -160,13 +171,47 @@ export async function generateQuotationPdf(
   // Row 0: Base Package
   drawRowBackground(itemY, 0);
   addText(`${calculation.packageName} Package Baseline`, 24, itemY + 5.5, 8.5, true, 'dark');
-  addText(`Fixed Base Tier (Includes ${pagesIncluded} pages)`, 115, itemY + 5.5, 8, false, 'secondary');
+  addText(pagesIncluded === -1 ? 'Fixed Base Tier (Includes unlimited pages)' : `Fixed Base Tier (Includes ${pagesIncluded} pages)`, 115, itemY + 5.5, 8, false, 'secondary');
   addText(formatPdfCurrency(calculation.basePrice || 0), 186, itemY + 5.5, 8.5, true, 'dark', 'right');
   drawRowDivider(itemY);
   itemY += rowHeight;
 
+  let tableStartPageY = 91;
+
   // Row 1+: Dynamic selected features
   calculation.selectedFeatures.forEach((feat, index) => {
+    // If the next row exceeds the maximum printable Y coordinate of 240, add a page break
+    if (itemY + rowHeight > 240) {
+      // 1. Draw outline border of table for the current page
+      doc.setDrawColor(203, 213, 225); // slate-300
+      doc.setLineWidth(0.35);
+      doc.rect(20, tableStartPageY, 170, itemY - tableStartPageY, 'D');
+
+      // 2. Add page and increment page number
+      doc.addPage();
+      currentPageNum++;
+      drawPageDecorations();
+
+      // 3. proposal page continued header
+      addText(priceConfig.companyName || 'AdaptWeb HQ', 20, 18, 11, true, 'primary');
+      addText(`ESTIMATE PROPOSAL CONTINUED | Ref ID: ${calculation.id.substring(0, 14).toUpperCase()}`, 20, 23, 7.5, false, 'secondary');
+      doc.setDrawColor(226, 232, 240);
+      doc.line(20, 26, 190, 26);
+
+      // 4. Reset positions
+      itemY = 32;
+      tableStartPageY = 32;
+
+      // 5. Draw Table Header Row on the new page
+      doc.setFillColor(27, 107, 74); // Brand Green Header
+      doc.rect(20, itemY, 170, headerHeight, 'F');
+      addText('DESCRIPTION', 24, itemY + 6, 8.5, true, 'light');
+      addText('BILLING MODEL', 115, itemY + 6, 8.5, true, 'light');
+      addText('INVESTMENT COST', 186, itemY + 6, 8.5, true, 'light', 'right');
+      
+      itemY += headerHeight;
+    }
+
     drawRowBackground(itemY, index + 1);
     addText(feat.featureName, 24, itemY + 5.5, 8.5, false, 'dark');
 
@@ -191,10 +236,25 @@ export async function generateQuotationPdf(
   // Draw outline box for the table to complete grid design
   doc.setDrawColor(203, 213, 225); // slate-300
   doc.setLineWidth(0.35);
-  doc.rect(20, currentY, 170, tableBottomY - currentY, 'D');
+  doc.rect(20, tableStartPageY, 170, tableBottomY - tableStartPageY, 'D');
+
+  // Check if we need to add a page break for the footer block (Totals, Terms, Signatures)
+  // If itemY exceeds 190mm, the remaining height is less than the required height for footer block
+  if (itemY > 190) {
+    doc.addPage();
+    currentPageNum++;
+    drawPageDecorations();
+
+    addText(priceConfig.companyName || 'AdaptWeb HQ', 20, 18, 11, true, 'primary');
+    addText(`ESTIMATE SUMMARY & SIGN-OFF | Ref ID: ${calculation.id.substring(0, 14).toUpperCase()}`, 20, 23, 7.5, false, 'secondary');
+    doc.setDrawColor(226, 232, 240);
+    doc.line(20, 26, 190, 26);
+
+    itemY = 32;
+  }
 
   // 6. Totals Panel
-  let totalY = tableBottomY + 7;
+  let totalY = itemY + 7;
   const totalRowHeight = 5.5;
 
   const addTotalRow = (label: string, value: string | number, isFinal = false) => {
@@ -266,11 +326,6 @@ export async function generateQuotationPdf(
   doc.line(135, bottomY + 12, 190, bottomY + 12);
   addText('AUTHORIZED SIGNATURE', 135, bottomY + 16, 7.5, true, 'primary');
   addText(priceConfig.companyName, 135, bottomY + 19.5, 6.5, false, 'muted');
-
-  // Footer Watermark & Security Stamp
-  doc.setDrawColor(240, 253, 244);
-  doc.line(20, 282, 190, 282);
-  addText(`Issued dynamically via ${priceConfig.companyName} Automated Estimate Desk.`, 105, 287, 7, false, 'muted', 'center');
 
   // Return base64 string
   const base64Pdf = doc.output('datauristring');

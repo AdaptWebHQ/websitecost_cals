@@ -36,6 +36,9 @@ export function calculateQuotation(
   const extraPageFeature = selectedFeatures.find((f) => f.id === 'feat-extra-page');
   const extraPagePrice = extraPageFeature ? extraPageFeature.price : 2000;
 
+  const isUnlimited = selectedPackage.pagesIncluded === -1;
+  const activePagesCount = (pagesCount === -1 || isUnlimited) ? 1 : pagesCount;
+
   // Process features list (excluding feat-extra-page) and calculate cost contribution
   const processedFeatures: CalculatedFeature[] = selectedFeatures
     .filter((f) => f.id !== 'feat-extra-page')
@@ -44,7 +47,7 @@ export function calculateQuotation(
       if (f.pricingType === 'fixed') {
         cost = f.price;
       } else if (f.pricingType === 'per_page') {
-        cost = f.price * pagesCount;
+        cost = f.price * activePagesCount;
       } else if (f.pricingType === 'percentage') {
         cost = Math.round((f.price / 100) * basePrice);
       }
@@ -74,8 +77,7 @@ export function calculateQuotation(
     };
   });
 
-  // Price additional pages beyond the package inclusion using the dynamic extra page price
-  const extraPages = Math.max(0, pagesCount - selectedPackage.pagesIncluded);
+  const extraPages = isUnlimited ? 0 : Math.max(0, pagesCount - selectedPackage.pagesIncluded);
   const extraPagesCost = extraPages * extraPagePrice;
   featuresPrice += extraPagesCost;
 

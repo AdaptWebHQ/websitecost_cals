@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Bell, LogOut, Search, User, Settings, ShieldAlert, Sun, Moon, Menu } from 'lucide-react';
+import { LogOut, Search, User, Settings, ShieldAlert, Sun, Moon, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { capitalize } from '@/lib/utils';
 import { useTitleStore } from '@/store/title-store';
@@ -57,25 +57,9 @@ export default function Header() {
       {/* Right Controls */}
       <div className="flex items-center gap-4">
         
-        {/* Mock Search */}
-        <div className="relative hidden md:block w-64">
-          <Search className="absolute left-3 top-2.5 w-4.5 h-4.5 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Quick search..."
-            className="w-full h-9 bg-background border border-sidebar-border rounded-xl pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 transition-colors"
-          />
-        </div>
 
-        {/* Notifications */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative text-slate-400 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-xl"
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full animate-pulse" />
-        </Button>
+
+
 
         {/* Theme Toggle Button */}
         <Button

@@ -277,16 +277,7 @@ export default function AdminDashboard({
             </div>
           </div>
 
-          {/* Promotional / Contextual Card */}
-          <div className="relative rounded-2xl overflow-hidden h-40 bg-muted">
-            <div className="absolute inset-0 bg-primary/95 flex flex-col justify-end p-4">
-              <p className="text-white font-mono text-[8px] uppercase tracking-widest opacity-80">Next Update</p>
-              <h4 className="text-white text-sm font-bold mt-0.5">Luminous v2.4</h4>
-              <p className="text-white/80 text-[10px] mt-0.5 leading-normal font-medium">
-                Predictive lead scoring & industry benchmarking console.
-              </p>
-            </div>
-          </div>
+
         </div>
       </div>
     </div>

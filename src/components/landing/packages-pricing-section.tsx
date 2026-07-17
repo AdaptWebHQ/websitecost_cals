@@ -70,7 +70,11 @@ function PricingCard({ pkg, index }: { pkg: any; index: number }) {
             <li className="flex items-start gap-3">
               <Check className="w-4 h-4 text-slate-900 dark:text-white shrink-0 mt-0.5" strokeWidth={2} />
               <span className="text-slate-600 dark:text-slate-400 leading-snug text-xs">
-                Up to <strong className="text-slate-900 dark:text-white">{pkg.pagesIncluded} pages</strong> included
+                {pkg.pagesIncluded === -1 ? (
+                  <strong className="text-slate-900 dark:text-white">Unlimited pages</strong>
+                ) : (
+                  <>Up to <strong className="text-slate-900 dark:text-white">{pkg.pagesIncluded} pages</strong></>
+                )} included
               </span>
             </li>
             <li className="flex items-start gap-3">

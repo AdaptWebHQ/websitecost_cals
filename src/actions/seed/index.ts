@@ -411,7 +411,7 @@ export async function seedDatabaseAction(): Promise<ApiResponse<string>> {
         quotationValidityDays: 30,
         companyName: 'AdaptWeb IT Solutions',
         companyEmail: 'quotations@adaptweb.com',
-        companyPhone: '+91 98765 43210',
+        companyPhone: '+919342624226, +918072268570',
         companyAddress: '404 Suite, Cyber Towers, Hitec City, Hyderabad, TG, India',
         termsAndConditions: '1. Quotations generated dynamically are valid for 30 days.\n2. Design revisions apply strictly to baseline themes before code phases.\n3. Content provisioning is the client\'s responsibility.',
         supportEmail: 'support@webcostpro.com',

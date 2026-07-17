@@ -105,6 +105,8 @@ export default function SummaryStep({
         </div>
 
         <div className="pt-3 flex flex-col gap-2.5">
+          <PdfDownloadButton calculationId={calcResult.id} businessName={calcResult.businessName} />
+          
           <button
             onClick={() => {
               reset();
@@ -115,7 +117,15 @@ export default function SummaryStep({
             Go to My Estimates
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
-          <PdfDownloadButton calculationId={calcResult.id} businessName={calcResult.businessName} />
+          
+          <button
+            onClick={() => {
+              reset();
+            }}
+            className="border border-border hover:bg-muted text-foreground rounded-lg h-9 w-full flex items-center justify-center gap-1.5 font-semibold cursor-pointer text-xs transition-colors"
+          >
+            Start New Estimation
+          </button>
         </div>
       </div>
     );

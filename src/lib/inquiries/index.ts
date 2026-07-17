@@ -5,7 +5,7 @@ import type { Inquiry, InquiryActivity } from '@/types';
 /** Fetch all CRM inquiries, sorted by newest first */
 export async function getInquiries(): Promise<Inquiry[]> {
   try {
-    const snap = await adminDb.collection(COLLECTIONS.INQUIRIES).orderBy('createdAt', 'desc').get();
+    const snap = await adminDb.collection(COLLECTIONS.INQUIRIES).orderBy('createdAt', 'desc').limit(100).get();
     
     return snap.docs.map((doc) => {
       const data = doc.data();

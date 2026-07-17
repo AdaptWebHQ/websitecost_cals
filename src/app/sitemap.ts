@@ -1,18 +1,13 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: 'https://calculator.yourdomain.com',
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 1,
-    },
-    {
-      url: 'https://calculator.yourdomain.com/dashboard',
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-  ];
+  const baseUrl = 'https://calculator.yourdomain.com';
+  const publicRoutes = ['', '/faq', '/about', '/privacy', '/terms', '/login', '/register'];
+
+  return publicRoutes.map((route) => ({
+    url: `${baseUrl}${route}`,
+    lastModified: new Date(),
+    changeFrequency: route === '' ? 'daily' : 'monthly',
+    priority: route === '' ? 1.0 : 0.6,
+  }));
 }

@@ -19,7 +19,8 @@ import {
   ToggleLeft,
   ToggleRight,
   Sparkles,
-  GripVertical
+  GripVertical,
+  Search
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import {
@@ -30,6 +31,13 @@ import {
 } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import {
   createAddonCategoryAction,
   updateAddonCategoryAction,
@@ -57,6 +65,7 @@ export default function AddonsClientPage({
 }: AddonsClientPageProps) {
   const [categories, setCategories] = useState<AddonCategory[]>(initialCategories);
   const [addons, setAddons] = useState<AddonFeature[]>(initialAddons);
+  const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategoryIds, setExpandedCategoryIds] = useState<Record<string, boolean>>({});
 
   // Drag and drop states
@@ -327,6 +336,22 @@ export default function AddonsClientPage({
     { key: 'actions', label: 'Actions', className: 'text-right py-4 pr-6' },
   ];
 
+  const filteredCategories = categories.filter((cat) => {
+    const search = searchTerm.toLowerCase();
+    const catMatches = 
+      cat.name?.toLowerCase().includes(search) ||
+      cat.description?.toLowerCase().includes(search);
+      
+    const hasMatchingAddons = addons.some(
+      (addon) => addon.categoryId === cat.id && (
+        addon.name?.toLowerCase().includes(search) ||
+        addon.description?.toLowerCase().includes(search)
+      )
+    );
+    
+    return catMatches || hasMatchingAddons;
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -346,15 +371,39 @@ export default function AddonsClientPage({
         </Button>
       </div>
 
+      {/* Search Filter */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search category or addon name..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full h-10 bg-background border border-border rounded-xl pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-indigo-500/50 transition-colors"
+        />
+      </div>
+
       {/* Listing Table */}
       <DataTable
         columns={columns}
-        data={categories}
-        emptyMessage="No addon categories defined yet. Get started by clicking Add Category."
+        data={filteredCategories}
+        emptyMessage={searchTerm ? "No addon categories match your search criteria." : "No addon categories defined yet. Get started by clicking Add Category."}
         renderRow={(cat) => {
           const IconComponent = (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[cat.icon] || HelpCircle;
           const isExpanded = !!expandedCategoryIds[cat.id];
-          const catAddons = addons.filter((f) => f.categoryId === cat.id);
+          const catAddons = addons.filter((f) => {
+            if (f.categoryId !== cat.id) return false;
+            if (!searchTerm) return true;
+            const search = searchTerm.toLowerCase();
+            const catMatches = 
+              cat.name?.toLowerCase().includes(search) ||
+              cat.description?.toLowerCase().includes(search);
+            if (catMatches) return true;
+            return (
+              f.name?.toLowerCase().includes(search) ||
+              f.description?.toLowerCase().includes(search)
+            );
+          });
 
           return (
             <React.Fragment key={cat.id}>
@@ -744,15 +793,19 @@ export default function AddonsClientPage({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
                 <Label className="text-muted-foreground text-xs">Pricing Formula</Label>
-                <select
-                  value={featurePricingType}
-                  onChange={(e) => setFeaturePricingType(e.target.value as PricingType)}
-                  className="w-full h-10 px-3 bg-background border border-border text-foreground rounded-xl text-sm focus:outline-none focus:border-indigo-500/50 transition-colors"
+                <Select 
+                  value={featurePricingType} 
+                  onValueChange={(val) => setFeaturePricingType((val ?? 'fixed') as PricingType)}
                 >
-                  <option value="fixed" className="bg-popover text-foreground">Fixed Cost (INR)</option>
-                  <option value="per_page" className="bg-popover text-foreground">Per Page (INR)</option>
-                  <option value="percentage" className="bg-popover text-foreground">Percentage Markup (%)</option>
-                </select>
+                  <SelectTrigger className="w-full h-10 px-3 border border-border text-sm">
+                    <SelectValue placeholder="Fixed Cost (INR)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fixed">Fixed Cost (INR)</SelectItem>
+                    <SelectItem value="per_page">Per Page (INR)</SelectItem>
+                    <SelectItem value="percentage">Percentage Markup (%)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1">
                 <Label className="text-muted-foreground text-xs">Rate Value</Label>

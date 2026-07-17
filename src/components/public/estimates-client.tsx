@@ -6,7 +6,7 @@ import { TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Eye, Calculator, ChevronDown, Loader2 } from 'lucide-react';
+import { Eye, Calculator, ChevronDown, Loader2, Search } from 'lucide-react';
 import Link from 'next/link';
 import type { Calculation } from '@/types';
 
@@ -15,6 +15,7 @@ interface EstimatesClientProps {
 }
 
 export default function EstimatesClient({ initialCalculations }: EstimatesClientProps) {
+  const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(7);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -28,7 +29,16 @@ export default function EstimatesClient({ initialCalculations }: EstimatesClient
     { key: 'actions', label: 'Actions', className: 'text-right py-4 pr-6' },
   ];
 
-  const visibleData = initialCalculations.slice(0, visibleCount);
+  const filteredCalculations = initialCalculations.filter((calc) => {
+    const search = searchTerm.toLowerCase();
+    return (
+      calc.businessName?.toLowerCase().includes(search) ||
+      calc.websiteType?.toLowerCase().includes(search) ||
+      calc.packageName?.toLowerCase().includes(search)
+    );
+  });
+
+  const visibleData = filteredCalculations.slice(0, visibleCount);
 
   const handleLoadMore = () => {
     setIsLoadingMore(true);
@@ -56,11 +66,26 @@ export default function EstimatesClient({ initialCalculations }: EstimatesClient
         </Link>
       </div>
 
+      {/* Search Filter */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search by business, type, or package..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setVisibleCount(7); // Reset pagination on search
+          }}
+          className="w-full h-10 bg-background border border-border rounded-xl pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 transition-colors"
+        />
+      </div>
+
       {/* Listing Grid */}
       <DataTable
         columns={columns}
         data={visibleData}
-        emptyMessage="No calculations registered under your account yet."
+        emptyMessage={searchTerm ? "No estimates match your search criteria." : "No calculations registered under your account yet."}
         renderRow={(calc) => (
           <TableRow key={calc.id} className="hover:bg-muted/40 border-border transition-colors duration-200">
             <TableCell className="font-bold text-foreground py-4 pl-6">
@@ -88,10 +113,10 @@ export default function EstimatesClient({ initialCalculations }: EstimatesClient
         )}
       />
 
-      {initialCalculations.length > visibleCount && (
+      {filteredCalculations.length > visibleCount && (
         <div className="flex flex-col items-center gap-2 pt-2 animate-in fade-in duration-300">
           <p className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase">
-            Showing {Math.min(visibleCount, initialCalculations.length)} of {initialCalculations.length} Estimates
+            Showing {Math.min(visibleCount, filteredCalculations.length)} of {filteredCalculations.length} Estimates
           </p>
           <Button
             onClick={handleLoadMore}

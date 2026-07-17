@@ -6,7 +6,7 @@ import { TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { FileText, Trash, ChevronDown, Loader2 } from 'lucide-react';
+import { FileText, Trash, ChevronDown, Loader2, Search } from 'lucide-react';
 import ExportCalculationsButton from './export-calculations-button';
 
 interface CalculationsClientProps {
@@ -14,6 +14,7 @@ interface CalculationsClientProps {
 }
 
 export default function CalculationsClient({ initialCalculations }: CalculationsClientProps) {
+  const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(7);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -27,7 +28,18 @@ export default function CalculationsClient({ initialCalculations }: Calculations
     { key: 'actions', label: 'Actions', className: 'text-right py-4 pr-6' },
   ];
 
-  const visibleData = initialCalculations.slice(0, visibleCount);
+  const filteredCalculations = initialCalculations.filter((calc) => {
+    const search = searchTerm.toLowerCase();
+    return (
+      calc.businessName?.toLowerCase().includes(search) ||
+      calc.businessEmail?.toLowerCase().includes(search) ||
+      calc.packageName?.toLowerCase().includes(search) ||
+      calc.websiteType?.toLowerCase().includes(search) ||
+      calc.industryName?.toLowerCase().includes(search)
+    );
+  });
+
+  const visibleData = filteredCalculations.slice(0, visibleCount);
 
   const handleLoadMore = () => {
     setIsLoadingMore(true);
@@ -50,11 +62,26 @@ export default function CalculationsClient({ initialCalculations }: Calculations
         <ExportCalculationsButton />
       </div>
 
+      {/* Search Filter */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search client, email, package or industry..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setVisibleCount(7); // Reset pagination on search
+          }}
+          className="w-full h-10 bg-background border border-border rounded-xl pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-indigo-500/50 transition-colors"
+        />
+      </div>
+
       {/* Listing Table */}
       <DataTable
         columns={columns}
         data={visibleData}
-        emptyMessage="No calculation runs logged in the database yet."
+        emptyMessage={searchTerm ? "No calculations match your search criteria." : "No calculation runs logged in the database yet."}
         renderRow={(calc) => (
           <TableRow key={calc.id} className="hover:bg-muted/40 border-border transition-colors duration-200">
             <TableCell className="font-semibold text-foreground py-4 pl-6">
@@ -97,10 +124,10 @@ export default function CalculationsClient({ initialCalculations }: Calculations
         )}
       />
 
-      {initialCalculations.length > visibleCount && (
+      {filteredCalculations.length > visibleCount && (
         <div className="flex flex-col items-center gap-2 pt-2 animate-in fade-in duration-300">
           <p className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase">
-            Showing {Math.min(visibleCount, initialCalculations.length)} of {initialCalculations.length} Calculations
+            Showing {Math.min(visibleCount, filteredCalculations.length)} of {filteredCalculations.length} Calculations
           </p>
           <Button
             onClick={handleLoadMore}

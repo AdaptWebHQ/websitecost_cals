@@ -1,5 +1,23 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import PublicHeader from '@/components/shared/public-header';
+import { APP_NAME, APP_DESCRIPTION } from '@/constants';
+
+export const metadata: Metadata = {
+  title: 'Home | Web Cost Calculator & Estimate System',
+  description: APP_DESCRIPTION,
+  openGraph: {
+    title: `Home | ${APP_NAME}`,
+    description: APP_DESCRIPTION,
+    url: 'https://calculator.yourdomain.com',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Home | ${APP_NAME}`,
+    description: APP_DESCRIPTION,
+  },
+};
 
 import AnimatedHero from '@/components/landing/animated-hero';
 import ScrollShowcase from '@/components/landing/scroll-showcase';

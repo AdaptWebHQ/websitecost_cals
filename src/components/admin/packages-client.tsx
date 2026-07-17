@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { formatCurrency, cn } from '@/lib/utils';
-import { PlusCircle, Edit, Trash, Loader2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash, Loader2, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,7 @@ export default function PackagesClientPage({
   initialPackages,
 }: PackagesClientPageProps) {
   const [packages, setPackages] = useState<Package[]>(initialPackages);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState<Package | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,6 +49,7 @@ export default function PackagesClientPage({
   const [basePrice, setBasePrice] = useState(0);
   const [deliveryDays, setDeliveryDays] = useState(7);
   const [pagesIncluded, setPagesIncluded] = useState(5);
+  const [pageLimitType, setPageLimitType] = useState<'custom' | 'unlimited'>('custom');
   const [revisions, setRevisions] = useState(3);
   const [isPopular, setIsPopular] = useState(false);
   const [isActive, setIsActive] = useState(true);
@@ -93,6 +95,7 @@ export default function PackagesClientPage({
     setBasePrice(15000);
     setDeliveryDays(7);
     setPagesIncluded(5);
+    setPageLimitType('custom');
     setRevisions(3);
     setIsPopular(false);
     setIsActive(true);
@@ -108,6 +111,7 @@ export default function PackagesClientPage({
     setBasePrice(pkg.basePrice);
     setDeliveryDays(pkg.deliveryDays);
     setPagesIncluded(pkg.pagesIncluded);
+    setPageLimitType(pkg.pagesIncluded === -1 ? 'unlimited' : 'custom');
     setRevisions(pkg.revisions);
     setIsPopular(pkg.isPopular);
     setIsActive(pkg.isActive);
@@ -131,12 +135,13 @@ export default function PackagesClientPage({
     setIsSubmitting(true);
     setErrorMsg(null);
 
+    const finalPages = pageLimitType === 'unlimited' ? -1 : pagesIncluded;
     const formData = {
       name: trimmedName,
       description: trimmedDescription,
       basePrice,
       deliveryDays,
-      pagesIncluded,
+      pagesIncluded: finalPages,
       revisions,
       isPopular,
       isActive,
@@ -218,6 +223,14 @@ export default function PackagesClientPage({
     { key: 'actions', label: 'Actions', className: 'text-right py-4 pr-6' },
   ];
 
+  const filteredPackages = packages.filter((pkg) => {
+    const search = searchTerm.toLowerCase();
+    return (
+      pkg.name?.toLowerCase().includes(search) ||
+      pkg.description?.toLowerCase().includes(search)
+    );
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -237,11 +250,23 @@ export default function PackagesClientPage({
         </Button>
       </div>
 
+      {/* Search Filter */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search package name or description..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full h-10 bg-background border border-border rounded-xl pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-indigo-500/50 transition-colors"
+        />
+      </div>
+
       {/* Listing table */}
       <DataTable
         columns={columns}
-        data={packages}
-        emptyMessage="No packages configured yet. Use the button above to add one."
+        data={filteredPackages}
+        emptyMessage={searchTerm ? "No packages match your search criteria." : "No packages configured yet. Use the button above to add one."}
         renderRow={(pkg) => (
           <TableRow key={pkg.id} className="hover:bg-muted/40 border-border transition-colors">
             <TableCell className="font-semibold text-foreground py-4 pl-6">
@@ -254,7 +279,9 @@ export default function PackagesClientPage({
             </TableCell>
             <TableCell className="text-muted-foreground font-medium text-xs">{formatCurrency(pkg.basePrice)}</TableCell>
             <TableCell className="text-muted-foreground text-xs">{pkg.deliveryDays} Days</TableCell>
-            <TableCell className="text-muted-foreground text-xs">{pkg.pagesIncluded} Pages</TableCell>
+            <TableCell className="text-muted-foreground text-xs">
+              {pkg.pagesIncluded === -1 ? 'Unlimited Pages' : `${pkg.pagesIncluded} Pages`}
+            </TableCell>
             <TableCell>
               {pkg.isActive ? (
                 <Badge className="bg-emerald-500/5 text-emerald-400 border border-emerald-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
@@ -352,6 +379,42 @@ export default function PackagesClientPage({
                       className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                     />
                   </div>
+                  <div className="space-y-1 flex flex-col justify-end pb-1">
+                    <Label className="text-muted-foreground text-xs mb-1">Page Limit Mode</Label>
+                    <div className="flex gap-4 items-center h-10">
+                      <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none">
+                        <input
+                          type="radio"
+                          name="pageLimitType"
+                          value="custom"
+                          checked={pageLimitType === 'custom'}
+                          onChange={() => {
+                            setPageLimitType('custom');
+                            if (pagesIncluded === -1) setPagesIncluded(5);
+                          }}
+                          className="w-3.5 h-3.5 text-indigo-600 border-border focus:ring-indigo-500/50 bg-background accent-indigo-600"
+                        />
+                        <span>Custom Number</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none">
+                        <input
+                          type="radio"
+                          name="pageLimitType"
+                          value="unlimited"
+                          checked={pageLimitType === 'unlimited'}
+                          onChange={() => {
+                            setPageLimitType('unlimited');
+                            setPagesIncluded(-1);
+                          }}
+                          className="w-3.5 h-3.5 text-indigo-600 border-border focus:ring-indigo-500/50 bg-background accent-indigo-600"
+                        />
+                        <span>Unlimited Pages</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {pageLimitType === 'custom' && (
                   <div className="space-y-1">
                     <Label className="text-muted-foreground text-xs">Pages Included</Label>
                     <Input
@@ -359,12 +422,12 @@ export default function PackagesClientPage({
                       type="number"
                       min="1"
                       step="1"
-                      value={pagesIncluded}
+                      value={pagesIncluded === -1 ? 5 : pagesIncluded}
                       onChange={(e) => setPagesIncluded(Number(e.target.value))}
                       className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
                     />
                   </div>
-                </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <Label className="text-muted-foreground text-xs">Delivery (Days)</Label>

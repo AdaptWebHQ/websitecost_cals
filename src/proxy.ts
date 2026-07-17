@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 const COOKIE_TOKEN = 'webcost_session_token';
 const COOKIE_ROLE = 'webcost_user_role';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Retrieve auth cookies

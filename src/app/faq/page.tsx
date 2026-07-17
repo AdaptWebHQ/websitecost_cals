@@ -6,8 +6,8 @@ import ThemeToggle from '@/components/shared/theme-toggle';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'AdaptWeb Cost Calculator | FAQ',
-  description: 'Professional Website Estimation & Lead Management Platform.',
+  title: 'FAQ | Web Cost Calculator',
+  description: 'Frequently Asked Questions about our web application estimation wizard, package details, PDF proposals, and custom consulting.',
 };
 
 export const revalidate = 3600; // Cache for 1 hour
@@ -48,8 +48,26 @@ export default function FaqPage() {
     },
   ];
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map((faq) => ({
+      "@type": "Question",
+      "name": faq.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": faq.answer,
+      },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans relative overflow-hidden transition-colors duration-300">
+      {/* Schema.org FAQ Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       {/* Background Gradients & Grid Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-20 dark:opacity-40 pointer-events-none" />
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />

@@ -74,27 +74,29 @@ export default function LiveSummary({
 
   // Determine timeline
   const baseDays = selectedPackage.deliveryDays;
-  const pageMarkupDays = Math.ceil(Math.max(0, pages - selectedPackage.pagesIncluded) * 1.5);
+  const isUnlimited = selectedPackage.pagesIncluded === -1;
+  const pageMarkupDays = isUnlimited ? 0 : Math.ceil(Math.max(0, pages - selectedPackage.pagesIncluded) * 1.5);
   const totalDays = Math.max(3, rushDelivery ? Math.ceil((baseDays + pageMarkupDays) * 0.5) : (baseDays + pageMarkupDays));
 
   // Determine maintenance estimate (monthly)
   const maintenanceCost = Math.round(pricing.total * 0.02);
 
   // Calculate project complexity score
-  const totalItemsCount = selectedFeatures.length + customFeatures.length + (pages > selectedPackage.pagesIncluded ? 1 : 0);
+  const hasExtraPages = !isUnlimited && pages > selectedPackage.pagesIncluded;
+  const totalItemsCount = selectedFeatures.length + customFeatures.length + (hasExtraPages ? 1 : 0);
   const complexityScore = totalItemsCount <= 2 ? 'Standard' : totalItemsCount <= 6 ? 'Advanced' : 'Enterprise';
 
   // Calculate standard + custom modules price (excluding extra pages)
   const standardModulesPrice = selectedFeatures.reduce((acc, f) => {
     if (f.pricingType === 'fixed') return acc + f.price;
-    if (f.pricingType === 'per_page') return acc + (f.price * pages);
+    if (f.pricingType === 'per_page') return acc + (f.price * (isUnlimited ? 1 : pages));
     if (f.pricingType === 'percentage') return acc + Math.round((f.price / 100) * selectedPackage.basePrice);
     return acc;
   }, 0);
   const customModulesPrice = customFeatures.reduce((acc, cf) => acc + cf.price, 0);
   const modulesPrice = standardModulesPrice + customModulesPrice;
 
-  const extraPagesCount = Math.max(0, pages - selectedPackage.pagesIncluded);
+  const extraPagesCount = isUnlimited ? 0 : Math.max(0, pages - selectedPackage.pagesIncluded);
   const extraPagesCost = extraPagesCount * 1500;
 
   const shareText = encodeURIComponent(`Hi AdaptWeb team, I just estimated a website cost of ${formatCurrency(pricing.total)} for my business "${businessName || 'My Brand'}". I would love to discuss next steps!`);
@@ -150,7 +152,9 @@ export default function LiveSummary({
 
             <div className="flex justify-between items-center text-muted-foreground">
               <span>Pages Included</span>
-              <span className="text-foreground font-semibold">{selectedPackage.pagesIncluded} Pages</span>
+              <span className="text-foreground font-semibold">
+                {selectedPackage.pagesIncluded === -1 ? 'Unlimited Pages' : `${selectedPackage.pagesIncluded} Pages`}
+              </span>
             </div>
 
             {pricing.selectedFeatures.map((feat) => (

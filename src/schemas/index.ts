@@ -10,7 +10,9 @@ export const packageSchema = z.object({
   basePrice: z.coerce.number().min(0, 'Price must be positive'),
   deliveryDays: z.coerce.number().min(1, 'Delivery days must be at least 1').max(365),
   revisions: z.coerce.number().min(0).max(999),
-  pagesIncluded: z.coerce.number().min(1, 'Must include at least 1 page').max(100),
+  pagesIncluded: z.coerce.number().refine((val) => val === -1 || val >= 1, {
+    message: 'Must include at least 1 page',
+  }),
   isPopular: z.boolean().default(false),
   isActive: z.boolean().default(true),
   sortOrder: z.coerce.number().min(0).default(0),
@@ -167,7 +169,9 @@ export const calculatorSubmissionSchema = z.object({
   industryId: z.string().min(1),
   websiteType: z.string().default('General'),
   packageId: z.string().min(1),
-  pages: z.coerce.number().min(1).max(200),
+  pages: z.coerce.number().refine((val) => val === -1 || (val >= 1 && val <= 200), {
+    message: 'Page count must be -1 (unlimited) or between 1 and 200',
+  }),
   selectedFeatureIds: z.array(z.string()),
   rushDelivery: z.boolean().default(false),
   customFeatures: z.array(

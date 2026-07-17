@@ -1,9 +1,27 @@
+import type { Metadata } from 'next';
 import { getServerUser } from '@/actions/auth';
 import { getCalculations } from '@/lib/calculations';
 import EmptyState from '@/components/shared/empty-state';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import EstimatesClient from '@/components/public/estimates-client';
+import { APP_NAME } from '@/constants';
+
+export const metadata: Metadata = {
+  title: 'My Project Estimates',
+  description: 'View, search, compare, and download PDF proposals for your saved website cost calculations.',
+  openGraph: {
+    title: `My Project Estimates | ${APP_NAME}`,
+    description: 'View, search, compare, and download PDF proposals for your saved website cost calculations.',
+    url: 'https://calculator.yourdomain.com/public/estimates',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `My Project Estimates | ${APP_NAME}`,
+    description: 'View, search, compare, and download PDF proposals for your saved website cost calculations.',
+  },
+};
 
 export const revalidate = 0;
 

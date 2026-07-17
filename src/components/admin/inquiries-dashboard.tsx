@@ -51,6 +51,13 @@ import {
   Calculator
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 const formatDate = (date: Date | any) => {
   if (!date) return 'N/A';
@@ -769,39 +776,42 @@ export default function InquiriesDashboard() {
             />
           </div>
 
-          <select
-            value={tempFilter}
-            onChange={(e) => setTempFilter(e.target.value)}
-            className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer"
-          >
-            <option value="all">All Temperatures</option>
-            <option value="hot">🔥 Hot Lead</option>
-            <option value="cold">❄️ Cold Lead</option>
-          </select>
+          <Select value={tempFilter} onValueChange={(val) => setTempFilter(val ?? 'all')}>
+            <SelectTrigger className="w-full h-10 px-4 py-2.5 rounded-xl border border-border text-sm">
+              <SelectValue placeholder="All Temperatures" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Temperatures</SelectItem>
+              <SelectItem value="hot">🔥 Hot Lead</SelectItem>
+              <SelectItem value="cold">❄️ Cold Lead</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer"
-          >
-            <option value="all">All Statuses</option>
-            <option value="new">🆕 New</option>
-            <option value="contacted">📞 Contacted</option>
-            <option value="proposal_sent">✉️ Proposal Sent</option>
-            <option value="converted">✅ Converted</option>
-            <option value="lost">❌ Lost</option>
-          </select>
+          <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val ?? 'all')}>
+            <SelectTrigger className="w-full h-10 px-4 py-2.5 rounded-xl border border-border text-sm">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="new">🆕 New</SelectItem>
+              <SelectItem value="contacted">📞 Contacted</SelectItem>
+              <SelectItem value="proposal_sent">✉️ Proposal Sent</SelectItem>
+              <SelectItem value="converted">✅ Converted</SelectItem>
+              <SelectItem value="lost">❌ Lost</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select
-            value={budgetFilter}
-            onChange={(e) => setBudgetFilter(e.target.value)}
-            className="w-full bg-background border border-border rounded-xl px-4 py-2.5 text-sm text-foreground focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer"
-          >
-            <option value="all">All Budgets</option>
-            <option value="50,000">Below ₹1,00,000</option>
-            <option value="1,00,000">₹1,00,000 - ₹2,50,000</option>
-            <option value="2,50,000">₹2,50,000+</option>
-          </select>
+          <Select value={budgetFilter} onValueChange={(val) => setBudgetFilter(val ?? 'all')}>
+            <SelectTrigger className="w-full h-10 px-4 py-2.5 rounded-xl border border-border text-sm">
+              <SelectValue placeholder="All Budgets" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Budgets</SelectItem>
+              <SelectItem value="50,000">Below ₹1,00,000</SelectItem>
+              <SelectItem value="1,00,000">₹1,00,000 - ₹2,50,000</SelectItem>
+              <SelectItem value="2,50,000">₹2,50,000+</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Date Ranges Row */}
@@ -949,18 +959,22 @@ export default function InquiriesDashboard() {
                     </td>
 
                     <td className="px-6 py-4.5">
-                      <select
-                        value={inq.temperature || 'cold'}
-                        onChange={(e) => handleTempChange(inq.id, e.target.value as LeadTemperature)}
-                        className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border focus:outline-none transition-all cursor-pointer ${
-                          inq.temperature === 'hot' 
-                            ? 'bg-gradient-to-r from-orange-500/10 to-red-500/10 border-red-500/20 text-orange-400' 
-                            : 'bg-background border-border text-muted-foreground'
-                        }`}
+                      <Select 
+                        value={inq.temperature || 'cold'} 
+                        onValueChange={(val) => handleTempChange(inq.id, (val ?? 'cold') as LeadTemperature)}
                       >
-                        <option value="cold">❄️ Cold Lead</option>
-                        <option value="hot">🔥 Hot Lead</option>
-                      </select>
+                        <SelectTrigger className={`h-8 text-xs font-bold px-2.5 py-1.5 rounded-lg border-0 shadow-none ${
+                          inq.temperature === 'hot' 
+                            ? 'bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-red-500/20 text-orange-400' 
+                            : 'bg-background border border-border text-muted-foreground'
+                        }`}>
+                          <SelectValue placeholder="Cold Lead" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cold">❄️ Cold Lead</SelectItem>
+                          <SelectItem value="hot">🔥 Hot Lead</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </td>
 
                     <td className="px-6 py-4.5">
@@ -968,26 +982,30 @@ export default function InquiriesDashboard() {
                         const isDisabled = !!(inq.assignedTo && inq.assignedTo !== currentUser?.id);
                         return (
                           <div className="relative group">
-                            <select
-                              value={inq.status}
+                            <Select 
+                              value={inq.status} 
                               disabled={isDisabled}
-                              onChange={(e) => handleStatusChange(inq.id, e.target.value as InquiryStatus)}
-                              className={`text-xs font-semibold px-2.5 py-1.5 rounded-lg border focus:outline-none transition-all ${
-                                isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                              } ${
-                                inq.status === 'new' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
-                                inq.status === 'contacted' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' :
-                                inq.status === 'proposal_sent' ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' :
-                                inq.status === 'converted' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                                'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                              }`}
+                              onValueChange={(val) => handleStatusChange(inq.id, (val ?? 'new') as InquiryStatus)}
                             >
-                              <option value="new">🆕 New</option>
-                              <option value="contacted">📞 Contacted</option>
-                              <option value="proposal_sent">✉️ Proposal</option>
-                              <option value="converted">✅ Converted</option>
-                              <option value="lost">❌ Lost</option>
-                            </select>
+                              <SelectTrigger className={`h-8 text-xs font-semibold px-2.5 py-1.5 rounded-lg border-0 shadow-none ${
+                                isDisabled ? 'opacity-50 pointer-events-none' : ''
+                              } ${
+                                inq.status === 'new' ? 'bg-blue-500/10 border border-blue-500/20 text-blue-400' :
+                                inq.status === 'contacted' ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' :
+                                inq.status === 'proposal_sent' ? 'bg-purple-500/10 border border-purple-500/20 text-purple-400' :
+                                inq.status === 'converted' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' :
+                                'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+                              }`}>
+                                <SelectValue placeholder="New" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="new">🆕 New</SelectItem>
+                                <SelectItem value="contacted">📞 Contacted</SelectItem>
+                                <SelectItem value="proposal_sent">✉️ Proposal</SelectItem>
+                                <SelectItem value="converted">✅ Converted</SelectItem>
+                                <SelectItem value="lost">❌ Lost</SelectItem>
+                              </SelectContent>
+                            </Select>
                             {isDisabled && (
                               <div className="absolute left-0 bottom-full mb-1.5 hidden group-hover:block z-30 bg-slate-900 border border-slate-800 text-[10px] text-slate-300 font-bold px-2.5 py-1 rounded-xl shadow-md whitespace-nowrap">
                                 Only the assigned member can update status
@@ -1121,18 +1139,22 @@ export default function InquiriesDashboard() {
                   </div>
                   <div className="flex-1">
                     <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground block">Assigned Member</span>
-                    <select
-                      value={selectedInquiry.assignedTo || ''}
-                      onChange={(e) => handleAssigneeChange(selectedInquiry.id, e.target.value || null)}
-                      className="mt-1 bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:border-cyan-500/50 transition-all cursor-pointer w-full"
+                    <Select 
+                      value={selectedInquiry.assignedTo || 'unassigned'} 
+                      onValueChange={(val) => handleAssigneeChange(selectedInquiry.id, val === 'unassigned' ? null : val)}
                     >
-                      <option value="">Unassigned</option>
-                      {adminUsers.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.name} ({u.role === 'super_admin' ? 'Super Admin' : 'Admin'})
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger className="w-full h-8 mt-1 border border-border">
+                        <SelectValue placeholder="Unassigned" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
+                        {adminUsers.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>
+                            {u.name} ({u.role === 'super_admin' ? 'Super Admin' : 'Admin'})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>

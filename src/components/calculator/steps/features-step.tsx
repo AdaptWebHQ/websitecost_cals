@@ -112,8 +112,15 @@ export default function FeaturesStep({ categories, features, packages }: Feature
         </p>
       </div>
 
-      {/* Page Count Customizer (Only visible when 'Extra Page' feature is selected) */}
-      {showPageCustomizer && (
+      {/* Page Count Customizer */}
+      {selectedPackage.pagesIncluded === -1 ? (
+        <div className="rounded-lg border border-border bg-card/65 p-4 space-y-1.5 shadow-sm">
+          <h3 className="text-xs font-bold text-foreground">Website Size (Pages)</h3>
+          <p className="text-[10px] text-muted-foreground leading-relaxed">
+            Your selected package <span className="font-bold text-primary">{selectedPackage.name}</span> includes <span className="font-bold text-primary">unlimited pages</span>. No additional page fees will be calculated.
+          </p>
+        </div>
+      ) : showPageCustomizer ? (
         <div className="rounded-lg border border-border bg-card/65 p-4 space-y-3 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -152,12 +159,16 @@ export default function FeaturesStep({ categories, features, packages }: Feature
             </div>
           )}
         </div>
-      )}
+      ) : null}
 
       {/* Features Categories */}
       <div className="space-y-6 max-h-[320px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border">
         {categories.map((cat) => {
-          const catFeatures = features.filter((f) => f.categoryId === cat.id);
+          const catFeatures = features.filter((f) => {
+            if (f.categoryId !== cat.id) return false;
+            if (selectedPackage.pagesIncluded === -1 && f.id === 'feat-extra-page') return false;
+            return true;
+          });
           if (catFeatures.length === 0) return null;
 
           return (

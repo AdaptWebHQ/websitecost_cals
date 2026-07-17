@@ -3,7 +3,7 @@
 
 import React, { useState, useTransition } from 'react';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Loader2, Building2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Building2, Search } from 'lucide-react';
 
 import type { Industry, Package } from '@/types';
 import {
@@ -60,6 +60,7 @@ const COLUMNS = [
 
 export default function IndustriesClientPage({ initialIndustries, packages }: Props) {
   const [industries, setIndustries] = useState<Industry[]>(initialIndustries);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingIndustry, setEditingIndustry] = useState<Industry | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -199,6 +200,16 @@ export default function IndustriesClientPage({ initialIndustries, packages }: Pr
     </TableRow>
   );
 
+  const filteredIndustries = industries.filter((ind) => {
+    const search = searchTerm.toLowerCase();
+    const recommendedPackageName = packages.find(p => p.id === ind.recommendedPackageId)?.name || '';
+    return (
+      ind.name?.toLowerCase().includes(search) ||
+      ind.description?.toLowerCase().includes(search) ||
+      recommendedPackageName.toLowerCase().includes(search)
+    );
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
@@ -217,10 +228,22 @@ export default function IndustriesClientPage({ initialIndustries, packages }: Pr
         </Button>
       </div>
 
+      {/* Search Filter */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          placeholder="Search industry name, description or package..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full h-10 bg-background border border-border rounded-xl pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 transition-colors"
+        />
+      </div>
+
       <DataTable
         columns={COLUMNS}
-        data={industries}
-        emptyMessage="No industries found. Create your first one!"
+        data={filteredIndustries}
+        emptyMessage={searchTerm ? "No industries match your search criteria." : "No industries found. Create your first one!"}
         renderRow={renderRow}
       />
 

@@ -10,6 +10,8 @@ export async function getCalculations(userId?: string): Promise<Calculation[]> {
       queryRef = queryRef.where('userId', '==', userId);
     }
     
+    queryRef = queryRef.limit(100);
+    
     const snap = await queryRef.get();
     
     const list = snap.docs.map((doc) => {
