@@ -64,18 +64,14 @@ export default function ScrollShowcase() {
               </div>
 
               {/* 3 Images in a Row - Adjusted height constraints */}
-              <div className="grid grid-cols-3 gap-6 lg:gap-12 w-full max-w-[90vw] mx-auto items-center">
+              <div className="grid grid-cols-3 gap-4 lg:gap-8 w-full max-w-[85vw] mx-auto items-center">
                 {set.images.map((img, imgIdx) => (
-                    // 1. We define a card size using aspect ratio (e.g., 4:3 for landscape)
-                    // 2. Padding ensures the image doesn't touch the borders
-                    <div key={imgIdx} className="relative w-full aspect-[4/3] border border-border bg-card p-4 lg:p-6 overflow-hidden shadow-xl group rounded-sm">
+                    <div key={imgIdx} className="relative w-full aspect-[4/3] border border-border bg-card p-2 lg:p-3 overflow-hidden shadow-xl group rounded-sm">
                       <Image 
                         src={img} 
                         alt={`${set.title} ${imgIdx + 1}`} 
                         fill 
-                        // 3. Changed to object-contain so the WHOLE image fits inside, never cropped.
-                        // 4. Group hover now subtly scales the whole card slightly instead of the image inside.
-                        className="object-contain p-4 lg:p-6 transition-all duration-700 dark:grayscale group-hover:grayscale-0" 
+                        className="object-contain p-1.5 lg:p-2 transition-all duration-700 dark:grayscale group-hover:grayscale-0" 
                       />
                       
                       {/* Overlay gradient for aesthetics - lightened as it's no longer filling the space */}

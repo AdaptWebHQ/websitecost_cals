@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useCalculatorStore } from '@/store/calculator-store';
 import BusinessDetailsStep from './steps/business-details-step';
 import IndustryStep from './steps/industry-step';
-import WebsiteTypeStep from './steps/website-type-step';
 import PackageStep from './steps/package-step';
 import FeaturesStep from './steps/features-step';
 import DeliveryStep from './steps/delivery-step';
@@ -71,7 +70,6 @@ export default function CalculatorWizard({
 
       if (response.success && response.data) {
         setCalcResult(response.data);
-        setStep(7);
       } else {
         setErrorMessage(response.error || 'Failed to register quotation.');
       }
@@ -126,12 +124,13 @@ export default function CalculatorWizard({
     return subtotal;
   };
 
+  // Step flow: 1=Business, 2=Industry, 3=Package, 4=Features, 5=Delivery, 6=Summary
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <IndustryStep industries={industries} />;
+        return <BusinessDetailsStep />;
       case 2:
-        return <WebsiteTypeStep />;
+        return <IndustryStep industries={industries} packages={packages} />;
       case 3:
         return <PackageStep packages={packages} />;
       case 4:
@@ -145,20 +144,18 @@ export default function CalculatorWizard({
             features={features}
             industries={industries}
             priceConfig={priceConfig}
-            isLoading={false}
-            errorMessage={null}
-            calcResult={null}
-            onFinalize={nextStep}
+            isLoading={isLoading}
+            errorMessage={errorMessage}
+            calcResult={calcResult}
+            onFinalize={handleFinalize}
           />
         );
-      case 7:
-        return <BusinessDetailsStep isSubmitting={isLoading} onFinalize={handleFinalize} calcResult={calcResult} />;
       default:
-        return <IndustryStep industries={industries} />;
+        return <BusinessDetailsStep />;
     }
   };
 
-  // Step 1: Two Column Layout with left project summary sidebar
+  // Step 1: Two Column Layout with left project summary sidebar (Contact Details)
   if (currentStep === 1) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start relative max-w-7xl mx-auto w-full">
@@ -173,22 +170,22 @@ export default function CalculatorWizard({
           <div className="space-y-3 pt-3 border-t border-border">
             <div className="flex items-center gap-2.5">
               <div className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold bg-primary text-white">1</div>
-              <span className="text-xs font-bold text-foreground">Industry</span>
+              <span className="text-xs font-bold text-foreground">Your Details</span>
             </div>
             <div className="flex items-center gap-2.5 opacity-55">
               <div className="w-6 h-6 rounded border border-border flex items-center justify-center text-[10px] font-bold">2</div>
-              <span className="text-xs font-medium text-foreground">Website Goals</span>
+              <span className="text-xs font-medium text-foreground">Industry & Package</span>
             </div>
             <div className="flex items-center gap-2.5 opacity-55">
               <div className="w-6 h-6 rounded border border-border flex items-center justify-center text-[10px] font-bold">3</div>
-              <span className="text-xs font-medium text-foreground">Features & Flow</span>
+              <span className="text-xs font-medium text-foreground">Review & Quote</span>
             </div>
           </div>
 
           {/* Atmospheric Card */}
           <div className="p-4 bg-muted rounded-lg border border-border mt-4 space-y-2.5">
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              &quot;Accurate pricing starts with understanding who you are. These details ensure we tailor the roadmap to your specific industry standards.&quot;
+              &quot;We start by getting to know you. Your contact details help us personalize your quote and keep you updated throughout the process.&quot;
             </p>
             <div className="flex items-center gap-1.5 text-primary">
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -205,7 +202,7 @@ export default function CalculatorWizard({
     );
   }
 
-  // Step 4: Two Column Layout with right Cost Summary sidebar card
+  // Step 4: Two Column Layout with right Cost Summary sidebar card (Features)
   if (currentStep === 4) {
     const selectedPkg = packages.find((p) => p.id === packageId) || packages[0];
     const basePrice = selectedPkg?.basePrice || 0;
@@ -273,11 +270,11 @@ export default function CalculatorWizard({
           {/* Stepper Progress bar */}
           <div className="space-y-2 mb-4">
             <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-primary">Step 4 of 7</span>
+              <span className="font-bold text-primary">Step 4 of 6</span>
               <span className="text-muted-foreground font-semibold">Features Selection</span>
             </div>
             <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-primary rounded-full" style={{ width: '71.4%' }} />
+              <div className="h-full bg-primary rounded-full" style={{ width: '66.6%' }} />
             </div>
           </div>
 
@@ -355,43 +352,37 @@ export default function CalculatorWizard({
     );
   }
 
-  // Other Steps (2, 3, 4, 6, 7): Centered single-column layout
+  // Other Steps (2, 3, 5, 6): Centered single-column layout
   let progressPct = '0%';
   let stepLabel = '';
   switch (currentStep) {
     case 2:
-      progressPct = '28.5%';
-      stepLabel = 'Step 2 of 7: Website Type';
+      progressPct = '33.3%';
+      stepLabel = 'Step 2 of 6: Industry';
       break;
     case 3:
-      progressPct = '42.8%';
-      stepLabel = 'Step 3 of 7: Base Package';
+      progressPct = '50%';
+      stepLabel = 'Step 3 of 6: Base Package';
       break;
     case 5:
-      progressPct = '71.4%';
-      stepLabel = 'Step 5 of 7: Delivery speed';
+      progressPct = '83.3%';
+      stepLabel = 'Step 5 of 6: Delivery Speed';
       break;
     case 6:
-      progressPct = '85.7%';
-      stepLabel = 'Step 6 of 7: Final Summary';
-      break;
-    case 7:
       progressPct = '100%';
-      stepLabel = 'Step 7 of 7: Finalize & Quote';
+      stepLabel = 'Step 6 of 6: Final Summary';
       break;
   }
 
   return (
     <div className="max-w-4xl mx-auto w-full space-y-6">
       {/* Centered progress header */}
-      {currentStep !== 7 && (
-        <div className="space-y-2 max-w-xl mx-auto text-center">
-          <span className="text-[9px] font-bold text-primary uppercase tracking-widest block">{stepLabel}</span>
-          <div className="w-48 h-1 bg-muted rounded-full mx-auto overflow-hidden">
-            <div className="h-full bg-primary rounded-full transition-all duration-500 ease-out" style={{ width: progressPct }} />
-          </div>
+      <div className="space-y-2 max-w-xl mx-auto text-center">
+        <span className="text-[9px] font-bold text-primary uppercase tracking-widest block">{stepLabel}</span>
+        <div className="w-48 h-1 bg-muted rounded-full mx-auto overflow-hidden">
+          <div className="h-full bg-primary rounded-full transition-all duration-500 ease-out" style={{ width: progressPct }} />
         </div>
-      )}
+      </div>
 
       <div className="w-full">
         {renderStepContent()}

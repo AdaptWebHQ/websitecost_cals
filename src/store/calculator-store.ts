@@ -45,9 +45,9 @@ export const useCalculatorStore = create<CalculatorState>()(
     (set) => ({
       ...initialFields,
 
-  setStep: (step) => set({ currentStep: Math.min(Math.max(step, 1), 7) }),
+  setStep: (step) => set({ currentStep: Math.min(Math.max(step, 1), 6) }),
   
-  nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 7) })),
+  nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 6) })),
   
   prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1) })),
 

@@ -165,7 +165,7 @@ export const calculatorSubmissionSchema = z.object({
   businessEmail: z.string().email(),
   businessPhone: z.string().min(10),
   industryId: z.string().min(1),
-  websiteType: z.string().min(1),
+  websiteType: z.string().default('General'),
   packageId: z.string().min(1),
   pages: z.coerce.number().min(1).max(200),
   selectedFeatureIds: z.array(z.string()),

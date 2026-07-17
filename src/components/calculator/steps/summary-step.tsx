@@ -34,7 +34,6 @@ export default function SummaryStep({
   const {
     businessName,
     industryId,
-    websiteType,
     packageId,
     pages,
     selectedFeatureIds,
@@ -80,13 +79,6 @@ export default function SummaryStep({
     return `${Math.ceil(days / 7)} Weeks`;
   };
 
-  const getWebsiteTypeLabel = () => {
-    const vt = websiteType.toLowerCase();
-    if (vt.includes('saas') || vt.includes('app')) return 'SaaS Dashboard';
-    if (vt.includes('commerce') || vt.includes('shop')) return 'E-Commerce Storefront';
-    if (vt.includes('corp') || vt.includes('business')) return 'Corporate Informative';
-    return 'Single Page / Landing';
-  };
 
   if (calcResult) {
     return (
@@ -166,8 +158,8 @@ export default function SummaryStep({
                   <span className="text-foreground font-bold text-right">{selectedIndustry.name}</span>
                 </div>
                 <div className="flex justify-between items-center pb-1">
-                  <span className="text-muted-foreground font-medium">Platform Type</span>
-                  <span className="text-foreground font-bold">{getWebsiteTypeLabel()}</span>
+                  <span className="text-muted-foreground font-medium">Package</span>
+                  <span className="text-foreground font-bold">{selectedPackage.name}</span>
                 </div>
               </div>
             </div>
@@ -188,7 +180,7 @@ export default function SummaryStep({
               <span className="text-[9px] font-bold text-primary uppercase tracking-widest block">Module Selection</span>
               <button
                 type="button"
-                onClick={() => setStep(5)}
+                onClick={() => setStep(4)}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-primary bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/30 rounded-lg transition-all cursor-pointer select-none active:scale-[0.98]"
               >
                 <Plus className="w-3.5 h-3.5 shrink-0" />

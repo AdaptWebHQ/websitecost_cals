@@ -1,7 +1,7 @@
 'use client';
 
 import { useCalculatorStore } from '@/store/calculator-store';
-import type { Industry } from '@/types';
+import type { Industry, Package } from '@/types';
 import { 
   Building2, 
   ArrowLeft, 
@@ -12,31 +12,23 @@ import {
   Home, 
   GraduationCap, 
   Coins, 
-  CheckCircle2 
+  CheckCircle2,
+  Sparkles 
 } from 'lucide-react';
 
 interface IndustryStepProps {
   industries: Industry[];
+  packages: Package[];
 }
 
-const INDUSTRY_DESCRIPTIONS: Record<string, string> = {
-  'healthcare': 'Focus on HIPAA compliance, patient portals, and secure data handling.',
-  'tech': 'High-performance landing pages, API integrations, and scalable architecture.',
-  'software': 'High-performance landing pages, API integrations, and scalable architecture.',
-  'saas': 'High-performance landing pages, API integrations, and scalable architecture.',
-  'e-commerce': 'Custom storefronts, payment gateways, and inventory management systems.',
-  'commerce': 'Custom storefronts, payment gateways, and inventory management systems.',
-  'real-estate': 'Property listings, dynamic maps, and lead generation funnels.',
-  'estate': 'Property listings, dynamic maps, and lead generation funnels.',
-  'education': 'LMS platforms, student portals, and interactive learning resources.',
-  'school': 'LMS platforms, student portals, and interactive learning resources.',
-};
+const DEFAULT_DESCRIPTION = 'General business websites, portfolios, or unique custom ventures.';
 
-export default function IndustryStep({ industries }: IndustryStepProps) {
+export default function IndustryStep({ industries, packages }: IndustryStepProps) {
   const { industryId, updateFields, nextStep, prevStep } = useCalculatorStore();
 
   const handleSelect = (id: string) => {
-    updateFields({ industryId: id });
+    const industry = industries.find(ind => ind.id === id);
+    updateFields({ industryId: id, websiteType: industry?.name || '' });
   };
 
   const handleNext = () => {
@@ -71,8 +63,7 @@ export default function IndustryStep({ industries }: IndustryStepProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {industries.map((ind) => {
           const isSelected = industryId === ind.id;
-          const slug = ind.slug || ind.name || '';
-          const description = INDUSTRY_DESCRIPTIONS[slug.toLowerCase()] || 'General business websites, portfolios, or unique custom ventures.';
+          const description = ind.description?.trim() || DEFAULT_DESCRIPTION;
 
           return (
             <button
@@ -98,6 +89,19 @@ export default function IndustryStep({ industries }: IndustryStepProps) {
               <p className="text-[10px] text-muted-foreground leading-normal font-normal">
                 {description}
               </p>
+
+              {/* Recommended Package Badge */}
+              {(() => {
+                const recPkg = packages.find(p => p.id === ind.recommendedPackageId);
+                return recPkg ? (
+                  <div className="mt-3 flex items-center gap-1 px-2 py-1 rounded-md bg-primary/5 border border-primary/10 w-fit">
+                    <Sparkles className="w-3 h-3 text-primary/70" />
+                    <span className="text-[9px] font-semibold text-primary/80 tracking-wide">
+                      Rec: {recPkg.name}
+                    </span>
+                  </div>
+                ) : null;
+              })()}
             </button>
           );
         })}

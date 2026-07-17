@@ -256,7 +256,7 @@ export default function InteractiveNicheCalculator() {
       </AnimatePresence>
 
       {/* Left Column: Interactive Controls */}
-      <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-8 bg-card border border-border rounded-none relative overflow-hidden">
+      <div className="lg:col-span-7 flex flex-col justify-between p-6 sm:p-8 bg-card border border-border rounded-lg relative overflow-hidden">
         
         {/* Top Progress bar and Header */}
         <div className="w-full">
@@ -582,14 +582,14 @@ export default function InteractiveNicheCalculator() {
       </div>
 
       {/* Right Column: Premium Browser View Mockup */}
-      <div className="lg:col-span-5 min-h-[350px] lg:min-h-full bg-muted/50 relative overflow-hidden flex items-center justify-center p-4 rounded-none border border-border">
+      <div className="lg:col-span-5 min-h-[350px] lg:min-h-full bg-muted/30 relative overflow-hidden flex items-center justify-center p-4 rounded-lg border border-border">
         
         {/* Browser shell container */}
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: 'spring', bounce: 0.2, duration: 0.8, delay: 0.2 }}
-          className="absolute top-6 bottom-[-40px] left-6 right-[-40px] rounded-none border border-border bg-card flex flex-col overflow-hidden transition-all duration-500 hover:border-primary/50 shadow-xl"
+          className="absolute inset-3 rounded-lg border border-border bg-card flex flex-col overflow-hidden shadow-lg"
         >
           {/* Header Bar */}
           <div className="bg-muted px-3.5 py-1.5 border-b border-border flex items-center justify-between shrink-0 select-none">

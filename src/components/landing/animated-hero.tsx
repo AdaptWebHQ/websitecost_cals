@@ -7,11 +7,11 @@ import { Calculator } from 'lucide-react';
 import Image from 'next/image';
 
 const NICHES = [
-  { id: 'corporate', name: 'Corporate & Agency', image: '/images/mockups/corporate.png' },
-  { id: 'ecommerce', name: 'E-Commerce', image: '/images/mockups/ecommerce.png' },
-  { id: 'saas', name: 'SaaS & Web App', image: '/images/mockups/saas.png' },
-  { id: 'creative', name: 'Creative Portfolio', image: '/images/mockups/creative.png' },
-  { id: 'realestate', name: 'Luxury Real Estate', image: '/images/mockups/real_estate.png' },
+  { id: 'corporate', name: 'Corporate & Agency', image: '/images/mockups/corporate-v2.png' },
+  { id: 'ecommerce', name: 'E-Commerce', image: '/images/mockups/ecommerce-v2.png' },
+  { id: 'saas', name: 'SaaS & Web App', image: '/images/mockups/saas-v2.png' },
+  { id: 'creative', name: 'Creative Portfolio', image: '/images/mockups/creative-v2.png' },
+  { id: 'realestate', name: 'Luxury Real Estate', image: '/images/mockups/realestate-v2.png' },
 ];
 
 function PremiumNicheSlider() {
@@ -25,8 +25,8 @@ function PremiumNicheSlider() {
   }, []);
 
   return (
-    <div className="relative w-full max-w-[1000px] aspect-[16/10] sm:aspect-[16/9] mx-auto bg-card p-2 sm:p-4 border border-border rounded-none">
-      <div className="relative w-full h-full overflow-hidden border border-border bg-muted rounded-none">
+    <div className="relative w-full max-w-2xl aspect-[2/1] mx-auto bg-card p-1.5 border border-border rounded-lg shadow-lg">
+      <div className="relative w-full h-full overflow-hidden border border-border bg-muted rounded-md">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
@@ -40,14 +40,14 @@ function PremiumNicheSlider() {
               src={NICHES[currentIndex].image}
               alt={NICHES[currentIndex].name}
               fill
-              className="object-cover object-top opacity-90 rounded-none"
+              className="object-contain opacity-90 rounded-md"
               priority
             />
           </motion.div>
         </AnimatePresence>
         
         {/* Technical Top Bar */}
-        <div className="absolute top-0 left-0 right-0 h-10 border-b border-border bg-card flex items-center justify-between px-4 rounded-none">
+        <div className="absolute top-0 left-0 right-0 h-8 border-b border-border bg-card/90 backdrop-blur-sm flex items-center justify-between px-3 rounded-t-md">
           <div className="flex gap-2">
             <div className="w-2 h-2 bg-border rounded-none" />
             <div className="w-2 h-2 bg-border rounded-none" />
@@ -63,7 +63,7 @@ function PremiumNicheSlider() {
       </div>
 
       {/* Structural Base indicator */}
-      <div className="flex justify-center gap-4 mt-4">
+      <div className="flex justify-center gap-3 mt-3">
         {NICHES.map((_, idx) => (
           <div 
             key={idx} 
@@ -87,7 +87,7 @@ const itemVars: Variants = {
 
 export default function AnimatedHero() {
   return (
-    <section className="w-full flex flex-col items-center justify-center pt-24 pb-16 relative bg-background overflow-hidden">
+    <section className="w-full flex flex-col items-center justify-center pt-20 pb-12 relative bg-background overflow-hidden">
       
       {/* Background Architectural Grid Lines */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -144,7 +144,7 @@ export default function AnimatedHero() {
         {/* 3D Model Showcase */}
         <motion.div
           variants={itemVars}
-          className="w-full mt-24 mb-16 relative"
+          className="w-full mt-16 mb-8 relative"
         >
           <PremiumNicheSlider />
         </motion.div>
