@@ -8,9 +8,10 @@ import { FileText, Loader2, AlertCircle } from 'lucide-react';
 interface PdfDownloadButtonProps {
   calculationId: string;
   businessName?: string;
+  onDownloaded?: () => void;
 }
 
-export default function PdfDownloadButton({ calculationId, businessName }: PdfDownloadButtonProps) {
+export default function PdfDownloadButton({ calculationId, businessName, onDownloaded }: PdfDownloadButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -36,6 +37,8 @@ export default function PdfDownloadButton({ calculationId, businessName }: PdfDo
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        // Notify parent that download succeeded so it can auto-reset
+        onDownloaded?.();
       } else {
         setErrorMsg(response.error || 'Failed to download quotation.');
       }
