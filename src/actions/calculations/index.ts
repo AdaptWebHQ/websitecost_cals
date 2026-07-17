@@ -1,5 +1,3 @@
-'use strict';
-
 'use server';
 
 import { adminDb } from '@/firebase/admin';
@@ -10,6 +8,7 @@ import { getIndustryById } from '@/lib/industries';
 import { getPriceConfig } from '@/lib/price-config';
 import { calculateQuotation } from '@/lib/calculations/pricing';
 import { getServerUser } from '@/actions/auth';
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit';
 import { revalidatePath } from 'next/cache';
 import type { ApiResponse, Calculation, AddonFeature } from '@/types';
 
@@ -18,8 +17,17 @@ export async function createCalculationAction(
   data: CalculatorSubmissionData
 ): Promise<ApiResponse<Calculation>> {
   try {
-    // TODO(PRODUCTION): Enable Rate Limiting for this API endpoint (Anti-Spam)
-    // TODO(PRODUCTION): Configure reCAPTCHA for this submission endpoint
+    // Rate limit: max 5 calculations per user/email per 10 minutes
+    const user = await getServerUser();
+    const rateLimitKey = getRateLimitKey('calc', user?.id || data.businessEmail);
+    const rateCheck = checkRateLimit(rateLimitKey, { limit: 5, windowSeconds: 600 });
+    if (!rateCheck.allowed) {
+      return {
+        success: false,
+        error: `Too many requests. Please wait ${rateCheck.retryAfter ?? 60} seconds before generating another quotation.`,
+      };
+    }
+
     const validated = calculatorSubmissionSchema.safeParse(data);
     if (!validated.success) {
       return {
@@ -42,11 +50,10 @@ export async function createCalculationAction(
     } = validated.data;
 
     // Fetch related records in parallel on the server
-    const [selectedPackage, industry, priceConfig, user] = await Promise.all([
+    const [selectedPackage, industry, priceConfig] = await Promise.all([
       getPackageById(packageId),
       getIndustryById(industryId),
       getPriceConfig(),
-      getServerUser(),
     ]);
 
     if (!selectedPackage) {

@@ -1,11 +1,10 @@
-'use strict';
-
 'use server';
 
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
 import { contactFormSchema, inquiryUpdateSchema, type ContactFormData, type InquiryUpdateData } from '@/schemas';
 import { getServerUser } from '@/actions/auth';
+import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit';
 import { revalidatePath } from 'next/cache';
 import type { ApiResponse, Inquiry, InquiryActivity, InquiryStatus, LeadTemperature } from '@/types';
 import { sendInquiryEmail, sendLeadAssignmentEmail } from '@/lib/email';
@@ -25,6 +24,33 @@ export async function createInquiryAction(
     }
 
     const { name, company, email, phone, budget, message } = validated.data;
+
+    // Rate limit: max 3 inquiries per email per 10 minutes
+    const rateLimitKey = getRateLimitKey('inquiry', email);
+    const rateCheck = checkRateLimit(rateLimitKey, { limit: 3, windowSeconds: 600 });
+    if (!rateCheck.allowed) {
+      return {
+        success: false,
+        error: `Too many submissions. Please wait ${rateCheck.retryAfter ?? 60} seconds before submitting another inquiry.`,
+      };
+    }
+
+    // Deduplication: prevent identical email+calculationId within 5 minutes
+    if (calculationId) {
+      const recentSnap = await adminDb
+        .collection(COLLECTIONS.INQUIRIES)
+        .where('email', '==', email)
+        .where('calculationId', '==', calculationId)
+        .limit(1)
+        .get();
+      if (!recentSnap.empty) {
+        return {
+          success: false,
+          error: 'An inquiry for this quotation has already been submitted with this email address.',
+        };
+      }
+    }
+
     const now = new Date();
 
     const newInquiry: Omit<Inquiry, 'id'> = {

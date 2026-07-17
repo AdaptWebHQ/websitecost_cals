@@ -1,5 +1,3 @@
-'use strict';
-
 'use server';
 
 import { cookies } from 'next/headers';

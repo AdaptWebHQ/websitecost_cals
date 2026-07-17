@@ -4,7 +4,12 @@ import { COLLECTIONS } from '@/constants';
 
 /** Verify Firebase ID Token */
 export async function verifyIdToken(token: string) {
-  if (token && token.startsWith('mock_')) {
+  // Mock tokens are ONLY valid outside production to prevent auth bypass
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    token &&
+    token.startsWith('mock_')
+  ) {
     const parts = token.split(':');
     const uid = parts[1] || 'mock_uid';
     const email = parts[2] || 'mock@example.com';
