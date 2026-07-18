@@ -1,5 +1,6 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
+import { getCache, setCache } from '@/lib/server-cache';
 import type { AddonCategory } from '@/types';
 
 // Check if credentials are loaded to verify whether database is fully queryable
@@ -63,6 +64,9 @@ export async function getAddonCategories(onlyActive = false): Promise<AddonCateg
   }
 
   try {
+    const cacheKey = `addon_categories:onlyActive:${onlyActive}`;
+    const cached = getCache<AddonCategory[]>(cacheKey);
+    if (cached) return cached;
     let query: FirebaseFirestore.Query = adminDb.collection(COLLECTIONS.ADDON_CATEGORIES);
     
     if (onlyActive) {
@@ -78,7 +82,9 @@ export async function getAddonCategories(onlyActive = false): Promise<AddonCateg
     })) as AddonCategory[];
 
     // Sort in-memory to bypass composite index requirements
-    return list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    const sorted = list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    setCache(cacheKey, sorted, 3600);
+    return sorted;
   } catch (error: unknown) {
     // Quiet fallback to static assets
     return onlyActive ? DEFAULT_ADDON_CATEGORIES.filter((c) => c.isActive) : DEFAULT_ADDON_CATEGORIES;

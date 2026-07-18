@@ -7,6 +7,7 @@ import { COLLECTIONS } from '@/constants';
 import { addonFeatureSchema, type AddonFeatureFormData } from '@/schemas';
 import { slugify } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
+import { delCachePrefix } from '@/lib/server-cache';
 import { getServerUser } from '@/actions/auth';
 import type { ApiResponse, AddonFeature } from '@/types';
 
@@ -58,6 +59,8 @@ export async function createAddonFeatureAction(
     const docRef = await adminDb.collection(COLLECTIONS.ADDON_FEATURES).add(newFeature);
     
     revalidatePath('/admin/addons');
+    delCachePrefix('addons');
+    delCachePrefix('addon_categories');
     
     return {
       success: true,
@@ -131,6 +134,8 @@ export async function updateAddonFeatureAction(
     await featureRef.update(updatedFields);
 
     revalidatePath('/admin/addons');
+    delCachePrefix('addons');
+    delCachePrefix('addon_categories');
 
     const currentDoc = await featureRef.get();
     const currentData = currentDoc.data();
@@ -173,6 +178,8 @@ export async function deleteAddonFeatureAction(id: string): Promise<ApiResponse<
     await featureRef.delete();
     
     revalidatePath('/admin/addons');
+    delCachePrefix('addons');
+    delCachePrefix('addon_categories');
     
     return { success: true };
   } catch (error: unknown) {
@@ -202,6 +209,8 @@ export async function toggleAddonFeatureActiveAction(
     });
     
     revalidatePath('/admin/addons');
+    delCachePrefix('addons');
+    delCachePrefix('addon_categories');
     return { success: true };
   } catch (error: unknown) {
     console.error('Error toggling feature status:', error);
@@ -234,6 +243,8 @@ export async function reorderAddonFeaturesAction(
 
     await batch.commit();
     revalidatePath('/admin/addons');
+    delCachePrefix('addons');
+    delCachePrefix('addon_categories');
 
     return { success: true };
   } catch (error: unknown) {

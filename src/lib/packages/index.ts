@@ -1,5 +1,6 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
+import { getCache, setCache, delCachePrefix } from '@/lib/server-cache';
 import type { Package } from '@/types';
 import { getPackageFeatureCategories, getPackageFeatures } from './package-features-library';
 
@@ -95,6 +96,10 @@ export async function getPackages(onlyActive = false): Promise<Package[]> {
     return onlyActive ? DEFAULT_PACKAGES.filter((p) => p.isActive) : DEFAULT_PACKAGES;
   }
 
+  const cacheKey = `packages:onlyActive:${onlyActive}`;
+  const cached = getCache<Package[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     let query: FirebaseFirestore.Query = adminDb.collection(COLLECTIONS.PACKAGES);
     
@@ -111,7 +116,9 @@ export async function getPackages(onlyActive = false): Promise<Package[]> {
     })) as Package[];
 
     // Sort in-memory to bypass composite index requirements
-    return list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    const sorted = list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    setCache(cacheKey, sorted, 3600);
+    return sorted;
   } catch (error: unknown) {
     // Quiet fallback to static assets
     return onlyActive ? DEFAULT_PACKAGES.filter((p) => p.isActive) : DEFAULT_PACKAGES;

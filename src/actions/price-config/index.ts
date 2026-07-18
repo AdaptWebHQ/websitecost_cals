@@ -6,6 +6,7 @@ import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
 import { priceConfigSchema, type PriceConfigFormData } from '@/schemas';
 import { revalidatePath } from 'next/cache';
+import { delCachePrefix } from '@/lib/server-cache';
 import { getServerUser } from '@/actions/auth';
 import type { ApiResponse, PriceConfig } from '@/types';
 
@@ -40,6 +41,7 @@ export async function updatePriceConfigAction(
     await docRef.set(updatedFields, { merge: true });
 
     revalidatePath('/admin/price-config');
+    delCachePrefix('price_config');
 
     return {
       success: true,

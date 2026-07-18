@@ -1,5 +1,6 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS, DEFAULT_PRICE_CONFIG } from '@/constants';
+import { getCache, setCache, delCachePrefix } from '@/lib/server-cache';
 import type { PriceConfig } from '@/types';
 
 // Check if credentials are loaded to verify whether database is fully queryable
@@ -29,6 +30,10 @@ export async function getPriceConfig(): Promise<PriceConfig> {
   if (!hasCredentials) {
     return STATIC_PRICE_CONFIG;
   }
+
+  const cacheKey = `price_config:global`;
+  const cached = getCache<PriceConfig>(cacheKey);
+  if (cached) return cached;
 
   try {
     const docRef = adminDb.collection(COLLECTIONS.PRICE_CONFIG).doc('global');
@@ -62,10 +67,12 @@ export async function getPriceConfig(): Promise<PriceConfig> {
     };
 
     await docRef.set(initialConfig);
-    return {
+    const result = {
       id: 'global',
       ...initialConfig,
     };
+    setCache(cacheKey, result, 3600);
+    return result;
   } catch (error: unknown) {
     // Quiet fallback to static assets
     return STATIC_PRICE_CONFIG;

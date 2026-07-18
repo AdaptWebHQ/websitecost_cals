@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 0; // Fetch fresh pricing configuration every load
+export const revalidate = 86400; // Fetch fresh pricing configuration every load
 
 export default async function PublicCalculatorPage() {
   // Fetch pricing masters in parallel on the server

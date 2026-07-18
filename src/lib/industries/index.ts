@@ -1,6 +1,7 @@
 // @/lib/industries.ts
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
+import { getCache, setCache } from '@/lib/server-cache';
 import type { Industry } from '@/types';
 
 // Check if credentials are loaded to verify whether database is fully queryable
@@ -72,6 +73,9 @@ export async function getIndustries(onlyActive = false): Promise<Industry[]> {
   }
 
   try {
+    const cacheKey = `industries:onlyActive:${onlyActive}`;
+    const cached = getCache<Industry[]>(cacheKey);
+    if (cached) return cached;
     let query: FirebaseFirestore.Query = adminDb.collection(COLLECTIONS.INDUSTRIES);
     
     if (onlyActive) {
@@ -87,7 +91,9 @@ export async function getIndustries(onlyActive = false): Promise<Industry[]> {
     })) as Industry[];
 
     // Sort in-memory to bypass composite index requirements
-    return list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    const sorted = list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    setCache(cacheKey, sorted, 3600);
+    return sorted;
   } catch (error: unknown) {
     console.error('Error fetching industries, falling back to defaults:', error);
     return onlyActive ? DEFAULT_INDUSTRIES.filter((i) => i.isActive) : DEFAULT_INDUSTRIES;

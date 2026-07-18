@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { delCachePrefix } from '@/lib/server-cache';
 import { getServerUser } from '@/actions/auth';
 import type { ApiResponse, PackageFeatureCategory, PackageFeature } from '@/types';
 
@@ -43,6 +44,7 @@ export async function createPackageFeatureCategoryAction(
     }
     const id = await createPackageFeatureCategory(data);
     revalidatePath('/admin/package-features');
+    delCachePrefix('pkg_feature');
     return { success: true, data: id, message: 'Category created successfully.' };
   } catch (error) {
     console.error('Error creating category action:', error);
@@ -61,6 +63,7 @@ export async function updatePackageFeatureCategoryAction(
     }
     await updatePackageFeatureCategory(id, data);
     revalidatePath('/admin/package-features');
+    delCachePrefix('pkg_feature');
     return { success: true, message: 'Category updated successfully.' };
   } catch (error) {
     console.error('Error updating category action:', error);
@@ -76,6 +79,7 @@ export async function deletePackageFeatureCategoryAction(id: string): Promise<Ap
     }
     await deletePackageFeatureCategory(id);
     revalidatePath('/admin/package-features');
+    delCachePrefix('pkg_feature');
     return { success: true, message: 'Category deleted successfully.' };
   } catch (error) {
     console.error('Error deleting category action:', error);
@@ -93,6 +97,7 @@ export async function reorderPackageFeatureCategoriesAction(
     }
     await reorderPackageFeatureCategories(orderedIds);
     revalidatePath('/admin/package-features');
+    delCachePrefix('pkg_feature');
     return { success: true, message: 'Categories reordered successfully.' };
   } catch (error) {
     console.error('Error reordering categories action:', error);
@@ -127,6 +132,7 @@ export async function createPackageFeatureAction(
     }
     const id = await createPackageFeature(data);
     revalidatePath('/admin/package-features');
+    delCachePrefix('pkg_feature');
     return { success: true, data: id, message: 'Feature created successfully.' };
   } catch (error) {
     console.error('Error creating feature action:', error);
@@ -145,6 +151,7 @@ export async function updatePackageFeatureAction(
     }
     await updatePackageFeature(id, data);
     revalidatePath('/admin/package-features');
+    delCachePrefix('pkg_feature');
     return { success: true, message: 'Feature updated successfully.' };
   } catch (error) {
     console.error('Error updating feature action:', error);
@@ -160,6 +167,7 @@ export async function deletePackageFeatureAction(id: string): Promise<ApiRespons
     }
     await deletePackageFeature(id);
     revalidatePath('/admin/package-features');
+    delCachePrefix('pkg_feature');
     return { success: true, message: 'Feature deleted successfully.' };
   } catch (error) {
     console.error('Error deleting feature action:', error);
@@ -175,6 +183,7 @@ export async function reorderPackageFeaturesAction(orderedIds: string[]): Promis
     }
     await reorderPackageFeatures(orderedIds);
     revalidatePath('/admin/package-features');
+    delCachePrefix('pkg_feature');
     return { success: true, message: 'Features reordered successfully.' };
   } catch (error) {
     console.error('Error reordering features action:', error);

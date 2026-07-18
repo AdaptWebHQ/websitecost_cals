@@ -1,5 +1,6 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
+import { getCache, setCache, delCachePrefix } from '@/lib/server-cache';
 import type { PackageFeatureCategory, PackageFeature } from '@/types';
 
 // Check if credentials are loaded
@@ -14,6 +15,11 @@ const hasCredentials =
 
 export async function getPackageFeatureCategories(onlyActive = false): Promise<PackageFeatureCategory[]> {
   if (!hasCredentials) return [];
+
+  const cacheKey = `pkg_feature_categories:onlyActive:${onlyActive}`;
+  const cached = getCache<PackageFeatureCategory[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const snap = await adminDb.collection(COLLECTIONS.PACKAGE_FEATURE_CATEGORIES).get();
     let categories = snap.docs.map((doc) => {
@@ -30,7 +36,9 @@ export async function getPackageFeatureCategories(onlyActive = false): Promise<P
       categories = categories.filter((c) => c.isActive === true);
     }
     
-    return categories.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    const sorted = categories.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    setCache(cacheKey, sorted, 3600);
+    return sorted;
   } catch (error) {
     console.error('Error fetching package feature categories:', error);
     return [];
@@ -122,6 +130,11 @@ export async function getPackageFeatures(
   onlyActive = false
 ): Promise<PackageFeature[]> {
   if (!hasCredentials) return [];
+
+  const cacheKey = `pkg_features:category:${categoryId || 'all'}:onlyActive:${onlyActive}`;
+  const cached = getCache<PackageFeature[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const snap = await adminDb.collection(COLLECTIONS.PACKAGE_FEATURES).get();
     let features = snap.docs.map((doc) => {
@@ -141,7 +154,9 @@ export async function getPackageFeatures(
       features = features.filter((f) => f.isActive === true);
     }
     
-    return features.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    const sorted = features.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    setCache(cacheKey, sorted, 3600);
+    return sorted;
   } catch (error) {
     console.error('Error fetching package features:', error);
     return [];

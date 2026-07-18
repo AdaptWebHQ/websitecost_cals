@@ -7,6 +7,7 @@ import { COLLECTIONS } from '@/constants';
 import { addonCategorySchema, type AddonCategoryFormData } from '@/schemas';
 import { slugify } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
+import { delCachePrefix } from '@/lib/server-cache';
 import type { ApiResponse, AddonCategory } from '@/types';
 
 /** Create a new addon category */
@@ -49,6 +50,8 @@ export async function createAddonCategoryAction(
     const docRef = await adminDb.collection(COLLECTIONS.ADDON_CATEGORIES).add(newCategory);
     
     revalidatePath('/admin/addons');
+    delCachePrefix('addons');
+    delCachePrefix('addon_categories');
     
     return {
       success: true,
@@ -115,6 +118,8 @@ export async function updateAddonCategoryAction(
     await categoryRef.update(updatedFields);
 
     revalidatePath('/admin/addons');
+    delCachePrefix('addons');
+    delCachePrefix('addon_categories');
 
     const currentDoc = await categoryRef.get();
     const currentData = currentDoc.data();
@@ -166,6 +171,8 @@ export async function deleteAddonCategoryAction(id: string): Promise<ApiResponse
     await categoryRef.delete();
     
     revalidatePath('/admin/addons');
+    delCachePrefix('addons');
+    delCachePrefix('addon_categories');
     
     return { success: true };
   } catch (error: unknown) {
@@ -190,6 +197,8 @@ export async function toggleAddonCategoryActiveAction(
     });
     
     revalidatePath('/admin/addons');
+    delCachePrefix('addons');
+    delCachePrefix('addon_categories');
     return { success: true };
   } catch (error: unknown) {
     console.error('Error toggling category status:', error);

@@ -7,6 +7,7 @@ import { COLLECTIONS } from '@/constants';
 import { industrySchema, type IndustryFormData } from '@/schemas';
 import { slugify } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
+import { delCachePrefix } from '@/lib/server-cache';
 import { getServerUser } from '@/actions/auth';
 import type { ApiResponse, Industry } from '@/types';
 
@@ -57,6 +58,7 @@ export async function createIndustryAction(
     const docRef = await adminDb.collection(COLLECTIONS.INDUSTRIES).add(newIndustry);
     
     revalidatePath('/admin/industries');
+    delCachePrefix('industries');
     
     return {
       success: true,
@@ -129,6 +131,7 @@ export async function updateIndustryAction(
     await industryRef.update(updatedFields);
 
     revalidatePath('/admin/industries');
+    delCachePrefix('industries');
 
     const currentDoc = await industryRef.get();
     const currentData = currentDoc.data();
@@ -171,6 +174,7 @@ export async function deleteIndustryAction(id: string): Promise<ApiResponse<void
     await industryRef.delete();
     
     revalidatePath('/admin/industries');
+    delCachePrefix('industries');
     
     return { success: true };
   } catch (error: unknown) {
@@ -200,6 +204,7 @@ export async function toggleIndustryActiveAction(
     });
     
     revalidatePath('/admin/industries');
+    delCachePrefix('industries');
     return { success: true };
   } catch (error: unknown) {
     console.error('Error toggling industry status:', error);

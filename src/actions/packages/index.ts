@@ -7,6 +7,7 @@ import { COLLECTIONS } from '@/constants';
 import { packageSchema, type PackageFormData } from '@/schemas';
 import { slugify } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
+import { delCachePrefix } from '@/lib/server-cache';
 import { getServerUser } from '@/actions/auth';
 import type { ApiResponse, Package } from '@/types';
 
@@ -57,6 +58,8 @@ export async function createPackageAction(
     const docRef = await adminDb.collection(COLLECTIONS.PACKAGES).add(newPackage);
     
     revalidatePath('/admin/packages');
+    delCachePrefix('packages');
+    delCachePrefix('pkg_');
     
     return {
       success: true,
@@ -129,6 +132,8 @@ export async function updatePackageAction(
     await packageRef.update(updatedFields);
 
     revalidatePath('/admin/packages');
+    delCachePrefix('packages');
+    delCachePrefix('pkg_');
 
     const currentDoc = await packageRef.get();
     const currentData = currentDoc.data();
@@ -171,6 +176,8 @@ export async function deletePackageAction(id: string): Promise<ApiResponse<void>
     await packageRef.delete();
     
     revalidatePath('/admin/packages');
+    delCachePrefix('packages');
+    delCachePrefix('pkg_');
     
     return { success: true };
   } catch (error: unknown) {
@@ -200,6 +207,8 @@ export async function togglePackageActiveAction(
     });
     
     revalidatePath('/admin/packages');
+    delCachePrefix('packages');
+    delCachePrefix('pkg_');
     return { success: true };
   } catch (error: unknown) {
     console.error('Error toggling package active state:', error);
