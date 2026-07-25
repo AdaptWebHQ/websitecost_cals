@@ -262,7 +262,7 @@ export default function InteractiveNicheCalculator() {
         <div className="w-full">
           <div className="flex justify-between items-center text-xs mb-3 font-mono font-bold text-muted-foreground uppercase tracking-widest">
             <span>Configure Project</span>
-            <span className="text-foreground font-black">Segment 0{slide + 1} // 04</span>
+            <span className="text-foreground font-black">Segment 0{slide + 1}{" // 04"}</span>
           </div>
           
           {/* Smooth Progress Bar */}

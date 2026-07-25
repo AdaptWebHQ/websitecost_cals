@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCalculatorStore } from '@/store/calculator-store';
 import { calculateQuotation } from '@/lib/calculations/pricing';
 import { formatCurrency } from '@/lib/utils';
-import type { Package, AddonFeature, PriceConfig, Industry, Calculation } from '@/types';
+import type { Package, AddonFeature, PriceConfig, Industry, Calculation, ServiceType } from '@/types';
 import { ArrowLeft, Loader2, Sparkles, CheckCircle2, ChevronRight, ShieldCheck, Cpu, Trash2, Plus } from 'lucide-react';
 import PdfDownloadButton from '../pdf-download-button';
 import ContactInquiryForm from '@/components/forms/contact-inquiry-form';
@@ -18,6 +18,7 @@ interface SummaryStepProps {
   errorMessage: string | null;
   calcResult: Calculation | null;
   onFinalize: () => void;
+  serviceTypes: ServiceType[];
 }
 
 export default function SummaryStep({
@@ -29,6 +30,7 @@ export default function SummaryStep({
   errorMessage,
   calcResult,
   onFinalize,
+  serviceTypes,
 }: SummaryStepProps) {
   const router = useRouter();
 
@@ -47,11 +49,30 @@ export default function SummaryStep({
     updateFields,
     removeCustomFeature,
     setStep,
+    websiteType,
   } = useCalculatorStore();
 
   const selectedPackage = packages.find((p) => p.id === packageId) || packages[0];
   const selectedIndustry = industries.find((i) => i.id === industryId) || industries[0];
+  const selectedType = serviceTypes.find((t) => t.id === websiteType);
   const selectedFeatures = features.filter((f) => selectedFeatureIds.includes(f.id));
+
+  console.log('SummaryStep Debug:', {
+    isLoading,
+    packagesLength: packages.length,
+    selectedPackage,
+    selectedIndustry,
+    packageId,
+    industryId
+  });
+
+  if (isLoading || !selectedPackage || !selectedIndustry) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const handleRemoveFeature = (id: string) => {
     if (id === 'feat-extra-page') {
@@ -175,6 +196,12 @@ export default function SummaryStep({
                   <span className="text-muted-foreground font-medium">Industry</span>
                   <span className="text-foreground font-bold text-right">{selectedIndustry.name}</span>
                 </div>
+                {selectedType && (
+                  <div className="flex justify-between items-center border-b border-border pb-2">
+                    <span className="text-muted-foreground font-medium">Type</span>
+                    <span className="text-foreground font-bold text-right">{selectedType.name}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center pb-1">
                   <span className="text-muted-foreground font-medium">Package</span>
                   <span className="text-foreground font-bold">{selectedPackage.name}</span>

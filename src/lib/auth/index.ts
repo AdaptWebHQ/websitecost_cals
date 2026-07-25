@@ -1,4 +1,5 @@
 import { adminAuth, adminDb } from '@/firebase/admin';
+import { buildPagedQuery, formatPageResult, PaginationFilters } from '@/lib/firestore-pagination';
 import type { User, UserRole } from '@/types';
 import { COLLECTIONS } from '@/constants';
 

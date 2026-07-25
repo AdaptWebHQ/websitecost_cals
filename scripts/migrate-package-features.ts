@@ -163,7 +163,7 @@ async function runMigration() {
           console.log(`    🔗 Reusing global feature: "${featName}" -> ID: ${globalFeatId}`);
         } else {
           // Create new global feature
-          let slugId = slugify(featName);
+          const slugId = slugify(featName);
           
           // Verify slug uniqueness in Firestore
           let uniqueId = slugId;

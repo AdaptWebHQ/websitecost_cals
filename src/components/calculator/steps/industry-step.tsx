@@ -27,8 +27,7 @@ export default function IndustryStep({ industries, packages }: IndustryStepProps
   const { industryId, updateFields, nextStep, prevStep } = useCalculatorStore();
 
   const handleSelect = (id: string) => {
-    const industry = industries.find(ind => ind.id === id);
-    updateFields({ industryId: id, websiteType: industry?.name || '' });
+    updateFields({ industryId: id });
   };
 
   const handleNext = () => {

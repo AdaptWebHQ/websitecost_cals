@@ -8,10 +8,12 @@ export const metadata: Metadata = {
   },
 };
 
+import CategorySyncProvider from '@/components/admin/category-sync-provider';
+
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <CategorySyncProvider>{children}</CategorySyncProvider>;
 }

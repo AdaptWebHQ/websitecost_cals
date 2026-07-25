@@ -1,5 +1,6 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
+import { buildPagedQuery, formatPageResult, PaginationFilters } from '@/lib/firestore-pagination';
 import type { Calculation } from '@/types';
 
 export async function getCalculations(userId?: string): Promise<Calculation[]> {
@@ -10,7 +11,7 @@ export async function getCalculations(userId?: string): Promise<Calculation[]> {
       queryRef = queryRef.where('userId', '==', userId);
     }
     
-    queryRef = queryRef.limit(100);
+    queryRef = queryRef.orderBy('createdAt', 'desc').limit(100);
     
     const snap = await queryRef.get();
     
@@ -24,15 +25,42 @@ export async function getCalculations(userId?: string): Promise<Calculation[]> {
       };
     }) as Calculation[];
 
-    // Sort in-memory to bypass composite index requirements
-    return list.sort((a, b) => {
-      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return timeB - timeA;
-    });
+    return list;
   } catch (error: unknown) {
-    // Quiet fallback
+    console.error('Error fetching calculations:', error);
     return [];
+  }
+}
+
+export async function getCalculationsPage(
+  options: { limit?: number; cursor?: string; filters?: PaginationFilters; userId?: string } = {}
+): Promise<import('@/types').CursorPageResult<Calculation>> {
+  try {
+    const collectionRef: FirebaseFirestore.CollectionReference = adminDb.collection(COLLECTIONS.CALCULATIONS);
+    const combinedFilters = { ...(options.filters || {}) } as Record<string, unknown>;
+    if (options.userId) combinedFilters.userId = options.userId;
+
+    const query = buildPagedQuery(
+      collectionRef,
+      { page: 1, limit: options.limit ?? 25, cursor: options.cursor, filters: combinedFilters },
+      'createdAt',
+      'desc'
+    );
+
+    const snap = await query.get();
+    const page = formatPageResult<Calculation>(snap.docs, options.limit ?? 25);
+
+    return {
+      ...page,
+      items: page.items.map((item) => ({
+        ...item,
+        createdAt: (item as any).createdAt?.toDate ? (item as any).createdAt.toDate() : item.createdAt,
+        updatedAt: (item as any).updatedAt?.toDate ? (item as any).updatedAt.toDate() : item.updatedAt,
+      })) as Calculation[],
+    };
+  } catch (error: unknown) {
+    console.error('Error fetching calculations page:', error);
+    return { items: [], hasMore: false };
   }
 }
 

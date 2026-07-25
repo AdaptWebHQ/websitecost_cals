@@ -4,16 +4,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { 
-  collection, 
-  query, 
-  onSnapshot, 
-  orderBy, 
-} from 'firebase/firestore';
-import { db } from '@/firebase/client';
-import { COLLECTIONS } from '@/constants';
 import type { Inquiry, InquiryActivity, InquiryStatus, LeadTemperature, User as DbUser } from '@/types';
-import { 
+import {
   updateInquiryStatusAction, 
   updateInquiryTemperatureAction, 
   deleteInquiryAction,
@@ -59,6 +51,12 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 
+interface InquiriesDashboardProps {
+  initialInquiries: any[];
+  initialNextCursor?: string;
+  initialHasMore: boolean;
+}
+
 const formatDate = (date: Date | any) => {
   if (!date) return 'N/A';
   const d = date instanceof Date ? date : new Date(date);
@@ -71,14 +69,27 @@ const formatDate = (date: Date | any) => {
   });
 };
 
-export default function InquiriesDashboard() {
+export default function InquiriesDashboard({
+  initialInquiries,
+  initialNextCursor,
+  initialHasMore,
+}: InquiriesDashboardProps) {
   const { user: currentUser } = useAuth();
   const searchParams = useSearchParams();
-  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
+  const [inquiries, setInquiries] = useState<Inquiry[]>(
+    initialInquiries.map((inq) => ({
+      ...inq,
+      createdAt: inq.createdAt ? new Date(inq.createdAt) : null,
+      updatedAt: inq.updatedAt ? new Date(inq.updatedAt) : null,
+      followUpDate: inq.followUpDate ? new Date(inq.followUpDate) : null,
+    }))
+  );
   const [activities, setActivities] = useState<InquiryActivity[]>([]);
-  const [calculations, setCalculations] = useState<any[]>([]);
+  const [selectedCalculation, setSelectedCalculation] = useState<any | null>(null);
   const [adminUsers, setAdminUsers] = useState<DbUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(initialNextCursor);
+  const [hasMore, setHasMore] = useState<boolean>(initialHasMore);
   const [selectedInquiryId, setSelectedInquiryId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [leadLoading, setLeadLoading] = useState(false);
@@ -174,8 +185,6 @@ export default function InquiriesDashboard() {
   const [budgetFilter, setBudgetFilter] = useState<string>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  // Pagination & Sorting state
-  const [visibleCount, setVisibleCount] = useState(7);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [sortField, setSortField] = useState<'companyName' | 'budget' | 'createdAt'>('createdAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
@@ -185,69 +194,63 @@ export default function InquiriesDashboard() {
   const [submittingNote, setSubmittingNote] = useState(false);
 
   useEffect(() => {
-    const inquiriesQuery = query(
-      collection(db, COLLECTIONS.INQUIRIES), 
-      orderBy('createdAt', 'desc')
-    );
-    
-    const unsubscribeInquiries = onSnapshot(inquiriesQuery, (snapshot) => {
-      const inqList: Inquiry[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        inqList.push({
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
-          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt),
-          followUpDate: data.followUpDate?.toDate ? data.followUpDate.toDate() : data.followUpDate ? new Date(data.followUpDate) : null,
-        } as Inquiry);
-      });
-      setInquiries(inqList);
-      setLoading(false);
-    }, (error) => {
-      console.error("Firestore Inquiries error:", error);
-      setLoading(false);
-    });
-
-    const activitiesQuery = query(
-      collection(db, COLLECTIONS.INQUIRY_ACTIVITIES),
-      orderBy('createdAt', 'desc')
-    );
-
-    const unsubscribeActivities = onSnapshot(activitiesQuery, (snapshot) => {
-      const actList: InquiryActivity[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        actList.push({
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt),
-        } as InquiryActivity);
-      });
-      setActivities(actList);
-    });
-
-    const calculationsQuery = query(
-      collection(db, COLLECTIONS.CALCULATIONS)
-    );
-
-    const unsubscribeCalculations = onSnapshot(calculationsQuery, (snapshot) => {
-      const calcList: any[] = [];
-      snapshot.forEach((doc) => {
-        calcList.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      setCalculations(calcList);
-    });
-
-    return () => {
-      unsubscribeInquiries();
-      unsubscribeActivities();
-      unsubscribeCalculations();
-    };
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (!selectedInquiry?.calculationId) {
+      setSelectedCalculation(null);
+      return;
+    }
+
+    const fetchCalculation = async () => {
+      try {
+        const response = await fetch(`/api/admin/calculations/${selectedInquiry.calculationId}`, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error('Failed to load linked calculation');
+        }
+        const data = await response.json();
+        setSelectedCalculation(data);
+      } catch (error) {
+        console.error('Error loading linked calculation:', error);
+        setSelectedCalculation(null);
+      }
+    };
+
+    fetchCalculation();
+  }, [selectedInquiry?.calculationId]);
+
+  const fetchMoreInquiries = async () => {
+    if (!nextCursor || !hasMore) return;
+    setIsLoadingMore(true);
+
+    try {
+      const response = await fetch(
+        `/api/admin/inquiries?limit=25&cursor=${encodeURIComponent(nextCursor)}`,
+        { cache: 'no-store' }
+      );
+      if (!response.ok) {
+        throw new Error('Unable to load more inquiries');
+      }
+
+      const page = await response.json();
+      setInquiries((prev) => [
+        ...prev,
+        ...(page.items || []).map((item: any) => ({
+          ...item,
+          createdAt: item.createdAt ? new Date(item.createdAt) : null,
+          updatedAt: item.updatedAt ? new Date(item.updatedAt) : null,
+          followUpDate: item.followUpDate ? new Date(item.followUpDate) : null,
+        })),
+      ]);
+      setNextCursor(page.nextCursor);
+      setHasMore(page.hasMore ?? false);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const handleRefresh = () => {
     setLoading(true);
@@ -386,24 +389,7 @@ export default function InquiriesDashboard() {
       });
   }, [inquiries, searchTerm, tempFilter, statusFilter, budgetFilter, startDate, endDate, sortField, sortDirection]);
 
-  const visibleInquiries = useMemo(() => {
-    return filteredInquiries.slice(0, visibleCount);
-  }, [filteredInquiries, visibleCount]);
-
-  const handleLoadMore = () => {
-    setIsLoadingMore(true);
-    setTimeout(() => {
-      setVisibleCount((prev) => prev + 7);
-      setIsLoadingMore(false);
-    }, 400);
-  };
-
-  const [prevFilterKeys, setPrevFilterKeys] = useState('');
-  const currentFilterKeys = `${searchTerm}-${tempFilter}-${statusFilter}-${budgetFilter}-${startDate}-${endDate}`;
-  if (currentFilterKeys !== prevFilterKeys) {
-    setPrevFilterKeys(currentFilterKeys);
-    setVisibleCount(7);
-  }
+  const visibleInquiries = useMemo(() => filteredInquiries, [filteredInquiries]);
 
   const kpiData = useMemo(() => {
     const total = inquiries.length;
@@ -424,8 +410,10 @@ export default function InquiriesDashboard() {
 
   const linkedCalculation = useMemo(() => {
     if (!selectedInquiry || !selectedInquiry.calculationId) return null;
-    return calculations.find(c => c.id === selectedInquiry.calculationId);
-  }, [selectedInquiry, calculations]);
+    return selectedCalculation?.id === selectedInquiry.calculationId
+      ? selectedCalculation
+      : null;
+  }, [selectedInquiry, selectedCalculation]);
 
   const requestSort = (field: 'companyName' | 'budget' | 'createdAt') => {
     if (sortField === field) {
@@ -938,24 +926,14 @@ export default function InquiriesDashboard() {
                     </td>
 
                     <td className="px-6 py-4.5">
-                      {(() => {
-                        const calc = inq.calculationId ? calculations.find(c => c.id === inq.calculationId) : null;
-                        return (
-                          <div className="flex flex-col">
-                            <span className="font-semibold">{inq.budget}</span>
-                            {calc && (
-                              <div className="mt-1 flex flex-col gap-0.5">
-                                <span className="text-[10px] text-cyan-500 font-bold block truncate max-w-[150px]">
-                                  {calc.packageName}
-                                </span>
-                                <span className="text-[10px] text-emerald-500 font-extrabold block">
-                                  {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(calc.total)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{inq.budget}</span>
+                        {inq.calculationId && (
+                          <span className="text-[10px] text-muted-foreground mt-1 truncate max-w-[150px]">
+                            Linked estimate: {inq.calculationId}
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="px-6 py-4.5">
@@ -1049,13 +1027,10 @@ export default function InquiriesDashboard() {
         )}
 
         {/* Load More Controls */}
-        {!loading && filteredInquiries.length > visibleCount && (
+        {!loading && hasMore && (
           <div className="flex flex-col items-center gap-2 pt-4 border-t border-border/40">
-            <p className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase">
-              Showing {Math.min(visibleCount, filteredInquiries.length)} of {filteredInquiries.length} Inquiries
-            </p>
             <button
-              onClick={handleLoadMore}
+              onClick={fetchMoreInquiries}
               disabled={isLoadingMore}
               className="flex items-center gap-1.5 bg-primary hover:bg-primary/95 text-white font-bold rounded-xl px-6 py-2.5 shadow-md cursor-pointer text-xs disabled:opacity-50 min-w-44 justify-center"
             >
@@ -1064,7 +1039,7 @@ export default function InquiriesDashboard() {
               ) : (
                 <ChevronDown className="w-3.5 h-3.5" />
               )}
-              {isLoadingMore ? 'Syncing...' : `Load More (+7)`}
+              {isLoadingMore ? 'Loading...' : 'Load More Inquiries'}
             </button>
           </div>
         )}

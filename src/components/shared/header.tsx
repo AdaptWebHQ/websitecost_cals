@@ -2,21 +2,21 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
   DropdownMenuGroup,
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, Search, User, Settings, ShieldAlert, Sun, Moon, Menu } from 'lucide-react';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { LogOut, Settings, ShieldAlert, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { capitalize } from '@/lib/utils';
 import { useTitleStore } from '@/store/title-store';
 import { useTheme } from '@/context/theme-context';
-import { useSidebarStore } from '@/store/sidebar-store';
 
 export default function Header() {
   const pathname = usePathname();
@@ -24,7 +24,6 @@ export default function Header() {
   const { user, logout } = useAuth();
   const { title } = useTitleStore();
   const { theme, toggleTheme } = useTheme();
-  const { toggle: toggleSidebar } = useSidebarStore();
 
   // Derive title from URL pathname
   const segments = pathname.split('/').filter(Boolean);
@@ -39,18 +38,11 @@ export default function Header() {
   };
 
   return (
-    <header className="h-16 border-b border-sidebar-border bg-sidebar px-6 flex items-center justify-between z-10 flex-shrink-0">
+    <header className="h-16 border-b border-sidebar-border bg-sidebar px-6 flex items-center justify-between z-10 shrink-0">
       
       {/* Title & Mobile Hamburger Trigger */}
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          aria-label="Toggle navigation menu"
-          className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg md:hidden cursor-pointer transition-colors"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
+        <SidebarTrigger className="p-1.5 hover:bg-muted text-muted-foreground hover:text-foreground rounded-lg md:hidden cursor-pointer transition-colors" />
         <h2 className="text-lg font-bold text-sidebar-foreground tracking-wide">{displayTitle}</h2>
       </div>
 

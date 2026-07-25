@@ -133,6 +133,8 @@ export async function getAdminUsersAction(): Promise<ApiResponse<User[]>> {
       .collection(COLLECTIONS.USERS)
       .where('role', 'in', ['admin', 'super_admin'])
       .where('isActive', '==', true)
+      .orderBy('createdAt', 'desc')
+      .limit(50)
       .get();
 
     const users: User[] = [];

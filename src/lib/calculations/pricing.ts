@@ -29,6 +29,19 @@ export function calculateQuotation(
   priceConfig: PriceConfig,
   customFeatures: { id: string; name: string; price: number }[] = []
 ): QuotationResult {
+  if (!selectedPackage) {
+    return {
+      basePrice: 0,
+      featuresPrice: 0,
+      subtotal: 0,
+      rushMarkup: 0,
+      netTotal: 0,
+      gstAmount: 0,
+      total: 0,
+      selectedFeatures: [],
+    };
+  }
+
   const basePrice = selectedPackage.basePrice;
   let featuresPrice = 0;
 

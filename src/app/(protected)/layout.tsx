@@ -1,53 +1,41 @@
-'use client';
+import { redirect } from "next/navigation";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/auth-context';
-import Sidebar from '@/components/shared/sidebar';
-import Header from '@/components/shared/header';
+import { getServerUser } from "@/actions/auth";
 
-export default function DashboardLayout({
+import AppSidebar from "@/components/shared/sidebar";
+import Header from "@/components/shared/header";
+
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
+
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const user = await getServerUser();
 
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.replace('/login');
-    }
-  }, [user, isLoading, router]);
-
-  if (isLoading || !user) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-background text-muted-foreground font-sans">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-          <p className="text-sm font-medium tracking-wide">Securing session...</p>
-        </div>
-      </div>
-    );
+  if (!user) {
+    redirect("/login");
   }
 
   return (
-    <div className="h-screen flex bg-background text-foreground overflow-hidden font-sans">
-      {/* Sidebar Navigation */}
-      <Sidebar />
+    <SidebarProvider>
+      <AppSidebar user={user} />
 
-      {/* Main Section */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {/* Header Navigation */}
-        <Header />
+      <SidebarInset>
+        <div className="flex h-screen flex-col overflow-hidden bg-background text-foreground font-sans">
+          <Header />
 
-        {/* Dashboard Content Container */}
-        <main className="flex-1 overflow-y-auto bg-background p-4 md:p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
+          <main className="flex-1 overflow-y-auto bg-background p-4 md:p-8">
+            <div className="mx-auto max-w-7xl space-y-6">
+              {children}
+            </div>
+          </main>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

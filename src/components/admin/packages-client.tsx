@@ -1,47 +1,70 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useTransition, useMemo, useCallback } from 'react';
 import { toast } from 'sonner';
-import DataTable from '@/components/shared/data-table';
-import { Button } from '@/components/ui/button';
-import { TableRow, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { formatCurrency, cn } from '@/lib/utils';
-import { PlusCircle, Edit, Trash, Loader2, Search } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
+import { Plus, Pencil, Trash2, Loader2, Search, GripVertical, ToggleLeft, ToggleRight, Check, Package as PackageIcon } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
+import type { ServiceCategory, Package, PackageFeatureCategory, PackageFeature, ServiceType } from '@/types';
 import {
   createPackageAction,
   updatePackageAction,
   deletePackageAction,
+  togglePackageActiveAction,
+  getPackagesAction,
+  reorderPackagesAction,
+  getPackageStatsAction,
 } from '@/actions/packages';
+import { getPackageFeatureCategoriesAction } from '@/actions/package-feature-categories';
+import { getPackageFeaturesAction } from '@/actions/package-features';
+import { getServiceTypesAction } from '@/actions/service-types';
+import { useAdminCategoryStore } from '@/store/admin-category-store';
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
-  getPackageFeatureCategoriesAction,
-  getPackageFeaturesAction,
-} from '@/actions/package-features-library/index';
-import type { Package, PackageFeatureCategory, PackageFeature } from '@/types';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import AdminCategoryHeader from './admin-category-header';
+import { slugify } from '@/lib/utils';
 
 interface PackagesClientPageProps {
+  categories: ServiceCategory[];
+  initialCategoryId: string;
+  initialServiceTypes: ServiceType[];
+  initialServiceTypeId: string;
   initialPackages: Package[];
 }
 
 export default function PackagesClientPage({
+  categories: initialCategoriesData,
+  initialCategoryId,
+  initialServiceTypes,
+  initialServiceTypeId,
   initialPackages,
 }: PackagesClientPageProps) {
-  const [packages, setPackages] = useState<Package[]>(initialPackages);
+  const { selectedCategoryId, categories } = useAdminCategoryStore();
+  const [packages, setPackages] = useState<Package[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>(initialServiceTypes);
+  const [selectedServiceTypeId, setSelectedServiceTypeId] = useState<string>(initialServiceTypeId);
+  const [packageStats, setPackageStats] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPackage, setEditingPackage] = useState<Package | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   // Form Fields for Package
   const [name, setName] = useState('');
@@ -53,6 +76,7 @@ export default function PackagesClientPage({
   const [revisions, setRevisions] = useState(3);
   const [isPopular, setIsPopular] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [formServiceTypeId, setFormServiceTypeId] = useState('');
 
   // Centralized package features checklist selection state
   const [includedFeatureIds, setIncludedFeatureIds] = useState<string[]>([]);
@@ -62,17 +86,22 @@ export default function PackagesClientPage({
   const [globalFeatures, setGlobalFeatures] = useState<PackageFeature[]>([]);
   const [isLoadingGlobal, setIsLoadingGlobal] = useState(true);
 
-  const loadGlobalFeatures = useCallback(async () => {
+  const loadGlobalFeatures = useCallback(async (catId: string) => {
+    setIsLoadingGlobal(true);
     try {
       const [catsRes, featsRes] = await Promise.all([
-        getPackageFeatureCategoriesAction(true), // only active
-        getPackageFeaturesAction(undefined, true), // only active
+        getPackageFeatureCategoriesAction(catId, true), // only active
+        getPackageFeaturesAction(catId, true), // only active
       ]);
       if (catsRes.success && catsRes.data) {
         setGlobalCategories(catsRes.data.sort((a, b) => a.displayOrder - b.displayOrder));
+      } else {
+        setGlobalCategories([]);
       }
       if (featsRes.success && featsRes.data) {
         setGlobalFeatures(featsRes.data.sort((a, b) => a.displayOrder - b.displayOrder));
+      } else {
+        setGlobalFeatures([]);
       }
     } catch (err) {
       console.error('Failed to load global features:', err);
@@ -81,494 +110,615 @@ export default function PackagesClientPage({
     }
   }, []);
 
-  // Load global feature catalog on mount
-  useEffect(() => {
-    setTimeout(() => {
-      loadGlobalFeatures();
-    }, 0);
-  }, [loadGlobalFeatures]);
+  const loadPackageStats = useCallback(async (catId: string) => {
+    try {
+      const res = await getPackageStatsAction(catId);
+      if (res.success && res.data) {
+        setPackageStats(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to load package stats:', err);
+    }
+  }, []);
 
-  const openAddModal = useCallback(() => {
+  // Reload service types on category change
+  useEffect(() => {
+    if (!selectedCategoryId) {
+      setServiceTypes([]);
+      setSelectedServiceTypeId('');
+      return;
+    }
+    startTransition(async () => {
+      const typesRes = await getServiceTypesAction(selectedCategoryId!, true);
+      if (typesRes.success && typesRes.data) {
+        setServiceTypes(typesRes.data);
+        if (typesRes.data.length > 0) {
+          setSelectedServiceTypeId(typesRes.data[0].id);
+        } else {
+          setSelectedServiceTypeId('');
+        }
+      } else {
+        setServiceTypes([]);
+        setSelectedServiceTypeId('');
+      }
+      await loadGlobalFeatures(selectedCategoryId!);
+      await loadPackageStats(selectedCategoryId!);
+    });
+  }, [selectedCategoryId, loadGlobalFeatures, loadPackageStats]);
+
+  // Reload packages when service type changes
+  useEffect(() => {
+    if (!selectedCategoryId || !selectedServiceTypeId) {
+      setPackages([]);
+      return;
+    }
+    startTransition(async () => {
+      const res = await getPackagesAction(selectedCategoryId!, selectedServiceTypeId);
+      if (res.success && res.data) {
+        setPackages(res.data.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)));
+      } else {
+        setPackages([]);
+      }
+    });
+  }, [selectedCategoryId, selectedServiceTypeId]);
+
+  const openCreateModal = (defaultServiceTypeId?: string) => {
+    if (!selectedCategoryId) {
+      toast.error('Select a service category first.');
+      return;
+    }
     setEditingPackage(null);
     setName('');
     setDescription('');
-    setBasePrice(15000);
-    setDeliveryDays(7);
+    setBasePrice(0);
+    setDeliveryDays(14);
     setPagesIncluded(5);
     setPageLimitType('custom');
     setRevisions(3);
     setIsPopular(false);
     setIsActive(true);
     setIncludedFeatureIds([]);
+    setFormServiceTypeId(defaultServiceTypeId || selectedServiceTypeId || (serviceTypes[0]?.id || ''));
     setErrorMsg(null);
     setIsModalOpen(true);
-  }, []);
+  };
 
-  const openEditModal = useCallback((pkg: Package) => {
+  const openEditModal = (pkg: Package) => {
     setEditingPackage(pkg);
     setName(pkg.name);
-    setDescription(pkg.description);
+    setDescription(pkg.description || '');
     setBasePrice(pkg.basePrice);
-    setDeliveryDays(pkg.deliveryDays);
-    setPagesIncluded(pkg.pagesIncluded);
+    setDeliveryDays(pkg.deliveryDays || 14);
+    setPagesIncluded(pkg.pagesIncluded === -1 ? 0 : pkg.pagesIncluded || 5);
     setPageLimitType(pkg.pagesIncluded === -1 ? 'unlimited' : 'custom');
-    setRevisions(pkg.revisions);
-    setIsPopular(pkg.isPopular);
+    setRevisions(pkg.revisions || 3);
+    setIsPopular(pkg.isPopular || false);
     setIsActive(pkg.isActive);
     setIncludedFeatureIds(pkg.includedFeatureIds || []);
+    setFormServiceTypeId(pkg.serviceTypeId || '');
     setErrorMsg(null);
     setIsModalOpen(true);
-  }, []);
+  };
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    const newStatus = !currentStatus;
+    startTransition(async () => {
+      const response = await togglePackageActiveAction(id, newStatus);
+      if (response.success) {
+        setPackages(prev => prev.map(p => p.id === id ? { ...p, isActive: newStatus } : p));
+        await loadPackageStats(selectedCategoryId!);
+        toast.success('Package status updated.');
+      } else {
+        toast.error(response.error || 'Failed to update status.');
+      }
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    toast('Delete this package?', {
+      description: 'This action cannot be undone and will fail if the package is referenced in active calculations.',
+      action: {
+        label: 'Delete',
+        onClick: () => {
+          startTransition(async () => {
+            const response = await deletePackageAction(id);
+            if (response.success) {
+              setPackages(prev => prev.filter(p => p.id !== id));
+              await loadPackageStats(selectedCategoryId!);
+              toast.success('Package deleted successfully.');
+            } else {
+              toast.error(response.error || 'Failed to delete package.');
+            }
+          });
+        },
+      },
+    });
+  };
+
+  const handleReorder = (orderedIds: string[]) => {
+    const sorted = [...packages].sort((a, b) => {
+      const aIdx = orderedIds.indexOf(a.id);
+      const bIdx = orderedIds.indexOf(b.id);
+      return aIdx - bIdx;
+    }).map((item, idx) => ({ ...item, sortOrder: idx + 1 }));
+
+    setPackages(sorted);
+
+    startTransition(async () => {
+      const res = await reorderPackagesAction(orderedIds);
+      if (res.success) {
+        toast.success('Sort order saved.');
+      } else {
+        toast.error(res.error || 'Failed to save sort order.');
+      }
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
-
-    const trimmedName = name.trim();
-    const trimmedDescription = description.trim();
-
-    if (!trimmedName || !trimmedDescription) {
-      setErrorMsg('Package name and description are required.');
+    if (!name.trim()) {
+      setErrorMsg('Package name is required.');
+      return;
+    }
+    if (!selectedCategoryId) return;
+    if (!formServiceTypeId) {
+      setErrorMsg('Service Type is required.');
       return;
     }
 
     setIsSubmitting(true);
     setErrorMsg(null);
 
-    const finalPages = pageLimitType === 'unlimited' ? -1 : pagesIncluded;
-    const formData = {
-      name: trimmedName,
-      description: trimmedDescription,
-      basePrice,
-      deliveryDays,
-      pagesIncluded: finalPages,
-      revisions,
+    const payload = {
+      serviceCategoryId: selectedCategoryId!,
+      serviceTypeId: formServiceTypeId,
+      name: name.trim(),
+      description: description.trim(),
+      basePrice: Number(basePrice),
+      deliveryDays: Number(deliveryDays),
+      pagesIncluded: pageLimitType === 'unlimited' ? -1 : Number(pagesIncluded),
+      revisions: Number(revisions),
       isPopular,
       isActive,
       includedFeatureIds,
-      sortOrder: editingPackage ? editingPackage.sortOrder : packages.length,
+      sortOrder: editingPackage ? editingPackage.sortOrder || 0 : packages.length + 1,
     };
 
     try {
       if (editingPackage) {
-        const res = await updatePackageAction(editingPackage.id, formData);
+        const res = await updatePackageAction(editingPackage.id, payload);
         if (res.success && res.data) {
-          setPackages((prev) =>
-            prev.map((p) => (p.id === editingPackage.id ? res.data! : p))
-          );
+          if (formServiceTypeId !== selectedServiceTypeId) {
+            setPackages(prev => prev.filter(p => p.id !== editingPackage.id));
+          } else {
+            setPackages(prev => prev.map(p => p.id === editingPackage.id ? res.data! : p).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)));
+          }
+          await loadPackageStats(selectedCategoryId!);
+          toast.success('Package updated successfully.');
           setIsModalOpen(false);
         } else {
           setErrorMsg(res.error || 'Failed to update package.');
         }
       } else {
-        const res = await createPackageAction(formData);
+        const res = await createPackageAction(payload);
         if (res.success && res.data) {
-          setPackages((prev) => [...prev, res.data!]);
+          if (formServiceTypeId === selectedServiceTypeId) {
+            setPackages(prev => [...prev, res.data!].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)));
+          }
+          await loadPackageStats(selectedCategoryId!);
+          toast.success('Package created successfully.');
           setIsModalOpen(false);
         } else {
           setErrorMsg(res.error || 'Failed to create package.');
         }
       }
-    } catch (err) {
-      console.error('Error saving package:', err);
-      setErrorMsg('An unexpected error occurred while saving the package.');
+    } catch (err: any) {
+      setErrorMsg(err.message || 'An error occurred.');
     } finally {
       setIsSubmitting(false);
     }
-  }, [
-    isSubmitting,
-    name,
-    description,
-    basePrice,
-    deliveryDays,
-    pagesIncluded,
-    revisions,
-    isPopular,
-    isActive,
-    includedFeatureIds,
-    editingPackage,
-    packages.length,
-  ]);
+  };
 
-  const handleDeletePackage = useCallback(async (id: string) => {
-    toast('Delete this package?', {
-      description: 'This action cannot be undone.',
-      action: {
-        label: 'Delete',
-        onClick: async () => {
-          try {
-            const res = await deletePackageAction(id);
-            if (res.success) {
-              setPackages((prev) => prev.filter((p) => p.id !== id));
-              toast.success('Package deleted successfully.');
-            } else {
-              toast.error(res.error || 'Failed to delete package.');
-            }
-          } catch (err) {
-            console.error('Error deleting package:', err);
-            toast.error('Failed to delete package.');
-          }
-        },
-      },
-      cancel: { label: 'Cancel', onClick: () => {} },
-    });
-  }, []);
-
-  const columns = [
-    { key: 'name', label: 'Package Name' },
-    { key: 'basePrice', label: 'Base Price' },
-    { key: 'delivery', label: 'Delivery' },
-    { key: 'pages', label: 'Pages Included' },
-    { key: 'status', label: 'Status' },
-    { key: 'actions', label: 'Actions', className: 'text-right py-4 pr-6' },
-  ];
-
-  const filteredPackages = packages.filter((pkg) => {
-    const search = searchTerm.toLowerCase();
-    return (
-      pkg.name?.toLowerCase().includes(search) ||
-      pkg.description?.toLowerCase().includes(search)
+  const handleFeatureToggle = (featureId: string) => {
+    setIncludedFeatureIds(prev =>
+      prev.includes(featureId) ? prev.filter(id => id !== featureId) : [...prev, featureId]
     );
-  });
+  };
+
+  const filteredPackages = useMemo(() => {
+    return packages.filter((pkg) => {
+      const search = searchTerm.toLowerCase();
+      return (
+        pkg.name.toLowerCase().includes(search) ||
+        (pkg.description || '').toLowerCase().includes(search)
+      );
+    });
+  }, [packages, searchTerm]);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Quotation Packages</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage your pricing tiers (Starter, Business, Premium, etc.) shown to calculator users.
-          </p>
+      {/* Category Header */}
+      <AdminCategoryHeader />
+
+      {/* Service Type tabs selector */}
+      {serviceTypes.length > 0 && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-border">
+          {serviceTypes.map((type) => (
+            <button
+              key={type.id}
+              onClick={() => setSelectedServiceTypeId(type.id)}
+              className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all whitespace-nowrap cursor-pointer ${
+                selectedServiceTypeId === type.id
+                  ? 'bg-primary text-white border-primary shadow-sm'
+                  : 'bg-card text-muted-foreground border-border hover:border-muted-foreground/30 hover:text-foreground'
+              }`}
+            >
+              {type.name}
+              {packageStats[type.id] !== undefined && (
+                <Badge className="ml-2 bg-primary-foreground/20 text-white border-none text-[10px] py-0 px-1.5 font-bold">
+                  {packageStats[type.id]}
+                </Badge>
+              )}
+            </button>
+          ))}
         </div>
-        <Button
-          onClick={openAddModal}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white gap-2 rounded-xl h-11 px-5"
-        >
-          <PlusCircle className="w-5 h-5" />
+      )}
+
+      {/* Selected Service Type header & section */}
+      {selectedServiceTypeId && (
+        <div className="p-4 border border-border bg-card rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-bold text-foreground">
+              {serviceTypes.find((t) => t.id === selectedServiceTypeId)?.name}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              {serviceTypes.find((t) => t.id === selectedServiceTypeId)?.description || 'Configure baseline pricing options for this service type.'}
+            </p>
+          </div>
+          <Button onClick={() => openCreateModal(selectedServiceTypeId)} className="gap-2 rounded-xl h-9 px-4 text-xs self-start md:self-auto">
+            <Plus className="w-3.5 h-3.5" />
+            Add Package to {serviceTypes.find((t) => t.id === selectedServiceTypeId)?.name}
+          </Button>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border border-border rounded-2xl bg-card">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search package name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full h-10 bg-background border border-border rounded-xl pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 transition-colors"
+          />
+        </div>
+        <Button onClick={() => openCreateModal()} className="gap-2 rounded-xl h-10 px-5">
+          <Plus className="w-4 h-4" />
           Add Package
         </Button>
       </div>
 
-      {/* Search Filter */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Search package name or description..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full h-10 bg-background border border-border rounded-xl pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-indigo-500/50 transition-colors"
-        />
-      </div>
+      {isPending && (
+        <div className="flex items-center justify-center p-12">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <span className="ml-3 text-muted-foreground">Loading packages...</span>
+        </div>
+      )}
 
-      {/* Listing table */}
-      <DataTable
-        columns={columns}
-        data={filteredPackages}
-        emptyMessage={searchTerm ? "No packages match your search criteria." : "No packages configured yet. Use the button above to add one."}
-        renderRow={(pkg) => (
-          <TableRow key={pkg.id} className="hover:bg-muted/40 border-border transition-colors">
-            <TableCell className="font-semibold text-foreground py-4 pl-6">
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">{pkg.name}</span>
-                <span className="text-xs text-muted-foreground font-normal mt-0.5 max-w-sm truncate">
-                  {pkg.description}
-                </span>
-              </div>
-            </TableCell>
-            <TableCell className="text-muted-foreground font-medium text-xs">{formatCurrency(pkg.basePrice)}</TableCell>
-            <TableCell className="text-muted-foreground text-xs">{pkg.deliveryDays} Days</TableCell>
-            <TableCell className="text-muted-foreground text-xs">
-              {pkg.pagesIncluded === -1 ? 'Unlimited Pages' : `${pkg.pagesIncluded} Pages`}
-            </TableCell>
-            <TableCell>
-              {pkg.isActive ? (
-                <Badge className="bg-emerald-500/5 text-emerald-400 border border-emerald-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 inline-block"></span>
-                  Active
-                </Badge>
-              ) : (
-                <Badge className="bg-slate-500/5 text-slate-400 border border-slate-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 inline-block"></span>
-                  Inactive
-                </Badge>
-              )}
-              {pkg.isPopular && (
-                <Badge className="ml-2 bg-indigo-500/5 text-indigo-400 border border-indigo-500/10 rounded-full text-[10px] px-2.5 py-0.5 font-medium hover:bg-transparent">
-                  Popular
-                </Badge>
-              )}
-            </TableCell>
-            <TableCell className="text-right py-4 pr-6">
-              <div className="flex items-center justify-end gap-2">
-                <Button
-                  onClick={() => openEditModal(pkg)}
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-foreground rounded-lg"
-                  aria-label="Edit package"
+      {/* Table view */}
+      {!isPending && packages.length > 0 && (
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <Table>
+            <TableHeader className="bg-muted/40">
+              <TableRow className="border-b border-border">
+                <TableHead className="w-8"></TableHead>
+                <TableHead className="w-12 text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4">#</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4">Package Name</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4">Service Type</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4">Price</TableHead>
+                <TableHead className="text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4">Status</TableHead>
+                <TableHead className="w-32 text-muted-foreground font-semibold text-xs tracking-wider uppercase py-4">Created Date</TableHead>
+                <TableHead className="w-24"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredPackages.map((pkg, index) => (
+                <TableRow
+                  key={pkg.id}
+                  draggable
+                  onDragStart={(e) => {
+                    setDraggedIndex(index);
+                    e.dataTransfer.effectAllowed = 'move';
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (draggedIndex === null || draggedIndex === index) return;
+                    const updated = [...packages];
+                    const [moved] = updated.splice(draggedIndex, 1);
+                    updated.splice(index, 0, moved);
+                    handleReorder(updated.map((s) => s.id));
+                    setDraggedIndex(null);
+                  }}
+                  className="hover:bg-muted/40 border-b border-border transition-colors cursor-grab active:cursor-grabbing"
                 >
-                  <Edit className="w-4 h-4" />
-                </Button>
-                <Button
-                  onClick={() => handleDeletePackage(pkg.id)}
-                  variant="ghost"
-                  size="icon"
-                  className="text-red-400 hover:text-red-300 rounded-lg"
-                  aria-label="Delete package"
-                >
-                  <Trash className="w-4 h-4" />
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-        )}
-      />
+                  <TableCell className="text-muted-foreground p-3">
+                    <GripVertical className="w-4 h-4" />
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground py-3">{pkg.sortOrder || index + 1}</TableCell>
+                  <TableCell className="py-3">
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-foreground text-sm">{pkg.name}</span>
+                        {pkg.isPopular && (
+                          <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/30 text-[10px] py-0 px-1.5 font-bold">POPULAR</Badge>
+                        )}
+                      </div>
+                      {pkg.description && (
+                        <span className="text-xs text-muted-foreground truncate max-w-md">{pkg.description}</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground py-3">
+                    {serviceTypes.find(t => t.id === pkg.serviceTypeId)?.name || 'N/A'}
+                  </TableCell>
+                  <TableCell className="text-sm font-semibold text-foreground py-3">
+                    ₹{pkg.basePrice.toLocaleString()}
+                  </TableCell>
+                  <TableCell className="py-3">
+                    <button
+                      onClick={() => handleToggleActive(pkg.id, pkg.isActive)}
+                      className="text-slate-400 hover:text-white transition-colors cursor-pointer mr-2"
+                      title={pkg.isActive ? 'Deactivate' : 'Activate'}
+                      disabled={isPending}
+                    >
+                      {pkg.isActive ? (
+                        <ToggleRight className="w-8 h-8 text-emerald-400" />
+                      ) : (
+                        <ToggleLeft className="w-8 h-8 text-slate-500" />
+                      )}
+                    </button>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground py-3">
+                    {pkg.createdAt ? new Date(pkg.createdAt).toLocaleDateString() : 'N/A'}
+                  </TableCell>
+                  <TableCell className="py-3 text-right pr-6">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => openEditModal(pkg)} disabled={isPending} className="w-8 h-8">
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="text-destructive w-8 h-8" onClick={() => handleDelete(pkg.id)} disabled={isPending}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
-      {/* Package Dialog */}
+      {/* Empty State Banner */}
+      {!isPending && packages.length === 0 && (
+        <div className="flex flex-col items-center justify-center p-12 border border-dashed border-border rounded-2xl bg-card space-y-4">
+          <div className="p-4 bg-primary/10 rounded-full text-primary">
+            <PackageIcon className="w-10 h-10" />
+          </div>
+          <div className="text-center space-y-1">
+            <h3 className="text-base font-bold">No packages found</h3>
+            <p className="text-sm text-muted-foreground max-w-sm">
+              No packages found for this Service Type. Start by creating a package offering.
+            </p>
+          </div>
+          <Button onClick={() => openCreateModal()} className="rounded-xl h-10 px-5">
+            Create Package
+          </Button>
+        </div>
+      )}
+
+      {/* dialog for add / edit */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-popover border border-border shadow-2xl rounded-2xl w-full sm:max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative text-popover-foreground">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-bold text-foreground">
-              {editingPackage ? 'Edit Quotation Package' : 'Create Quotation Package'}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <DialogContent className="sm:max-w-[700px] border-border bg-popover text-popover-foreground rounded-2xl max-h-[85vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold text-foreground">
+                {editingPackage ? 'Edit Package Offering' : 'Create Package Offering'}
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground text-sm">
+                Configure baseline pricing configurations, revisions limits, delivery periods and checked features list.
+              </DialogDescription>
+            </DialogHeader>
+
             {errorMsg && (
-              <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-lg">
+              <div className="p-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive rounded-xl">
                 {errorMsg}
-              </p>
+              </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-              {/* Left Column: Package Details (Col-span 3) */}
-              <div className="lg:col-span-3 space-y-4">
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Package Name</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="pkg-name">Package Name</Label>
                   <Input
-                    required
+                    id="pkg-name"
+                    placeholder="e.g. Starter Package"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Basic Brochure"
-                    className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
+                    className="bg-background border-border rounded-xl"
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Description</Label>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="pkg-service-type">Service Type</Label>
+                  <select
+                    id="pkg-service-type"
+                    value={formServiceTypeId}
+                    onChange={(e) => setFormServiceTypeId(e.target.value)}
+                    className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary/50 text-foreground"
+                  >
+                    <option value="" disabled>Select Service Type</option>
+                    {serviceTypes.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="pkg-desc">Description</Label>
                   <Textarea
-                    required
-                    rows={3}
+                    id="pkg-desc"
+                    placeholder="Brief package summary..."
+                    className="resize-none h-24 bg-background border-border rounded-xl"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Summarize target audience and main values..."
-                    className="bg-background border-border text-foreground rounded-xl resize-none"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Base Price (INR)</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="pkg-price">Base Price (₹)</Label>
                     <Input
-                      required
+                      id="pkg-price"
                       type="number"
-                      min="0"
-                      step="1"
                       value={basePrice}
                       onChange={(e) => setBasePrice(Number(e.target.value))}
-                      className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
+                      className="bg-background border-border rounded-xl"
                     />
                   </div>
-                  <div className="space-y-1 flex flex-col justify-end pb-1">
-                    <Label className="text-muted-foreground text-xs mb-1">Page Limit Mode</Label>
-                    <div className="flex gap-4 items-center h-10">
-                      <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none">
-                        <input
-                          type="radio"
-                          name="pageLimitType"
-                          value="custom"
-                          checked={pageLimitType === 'custom'}
-                          onChange={() => {
-                            setPageLimitType('custom');
-                            if (pagesIncluded === -1) setPagesIncluded(5);
-                          }}
-                          className="w-3.5 h-3.5 text-indigo-600 border-border focus:ring-indigo-500/50 bg-background accent-indigo-600"
-                        />
-                        <span>Custom Number</span>
-                      </label>
-                      <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer select-none">
-                        <input
-                          type="radio"
-                          name="pageLimitType"
-                          value="unlimited"
-                          checked={pageLimitType === 'unlimited'}
-                          onChange={() => {
-                            setPageLimitType('unlimited');
-                            setPagesIncluded(-1);
-                          }}
-                          className="w-3.5 h-3.5 text-indigo-600 border-border focus:ring-indigo-500/50 bg-background accent-indigo-600"
-                        />
-                        <span>Unlimited Pages</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
 
-                {pageLimitType === 'custom' && (
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Pages Included</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="pkg-delivery">Delivery Days</Label>
                     <Input
-                      required
+                      id="pkg-delivery"
                       type="number"
-                      min="1"
-                      step="1"
-                      value={pagesIncluded === -1 ? 5 : pagesIncluded}
-                      onChange={(e) => setPagesIncluded(Number(e.target.value))}
-                      className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
-                    />
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Delivery (Days)</Label>
-                    <Input
-                      required
-                      type="number"
-                      min="1"
-                      step="1"
                       value={deliveryDays}
                       onChange={(e) => setDeliveryDays(Number(e.target.value))}
-                      className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Revisions Allowed</Label>
-                    <Input
-                      required
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={revisions}
-                      onChange={(e) => setRevisions(Number(e.target.value))}
-                      className="bg-background border-border text-foreground rounded-xl h-10 text-sm"
+                      className="bg-background border-border rounded-xl"
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-6 pt-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="isPopular"
-                      checked={isPopular}
-                      onCheckedChange={(checked) => setIsPopular(!!checked)}
-                    />
-                    <Label htmlFor="isPopular" className="text-sm font-medium text-foreground cursor-pointer select-none">
-                      Mark as Popular
-                    </Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="page-limit-type">Pages Limit Type</Label>
+                    <select
+                      id="page-limit-type"
+                      value={pageLimitType}
+                      onChange={(e: any) => setPageLimitType(e.target.value)}
+                      className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary/50 text-foreground"
+                    >
+                      <option value="custom">Fixed Count</option>
+                      <option value="unlimited">Unlimited / Dynamic</option>
+                    </select>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="isActive"
-                      checked={isActive}
-                      onCheckedChange={(checked) => setIsActive(!!checked)}
-                    />
-                    <Label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer select-none">
-                      Active Listing
-                    </Label>
-                  </div>
-                </div>
-              </div>
 
-              {/* Right Column: In-Built Features Checklist */}
-              <div className="lg:col-span-2 flex flex-col space-y-4">
-                <div>
-                  <Label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                    Included Features
-                  </Label>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    Select in-built features from the central library to include in this package tier.
-                  </p>
-                </div>
-
-                <div className="flex-1 bg-background border border-border rounded-xl p-4 space-y-4 max-h-[340px] overflow-y-auto scrollbar-thin">
-                  {isLoadingGlobal ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
-                    </div>
-                  ) : globalCategories.length === 0 ? (
-                    <div className="text-center py-12 text-xs text-muted-foreground border border-dashed border-border rounded-xl">
-                      No categories defined in the library yet. Set them up under the Feature Library menu first.
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {globalCategories.map((cat) => {
-                        const catFeatures = globalFeatures.filter((f) => f.categoryId === cat.id);
-                        if (catFeatures.length === 0) return null;
-                        return (
-                          <div key={cat.id} className="space-y-2 border-b border-border/40 pb-3 last:border-0 last:pb-0">
-                            <span className="text-[11px] font-bold text-indigo-400 block uppercase tracking-wider">
-                              {cat.name}
-                            </span>
-                            <div className="grid grid-cols-1 gap-2 pl-2">
-                              {catFeatures.map((feat) => {
-                                const isChecked = includedFeatureIds.includes(feat.id);
-                                return (
-                                  <div key={feat.id} className="flex items-start space-x-2">
-                                    <Checkbox
-                                      id={`feat-${feat.id}`}
-                                      checked={isChecked}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          setIncludedFeatureIds((prev) => [...prev, feat.id]);
-                                        } else {
-                                          setIncludedFeatureIds((prev) => prev.filter((id) => id !== feat.id));
-                                        }
-                                      }}
-                                    />
-                                    <Label
-                                      htmlFor={`feat-${feat.id}`}
-                                      className="text-xs font-medium text-foreground cursor-pointer leading-snug select-none"
-                                    >
-                                      {feat.name}
-                                    </Label>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
+                  {pageLimitType === 'custom' && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="pkg-pages">Pages Included</Label>
+                      <Input
+                        id="pkg-pages"
+                        type="number"
+                        value={pagesIncluded}
+                        onChange={(e) => setPagesIncluded(Number(e.target.value))}
+                        className="bg-background border-border rounded-xl"
+                      />
                     </div>
                   )}
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="pkg-revisions">Revisions</Label>
+                    <Input
+                      id="pkg-revisions"
+                      type="number"
+                      value={revisions}
+                      onChange={(e) => setRevisions(Number(e.target.value))}
+                      className="bg-background border-border rounded-xl"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-6 pt-7">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="pkg-popular"
+                        checked={isPopular}
+                        onCheckedChange={(checked) => setIsPopular(!!checked)}
+                      />
+                      <label htmlFor="pkg-popular" className="text-sm font-medium leading-none cursor-pointer">
+                        Featured / Popular
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Features library checklist selection section */}
+              <div className="space-y-3 border-t md:border-t-0 md:border-l border-border/80 pt-4 md:pt-0 md:pl-5">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+                  Included Library Features
+                </span>
+                {isLoadingGlobal ? (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground py-6">
+                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                    Loading library features checklist...
+                  </div>
+                ) : globalCategories.length === 0 ? (
+                  <div className="text-xs text-muted-foreground py-6">
+                    No features configured in this category. Configure library features first.
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-[45vh] overflow-y-auto pr-1">
+                    {globalCategories.map(cat => {
+                      const catFeats = globalFeatures.filter(f => f.categoryId === cat.id);
+                      if (catFeats.length === 0) return null;
+                      return (
+                        <div key={cat.id} className="space-y-2">
+                          <span className="text-xs font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded-lg border border-border/40">
+                            {cat.name}
+                          </span>
+                          <div className="space-y-1.5 pl-2">
+                            {catFeats.map(feat => (
+                              <div key={feat.id} className="flex items-start space-x-2.5">
+                                <Checkbox
+                                  id={`feat-${feat.id}`}
+                                  checked={includedFeatureIds.includes(feat.id)}
+                                  onCheckedChange={() => handleFeatureToggle(feat.id)}
+                                  className="mt-0.5"
+                                />
+                                <label htmlFor={`feat-${feat.id}`} className="text-xs font-medium leading-tight text-muted-foreground cursor-pointer hover:text-foreground">
+                                  {feat.name}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <DialogFooter className="gap-2 sm:gap-0 pt-4 border-t border-border/40">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsModalOpen(false)}
-                className="text-muted-foreground hover:text-foreground rounded-xl h-10 px-5"
+                className="rounded-xl border border-border"
                 disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl h-10 px-6 font-semibold shadow-lg shadow-indigo-600/10 disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                    Saving...
-                  </span>
-                ) : (
-                  'Save Changes'
-                )}
+              <Button type="submit" className="rounded-xl" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                {editingPackage ? 'Save Changes' : 'Create Package'}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>

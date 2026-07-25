@@ -19,12 +19,55 @@ export interface User {
 }
 
 // ============================================================================
+// Service Category Types (Root Entity)
+// ============================================================================
+
+/**
+ * Top-level service offering (e.g. Website Development, Ecommerce, Mobile App).
+ * All quotation entities belong to exactly one service category.
+ */
+export interface ServiceCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  icon: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================================
+// Service Type Types (replaces Website Type)
+// ============================================================================
+
+/**
+ * A specific type within a service category (e.g. Informational, E-Commerce, SaaS).
+ * Scoped to a single service category.
+ */
+export interface ServiceType {
+  id: string;
+  serviceCategoryId: string;
+  name: string;
+  slug: string;
+  description: string;
+  icon: string;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================================
 // Package Types
 // ============================================================================
 
-/** Website package (e.g., Starter, Business, Premium, Enterprise) */
+/** Service package (e.g., Starter, Business, Premium, Enterprise) scoped to a service category */
 export interface Package {
   id: string;
+  serviceCategoryId: string;
+  serviceTypeId: string;
   name: string;
   slug: string;
   description: string;
@@ -35,19 +78,74 @@ export interface Package {
   isPopular: boolean;
   isActive: boolean;
   sortOrder: number;
+  includedFeatureIds: string[];
+  featureCategories?: (PackageFeatureCategory & { features: PackageFeature[] })[];
   createdAt: Date;
   updatedAt: Date;
-  includedFeatureIds?: string[];
-  featureCategories?: Array<PackageFeatureCategory & { features: PackageFeature[] }>;
 }
 
 // ============================================================================
-// Add-on Types (Global Paid Upgrades)
+// Industry Types
 // ============================================================================
 
-/** Add-on category (e.g., Core Features, Authentication, Marketing) */
+/** Industry vertical scoped to a service category */
+export interface Industry {
+  id: string;
+  serviceCategoryId: string;
+  name: string;
+  slug: string;
+  description: string;
+  basePrice: number;
+  recommendedPackageId: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================================
+// Package Feature Types
+// ============================================================================
+
+/** Category grouping for in-package features, scoped to a service category */
+export interface PackageFeatureCategory {
+  id: string;
+  serviceCategoryId: string;
+  name: string;
+  description: string;
+  icon: string;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Reusable in-package feature. Can belong to multiple packages via `packageIds`.
+ * Scoped to a service category.
+ */
+export interface PackageFeature {
+  id: string;
+  serviceCategoryId: string;
+  categoryId: string;
+  packageIds: string[];
+  name: string;
+  description: string;
+  displayOrder: number;
+  isRequired: boolean;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ============================================================================
+// Add-on Types
+// ============================================================================
+
+/** Add-on category scoped to a service category */
 export interface AddonCategory {
   id: string;
+  serviceCategoryId: string;
   name: string;
   slug: string;
   description: string;
@@ -58,12 +156,13 @@ export interface AddonCategory {
   updatedAt: Date;
 }
 
-/** How a feature's price is calculated */
+/** How an add-on feature's price is calculated */
 export type PricingType = 'fixed' | 'per_page' | 'percentage';
 
-/** Individual add-on feature belonging to a category */
+/** Individual add-on feature scoped to a service category */
 export interface AddonFeature {
   id: string;
+  serviceCategoryId: string;
   categoryId: string;
   name: string;
   slug: string;
@@ -71,66 +170,20 @@ export interface AddonFeature {
   pricingType: PricingType;
   price: number;
   defaultSelected: boolean;
-  isActive: boolean;
   sortOrder: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// ============================================================================
-// Package In-Built Feature Types (Global Reusable Library)
-// ============================================================================
-
-export interface PackageFeatureCategory {
-  id: string;
-  name: string;
-  description?: string;
-  icon: string;
-  displayOrder: number;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface PackageFeature {
-  id: string;
-  categoryId: string;
-  name: string;
-  description?: string;
-  displayOrder: number;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// @/types/index.ts (Snippet - locate Industry interface)
-
-// ============================================================================
-// Industry Types
-// ============================================================================
-
-/** Industry vertical definition used for personalization and recommended routing */
-export interface Industry {
-  id: string;
-  name: string;
-  slug: string;
-  /** Brief overview of web needs for this vertical (Premium requirement) */
-  description: string; // <-- ADDED THIS FIELD
-  basePrice: number;
-  recommendedPackageId: string;
-  isActive: boolean;
-  /** UI sort order field */
-  sortOrder?: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
 // ============================================================================
 // Price Configuration
 // ============================================================================
 
-/** Singleton global price configuration document */
+/** Price configuration document scoped to a service category */
 export interface PriceConfig {
   id: string;
+  
   currency: string;
   currencySymbol: string;
   gstPercentage: number;
@@ -158,31 +211,31 @@ export interface PriceConfig {
 /** Status of a cost calculation */
 export type CalculationStatus = 'draft' | 'completed' | 'converted';
 
-/** A feature selection stored within a Calculation */
-export interface SelectedFeature {
+export interface CalculatedFeature {
   featureId: string;
   featureName: string;
   categoryName?: string;
-  pricingType: PricingType;
   unitPrice: number;
+  pricingType: 'fixed' | 'per_page' | 'percentage';
   calculatedPrice: number;
 }
 
-/** A completed cost calculation/estimate */
+/** A completed cost calculation/estimate — all entity references use IDs only */
 export interface Calculation {
   id: string;
   userId?: string | null;
   sessionId?: string | null;
+  serviceCategoryId: string;
   businessName: string;
   businessEmail: string;
   businessPhone?: string;
-  packageId: string;
-  packageName: string;
   industryId: string;
-  industryName: string;
-  websiteType: string;
+  serviceTypeId: string;
+  packageId: string;
   pages: number;
-  selectedFeatures: SelectedFeature[];
+  selectedPackageFeatureIds: string[];
+  selectedAddonFeatureIds: string[];
+  selectedFeatures: CalculatedFeature[];
   basePrice?: number;
   featuresPrice?: number;
   rushMarkup?: number;
@@ -195,6 +248,9 @@ export interface Calculation {
   rushDeliveryCharge?: number;
   recommendedTechStack?: string[];
   pdfUrl?: string;
+  websiteType?: string;
+  packageName?: string;
+  industryName?: string;
   status: CalculationStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -298,23 +354,30 @@ export interface MonthlyData {
 export type CalculatorStep =
   | 'business'
   | 'industry'
+  /** @deprecated Renamed to `service_type` — retained for existing UI until calculator refactor */
   | 'website_type'
+  | 'service_type'
   | 'package'
   | 'pages'
   | 'features'
   | 'review'
   | 'estimate';
 
-/** Form data collected across all calculator steps */
+/**
+ * Form data collected across all calculator steps.
+ * All entity selections use IDs — never display names or slugs.
+ */
 export interface CalculatorFormData {
+  serviceCategoryId: string;
   businessName: string;
   businessEmail: string;
   businessPhone: string;
   industryId: string;
-  websiteType: string;
+  serviceTypeId: string;
   packageId: string;
   pages: number;
-  selectedFeatureIds: string[];
+  selectedPackageFeatureIds: string[];
+  selectedAddonFeatureIds: string[];
   rushDelivery: boolean;
 }
 
@@ -357,6 +420,12 @@ export interface PaginatedResult<T> {
   totalPages: number;
 }
 
+export interface CursorPageResult<T> {
+  items: T[];
+  nextCursor?: string;
+  hasMore: boolean;
+}
+
 // ============================================================================
 // Navigation Types
 // ============================================================================
@@ -368,4 +437,3 @@ export interface NavItem {
   icon: string;
   badge?: number;
 }
-

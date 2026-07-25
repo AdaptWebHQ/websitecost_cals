@@ -172,20 +172,28 @@ export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000
 // Firestore Collection Names
 // ============================================================================
 
+/**
+ * Firestore collection names for the service-category-driven data model.
+ * Every collection except SERVICE_CATEGORIES stores a `serviceCategoryId` field.
+ */
 export const COLLECTIONS = {
   USERS: 'users',
+  SERVICE_CATEGORIES: 'service_categories',
+  INDUSTRIES: 'industries',
   PACKAGES: 'packages',
+  SERVICE_TYPES: 'service_types',
   PACKAGE_FEATURE_CATEGORIES: 'package_feature_categories',
   PACKAGE_FEATURES: 'package_features',
   ADDON_CATEGORIES: 'addon_categories',
   ADDON_FEATURES: 'addon_features',
-  INDUSTRIES: 'industries',
-  PRICE_CONFIG: 'price_config',
+  PRICE_CONFIGURATION: 'price_configuration',
+  /** @deprecated Use PRICE_CONFIGURATION — kept for existing query compatibility */
+  PRICE_CONFIG: 'price_configuration',
   CALCULATIONS: 'calculations',
   INQUIRIES: 'inquiries',
   INQUIRY_ACTIVITIES: 'inquiry_activities',
   PDF_REPORTS: 'pdf_reports',
 } as const;
 
-/** Singleton document ID for price_config collection */
+/** Singleton document ID for price_configuration collection */
 export const PRICE_CONFIG_DOC_ID = 'global';

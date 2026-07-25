@@ -5,6 +5,7 @@ import { COLLECTIONS } from '@/constants';
 import { calculatorSubmissionSchema, type CalculatorSubmissionData } from '@/schemas';
 import { getPackageById } from '@/lib/packages';
 import { getIndustryById } from '@/lib/industries';
+import { getServiceTypeById } from '@/lib/service-types';
 import { getPriceConfig } from '@/lib/price-config';
 import { calculateQuotation } from '@/lib/calculations/pricing';
 import { getServerUser } from '@/actions/auth';
@@ -12,14 +13,35 @@ import { checkRateLimit, getRateLimitKey } from '@/lib/rate-limit';
 import { revalidatePath } from 'next/cache';
 import type { ApiResponse, Calculation, AddonFeature } from '@/types';
 
+export interface LegacyCalculationInput {
+  serviceCategoryId?: string;
+  businessName: string;
+  businessEmail: string;
+  businessPhone?: string;
+  industryId: string;
+  websiteType: string;
+  packageId: string;
+  pages: number;
+  selectedFeatureIds?: string[];
+  rushDelivery: boolean;
+  customFeatures?: { id: string; name: string; price: number }[];
+}
+
+export type CalculationSubmissionInput = CalculatorSubmissionData | LegacyCalculationInput;
+
 /** Recalculate quotation quote values server-side and save to Firestore calculations collection */
 export async function createCalculationAction(
-  data: CalculatorSubmissionData
+  data: CalculationSubmissionInput
 ): Promise<ApiResponse<Calculation>> {
   try {
-    // Rate limit: max 5 calculations per user/email per 10 minutes
     const user = await getServerUser();
-    const rateLimitKey = getRateLimitKey('calc', user?.id || data.businessEmail);
+    const isLegacy = 'businessName' in data;
+    const email = isLegacy 
+      ? (data as LegacyCalculationInput).businessEmail 
+      : (data as CalculatorSubmissionData).businessDetails?.businessEmail;
+
+    // Rate limit: max 5 calculations per user/email per 10 minutes
+    const rateLimitKey = getRateLimitKey('calc', user?.id || email);
     const rateCheck = checkRateLimit(rateLimitKey, { limit: 5, windowSeconds: 600 });
     if (!rateCheck.allowed) {
       return {
@@ -28,7 +50,25 @@ export async function createCalculationAction(
       };
     }
 
-    const validated = calculatorSubmissionSchema.safeParse(data);
+    const normalizedData: CalculatorSubmissionData = isLegacy
+      ? {
+          serviceCategoryId: (data as LegacyCalculationInput).serviceCategoryId || 'sc-website',
+          industryId: (data as LegacyCalculationInput).industryId,
+          serviceTypeId: (data as LegacyCalculationInput).websiteType,
+          packageId: (data as LegacyCalculationInput).packageId,
+          selectedPackageFeatureIds: [],
+          selectedAddonFeatureIds: (data as LegacyCalculationInput).selectedFeatureIds || [],
+          pages: (data as LegacyCalculationInput).pages,
+          rushDelivery: (data as LegacyCalculationInput).rushDelivery,
+          businessDetails: {
+            businessName: (data as LegacyCalculationInput).businessName,
+            businessEmail: (data as LegacyCalculationInput).businessEmail,
+            businessPhone: (data as LegacyCalculationInput).businessPhone || '',
+          },
+        }
+      : (data as CalculatorSubmissionData);
+
+    const validated = calculatorSubmissionSchema.safeParse(normalizedData);
     if (!validated.success) {
       return {
         success: false,
@@ -37,22 +77,22 @@ export async function createCalculationAction(
     }
 
     const {
+      serviceCategoryId,
+      industryId,
+      serviceTypeId,
       packageId,
-      selectedFeatureIds,
+      selectedPackageFeatureIds,
+      selectedAddonFeatureIds,
       pages,
       rushDelivery,
-      industryId,
-      websiteType,
-      businessName,
-      businessEmail,
-      businessPhone,
-      customFeatures,
+      businessDetails,
     } = validated.data;
 
     // Fetch related records in parallel on the server
-    const [selectedPackage, industry, priceConfig] = await Promise.all([
+    const [selectedPackage, industry, serviceType, priceConfig] = await Promise.all([
       getPackageById(packageId),
       getIndustryById(industryId),
+      getServiceTypeById(serviceTypeId),
       getPriceConfig(),
     ]);
 
@@ -70,14 +110,21 @@ export async function createCalculationAction(
       };
     }
 
+    if (!serviceType) {
+      return {
+        success: false,
+        error: 'Selected service type was not found.',
+      };
+    }
+
     // Fetch selected features from database
-    let selectedFeatures: AddonFeature[] = [];
-    if (selectedFeatureIds.length > 0) {
-      // Chunk selectedFeatureIds into groups of 10 to prevent Firestore 'in' operator limitations
+    const selectedFeatures: AddonFeature[] = [];
+    if (selectedAddonFeatureIds.length > 0) {
+      // Chunk selectedAddonFeatureIds into groups of 10 to prevent Firestore 'in' operator limitations
       const chunkSize = 10;
       const chunks = [];
-      for (let i = 0; i < selectedFeatureIds.length; i += chunkSize) {
-        chunks.push(selectedFeatureIds.slice(i, i + chunkSize));
+      for (let i = 0; i < selectedAddonFeatureIds.length; i += chunkSize) {
+        chunks.push(selectedAddonFeatureIds.slice(i, i + chunkSize));
       }
 
       const queryPromises = chunks.map((chunk) =>
@@ -105,7 +152,7 @@ export async function createCalculationAction(
       pages,
       rushDelivery,
       priceConfig,
-      customFeatures
+      []
     );
 
     const now = new Date();
@@ -113,15 +160,19 @@ export async function createCalculationAction(
     // Save generated calculation record in database
     const newCalculation: Omit<Calculation, 'id'> = {
       userId: user?.id || null, // null if anonymous run before login
-      businessName,
-      businessEmail,
-      businessPhone,
+      serviceCategoryId,
+      businessName: businessDetails.businessName,
+      businessEmail: businessDetails.businessEmail,
+      businessPhone: businessDetails.businessPhone || undefined,
       industryId,
       industryName: industry.name,
-      websiteType,
+      serviceTypeId,
+      websiteType: serviceType.name,
       packageId,
       packageName: selectedPackage.name,
       pages,
+      selectedPackageFeatureIds,
+      selectedAddonFeatureIds,
       selectedFeatures: quotation.selectedFeatures,
       isRushDelivery: rushDelivery,
       basePrice: quotation.basePrice,

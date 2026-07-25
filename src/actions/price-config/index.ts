@@ -32,13 +32,19 @@ export async function updatePriceConfigAction(
 
     const docRef = adminDb.collection(COLLECTIONS.PRICE_CONFIG).doc('global');
     const now = new Date();
-    
+    const docSnap = await docRef.get();
+    const currentData = docSnap.exists ? docSnap.data() : null;
+    const createdAt = currentData?.createdAt ? (currentData.createdAt.toDate ? currentData.createdAt.toDate() : currentData.createdAt) : now;
+
     const updatedFields = {
       ...validated.data,
       updatedAt: now,
     };
 
-    await docRef.set(updatedFields, { merge: true });
+    await docRef.set({
+      ...updatedFields,
+      createdAt,
+    }, { merge: true });
 
     revalidatePath('/admin/price-config');
     delCachePrefix('price_config');
@@ -48,6 +54,7 @@ export async function updatePriceConfigAction(
       data: {
         id: 'global',
         ...updatedFields,
+        createdAt,
       } as PriceConfig,
     };
   } catch (error: unknown) {

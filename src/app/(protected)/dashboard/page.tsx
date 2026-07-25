@@ -51,10 +51,23 @@ export default async function DashboardPage() {
 
   const calculations = await getCalculations(user.id);
 
+  const serializedCalculations = calculations.map((c) => ({
+    ...c,
+    createdAt: c.createdAt instanceof Date ? c.createdAt.toISOString() : new Date(c.createdAt).toISOString(),
+    updatedAt: c.updatedAt instanceof Date ? c.updatedAt.toISOString() : new Date(c.updatedAt).toISOString(),
+  }));
+
+  const serializedUser = {
+    ...user,
+    lastLogin: user.lastLogin ? (user.lastLogin instanceof Date ? user.lastLogin.toISOString() : new Date(user.lastLogin).toISOString()) : null,
+    createdAt: user.createdAt instanceof Date ? user.createdAt.toISOString() : new Date(user.createdAt).toISOString(),
+    updatedAt: user.updatedAt instanceof Date ? user.updatedAt.toISOString() : new Date(user.updatedAt).toISOString(),
+  };
+
   return (
     <PublicDashboard
-      user={user}
-      calculations={calculations}
+      user={serializedUser as any}
+      calculations={serializedCalculations as any}
     />
   );
 }

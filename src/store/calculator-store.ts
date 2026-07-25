@@ -8,6 +8,7 @@ interface CalculatorState {
   businessName: string;
   businessEmail: string;
   businessPhone: string;
+  serviceCategoryId: string;
   industryId: string;
   websiteType: string;
   packageId: string;
@@ -31,6 +32,7 @@ const initialFields = {
   businessName: '',
   businessEmail: '',
   businessPhone: '',
+  serviceCategoryId: '',
   industryId: '',
   websiteType: '',
   packageId: '',
@@ -45,9 +47,9 @@ export const useCalculatorStore = create<CalculatorState>()(
     (set) => ({
       ...initialFields,
 
-  setStep: (step) => set({ currentStep: Math.min(Math.max(step, 1), 6) }),
+  setStep: (step) => set({ currentStep: Math.min(Math.max(step, 1), 8) }),
   
-  nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 6) })),
+  nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 8) })),
   
   prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1) })),
 

@@ -11,9 +11,18 @@ import ExportCalculationsButton from './export-calculations-button';
 
 interface CalculationsClientProps {
   initialCalculations: any[];
+  initialNextCursor?: string;
+  initialHasMore: boolean;
 }
 
-export default function CalculationsClient({ initialCalculations }: CalculationsClientProps) {
+export default function CalculationsClient({
+  initialCalculations,
+  initialNextCursor,
+  initialHasMore,
+}: CalculationsClientProps) {
+  const [calculations, setCalculations] = useState<any[]>(initialCalculations);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(initialNextCursor);
+  const [hasMore, setHasMore] = useState<boolean>(initialHasMore);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(7);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -28,7 +37,7 @@ export default function CalculationsClient({ initialCalculations }: Calculations
     { key: 'actions', label: 'Actions', className: 'text-right py-4 pr-6' },
   ];
 
-  const filteredCalculations = initialCalculations.filter((calc) => {
+  const filteredCalculations = calculations.filter((calc) => {
     const search = searchTerm.toLowerCase();
     return (
       calc.businessName?.toLowerCase().includes(search) ||
@@ -41,12 +50,35 @@ export default function CalculationsClient({ initialCalculations }: Calculations
 
   const visibleData = filteredCalculations.slice(0, visibleCount);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = async () => {
+    if (!nextCursor || !hasMore) return;
+
     setIsLoadingMore(true);
-    setTimeout(() => {
+    try {
+      const response = await fetch(
+        `/api/admin/calculations?limit=25&cursor=${encodeURIComponent(nextCursor)}`,
+        { cache: 'no-store' }
+      );
+      if (!response.ok) {
+        throw new Error('Failed to load more calculations');
+      }
+      const page = await response.json();
+      setCalculations((prev) => [
+        ...prev,
+        ...(page.items || []).map((item: any) => ({
+          ...item,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        })),
+      ]);
+      setNextCursor(page.nextCursor);
+      setHasMore(page.hasMore ?? false);
       setVisibleCount((prev) => prev + 7);
+    } catch (error) {
+      console.error(error);
+    } finally {
       setIsLoadingMore(false);
-    }, 400); // Simulated delay for professional query experience
+    }
   };
 
   return (

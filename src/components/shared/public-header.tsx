@@ -13,44 +13,69 @@ export default function PublicHeader() {
   const { user, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
-  const dashboardUrl = user 
-    ? (user.role === 'admin' || user.role === 'super_admin' ? '/admin' : '/public')
-    : '/login';
+  const dashboardUrl =
+    user
+      ? user.role === 'admin' || user.role === 'super_admin'
+        ? '/admin'
+        : '/public'
+      : '/login';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/85 backdrop-blur-md transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Branding Logo */}
-        <Link href="/" className="flex items-center gap-2.5 font-bold text-lg text-foreground">
+        <Link
+          href="/"
+          prefetch={false}
+          className="flex items-center gap-2.5 font-bold text-lg text-foreground"
+        >
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-accent flex items-center justify-center shadow-md shadow-primary/10">
             <Calculator className="w-5 h-5 text-white" />
           </div>
-          <span>AdaptWeb <span className="text-primary font-semibold">Cost Calculator</span></span>
+
+          <span>
+            AdaptWeb <span className="text-primary font-semibold">Cost Calculator</span>
+          </span>
         </Link>
 
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-muted-foreground">
-          <Link 
-            href="/about" 
-            className={`hover:text-foreground transition-colors ${pathname === '/about' ? 'text-primary' : ''}`}
+          <Link
+            href="/about"
+            prefetch={false}
+            className={`hover:text-foreground transition-colors ${
+              pathname === '/about' ? 'text-primary' : ''
+            }`}
           >
             About
           </Link>
-          <Link 
-            href="/faq" 
-            className={`hover:text-foreground transition-colors ${pathname === '/faq' ? 'text-primary' : ''}`}
+
+          <Link
+            href="/faq"
+            prefetch={false}
+            className={`hover:text-foreground transition-colors ${
+              pathname === '/faq' ? 'text-primary' : ''
+            }`}
           >
             FAQ
           </Link>
-          <Link 
-            href="/privacy" 
-            className={`hover:text-foreground transition-colors ${pathname === '/privacy' ? 'text-primary' : ''}`}
+
+          <Link
+            href="/privacy"
+            prefetch={false}
+            className={`hover:text-foreground transition-colors ${
+              pathname === '/privacy' ? 'text-primary' : ''
+            }`}
           >
             Privacy
           </Link>
-          <Link 
-            href="/terms" 
-            className={`hover:text-foreground transition-colors ${pathname === '/terms' ? 'text-primary' : ''}`}
+
+          <Link
+            href="/terms"
+            prefetch={false}
+            className={`hover:text-foreground transition-colors ${
+              pathname === '/terms' ? 'text-primary' : ''
+            }`}
           >
             Terms
           </Link>
@@ -58,8 +83,7 @@ export default function PublicHeader() {
 
         {/* Theme Toggle & Auth Buttons */}
         <div className="flex items-center gap-4">
-          
-          {/* Theme Toggle Button */}
+          {/* Theme Toggle */}
           <Button
             variant="ghost"
             size="icon"
@@ -73,12 +97,11 @@ export default function PublicHeader() {
               <Moon className="w-5 h-5 text-muted-foreground animate-in fade-in" />
             )}
           </Button>
-          
-          {/* We check isLoading to avoid flashing layout shifts on load */}
+
           {!isLoading && (
             <>
               {user ? (
-                <Link href={dashboardUrl}>
+                <Link href={dashboardUrl} prefetch={false}>
                   <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-10 px-5 gap-2 text-sm font-semibold shadow-md shadow-primary/10">
                     Enter Dashboard
                     <ArrowRight className="w-4 h-4" />
@@ -86,12 +109,20 @@ export default function PublicHeader() {
                 </Link>
               ) : (
                 <div className="flex items-center gap-2">
-                  <Link href="/login">
-                    <Button variant="ghost" className="text-muted-foreground hover:text-foreground text-xs font-semibold">
+                  <Link href="/login" prefetch={false}>
+                    <Button
+                      variant="ghost"
+                      className="text-muted-foreground hover:text-foreground text-xs font-semibold"
+                    >
                       Sign In
                     </Button>
                   </Link>
-                  <Link href="/register" className="hidden sm:inline-block">
+
+                  <Link
+                    href="/register"
+                    prefetch={false}
+                    className="hidden sm:inline-block"
+                  >
                     <Button className="bg-primary hover:bg-primary/90 text-white rounded-xl h-9 px-4 text-xs font-semibold shadow-md shadow-primary/10">
                       Get Started
                     </Button>
@@ -101,7 +132,6 @@ export default function PublicHeader() {
             </>
           )}
 
-          {/* Skeleton placeholder while auth state initializes */}
           {isLoading && (
             <div className="w-24 h-9 bg-muted animate-pulse rounded-xl" />
           )}

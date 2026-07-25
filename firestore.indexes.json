@@ -1,4 +1,124 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "packages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "packages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "industries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "industries",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "service_types",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "service_types",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "package_feature_categories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "displayOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "package_feature_categories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "displayOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "package_features",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "displayOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "package_features",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "displayOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "addon_categories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "addon_categories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "addon_features",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "addon_features",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "serviceCategoryId", "order": "ASCENDING" },
+        { "fieldPath": "sortOrder", "order": "ASCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

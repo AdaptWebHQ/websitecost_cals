@@ -75,7 +75,7 @@ export default function Testimonials() {
               className="absolute inset-0 flex flex-col justify-center"
             >
               <h4 className="text-2xl sm:text-3xl md:text-4xl font-semibold leading-relaxed text-foreground mb-10">
-                "{t.quote}"
+                &ldquo;{t.quote}&rdquo;
               </h4>
               <div>
                 <strong className="block text-lg text-foreground font-bold">{t.author}</strong>

@@ -1,8 +1,8 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, BrowserContext } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
 
 // Helper to inject mock auth cookie for E2E testing bypassing Google Sign-In
-async function mockLogin(context, role: 'admin' | 'public') {
+async function mockLogin(context: BrowserContext, role: 'admin' | 'public') {
   const uid = role === 'admin' ? 'admin_uid' : 'public_uid';
   const email = role === 'admin' ? 'admin@example.com' : 'public@example.com';
   const name = role === 'admin' ? 'Admin User' : 'Public User';

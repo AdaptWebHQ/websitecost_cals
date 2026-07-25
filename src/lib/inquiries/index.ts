@@ -1,5 +1,6 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
+import { buildPagedQuery, formatPageResult, PaginationFilters } from '@/lib/firestore-pagination';
 import type { Inquiry, InquiryActivity } from '@/types';
 
 /** Fetch all CRM inquiries, sorted by newest first */
@@ -38,6 +39,37 @@ export async function getInquiryById(id: string): Promise<Inquiry | null> {
   } catch (error: unknown) {
     // Quiet fallback
     return null;
+  }
+}
+
+export async function getInquiriesPage(
+  options: { limit?: number; cursor?: string; filters?: PaginationFilters } = {}
+): Promise<import('@/types').CursorPageResult<Inquiry>> {
+  try {
+    const collectionRef = adminDb.collection(COLLECTIONS.INQUIRIES);
+    const combinedFilters = { ...(options.filters || {}) } as Record<string, unknown>;
+
+    const query = buildPagedQuery(
+      collectionRef,
+      { page: 1, limit: options.limit ?? 25, cursor: options.cursor, filters: combinedFilters },
+      'createdAt',
+      'desc'
+    );
+
+    const snap = await query.get();
+    const page = formatPageResult<Inquiry>(snap.docs, options.limit ?? 25);
+
+    return {
+      ...page,
+      items: page.items.map((item) => ({
+        ...item,
+        createdAt: (item as any).createdAt?.toDate ? (item as any).createdAt.toDate() : item.createdAt,
+        updatedAt: (item as any).updatedAt?.toDate ? (item as any).updatedAt.toDate() : item.updatedAt,
+      })) as Inquiry[],
+    };
+  } catch (error: unknown) {
+    console.error('Error fetching inquiries page:', error);
+    return { items: [], hasMore: false };
   }
 }
 

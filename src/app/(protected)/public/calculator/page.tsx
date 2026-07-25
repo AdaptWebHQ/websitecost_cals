@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import { getPackagesWithInbuiltFeatures } from '@/lib/packages';
-import { getAddons } from '@/lib/addons';
-import { getAddonCategories } from '@/lib/addons/categories';
-import { getIndustries } from '@/lib/industries';
+import { getServiceCategories } from '@/lib/service-category/get-service-categories';
+import { getPackagesWithInbuiltFeaturesByServiceType } from '@/lib/packages';
+import { getAddonFeaturesByServiceCategory } from '@/lib/addons';
+import { getAddonCategoriesByServiceCategory } from '@/lib/addons/categories';
+import { getIndustriesByServiceCategory } from '@/lib/industries';
 import { getPriceConfig } from '@/lib/price-config';
 import CalculatorWizard from '@/components/calculator/calculator-wizard';
 import { APP_NAME } from '@/constants';
@@ -23,15 +24,29 @@ export const metadata: Metadata = {
   },
 };
 
-export const revalidate = 86400; // Fetch fresh pricing configuration every load
+export const revalidate = 0; // Fetch fresh pricing configuration every load
 
-export default async function PublicCalculatorPage() {
+interface PageProps {
+  searchParams: Promise<{ category?: string }> | { category?: string };
+}
+
+export default async function PublicCalculatorPage({ searchParams }: PageProps) {
+  const resolvedParams = await searchParams;
+  const categorySlug = resolvedParams?.category || 'website-development';
+
+  // Fetch active service categories
+  const categoriesList = await getServiceCategories(true);
+  
+  // Resolve current active target category by slug or fall back to the first available category
+  const targetCategory = categoriesList.find(c => c.slug === categorySlug) || categoriesList[0];
+  const categoryId = targetCategory?.id || 'sc-website';
+
   // Fetch pricing masters in parallel on the server
   const [packages, addons, categories, industries, priceConfig] = await Promise.all([
-    getPackagesWithInbuiltFeatures(true),
-    getAddons(undefined, true),
-    getAddonCategories(true),
-    getIndustries(true),
+    getPackagesWithInbuiltFeaturesByServiceType(categoryId, undefined, true),
+    getAddonFeaturesByServiceCategory(categoryId, { onlyActive: true }),
+    getAddonCategoriesByServiceCategory(categoryId, { onlyActive: true }),
+    getIndustriesByServiceCategory(categoryId, { onlyActive: true }),
     getPriceConfig(),
   ]);
 
@@ -102,6 +117,7 @@ export default async function PublicCalculatorPage() {
         categories={categories}
         industries={industries}
         priceConfig={priceConfig}
+        serviceCategories={categoriesList}
       />
 
       {/* Server-rendered Explanatory Content for SEO/AEO/GEO */}

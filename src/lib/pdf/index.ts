@@ -129,13 +129,13 @@ export async function generateQuotationPdf(
   doc.rect(20, 66, 170, 17, 'D'); // border
 
   addText('WEBSITE ARCHITECTURE', 24, 71, 7, true, 'muted');
-  addText(calculation.websiteType.toUpperCase(), 24, 76.5, 9, true, 'dark');
+  addText((calculation.websiteType || '').toUpperCase(), 24, 76.5, 9, true, 'dark');
 
   addText('INDUSTRY SECTOR', 70, 71, 7, true, 'muted');
-  addText(calculation.industryName, 70, 76.5, 9, true, 'dark');
+  addText(calculation.industryName || '', 70, 76.5, 9, true, 'dark');
 
   addText('ESTIMATE TIER', 120, 71, 7, true, 'muted');
-  addText(calculation.packageName, 120, 76.5, 9, true, 'dark');
+  addText(calculation.packageName || '', 120, 76.5, 9, true, 'dark');
 
   addText('TOTAL PAGES', 160, 71, 7, true, 'muted');
   addText(calculation.pages === -1 ? 'Unlimited' : `${calculation.pages} Pages`, 160, 76.5, 9, true, 'dark');
@@ -170,7 +170,7 @@ export async function generateQuotationPdf(
 
   // Row 0: Base Package
   drawRowBackground(itemY, 0);
-  addText(`${calculation.packageName} Package Baseline`, 24, itemY + 5.5, 8.5, true, 'dark');
+  addText(`${calculation.packageName || ''} Package Baseline`, 24, itemY + 5.5, 8.5, true, 'dark');
   addText(pagesIncluded === -1 ? 'Fixed Base Tier (Includes unlimited pages)' : `Fixed Base Tier (Includes ${pagesIncluded} pages)`, 115, itemY + 5.5, 8, false, 'secondary');
   addText(formatPdfCurrency(calculation.basePrice || 0), 186, itemY + 5.5, 8.5, true, 'dark', 'right');
   drawRowDivider(itemY);

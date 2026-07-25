@@ -1,16 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCalculatorStore } from '@/store/calculator-store';
 import BusinessDetailsStep from './steps/business-details-step';
+import ServiceCategoryStep from './steps/service-category-step';
+import ServiceTypeStep from './steps/service-type-step';
 import IndustryStep from './steps/industry-step';
 import PackageStep from './steps/package-step';
 import FeaturesStep from './steps/features-step';
 import DeliveryStep from './steps/delivery-step';
 import SummaryStep from './steps/summary-step';
-import type { Package, AddonFeature, AddonCategory, PriceConfig, Industry, Calculation } from '@/types';
+import type { Package, AddonFeature, AddonCategory, PriceConfig, Industry, Calculation, ServiceCategory, ServiceType } from '@/types';
 import { createCalculationAction } from '@/actions/calculations';
-import { ShieldCheck, BarChart2, DollarSign, Trash2 } from 'lucide-react';
+import { getPackagesAction } from '@/actions/packages';
+import { getAddonFeaturesAction } from '@/actions/addon-features/get';
+import { getAddonCategoriesAction } from '@/actions/addon-categories/get';
+import { getIndustriesAction } from '@/actions/industries/get';
+import { getServiceTypesAction } from '@/actions/service-types/get';
+import { ShieldCheck, BarChart2, DollarSign, Trash2, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 interface CalculatorWizardProps {
@@ -19,20 +26,23 @@ interface CalculatorWizardProps {
   categories: AddonCategory[];
   industries: Industry[];
   priceConfig: PriceConfig;
+  serviceCategories: ServiceCategory[];
 }
 
 export default function CalculatorWizard({
-  packages,
-  features,
-  categories,
-  industries,
+  packages: initialPackages,
+  features: initialFeatures,
+  categories: initialCategories,
+  industries: initialIndustries,
   priceConfig,
+  serviceCategories,
 }: CalculatorWizardProps) {
   const {
     currentStep,
     businessName,
     businessEmail,
     businessPhone,
+    serviceCategoryId,
     industryId,
     websiteType,
     packageId,
@@ -47,8 +57,122 @@ export default function CalculatorWizard({
   } = useCalculatorStore();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [calcResult, setCalcResult] = useState<Calculation | null>(null);
+
+  // Dynamic state for dynamic category selection
+  const [packages, setPackages] = useState<Package[]>(initialPackages);
+  const [features, setFeatures] = useState<AddonFeature[]>(initialFeatures);
+  const [categories, setCategories] = useState<AddonCategory[]>(initialCategories);
+  const [industries, setIndustries] = useState<Industry[]>(initialIndustries);
+  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
+
+  // Effect to set the default service category in store on first mount if not set
+  useEffect(() => {
+    if (!serviceCategoryId && serviceCategories.length > 0) {
+      updateFields({ serviceCategoryId: serviceCategories[0].id });
+    }
+  }, [serviceCategoryId, serviceCategories, updateFields]);
+
+  // Effect to load industries, service types and addon features when serviceCategoryId changes
+  useEffect(() => {
+    if (!serviceCategoryId) return;
+
+    if (serviceTypes.length > 0 && serviceTypes[0].serviceCategoryId === serviceCategoryId) {
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoadingData(true);
+
+    async function loadCategoryData() {
+      try {
+        const [addonsRes, addonCatsRes, indsRes, typesRes] = await Promise.all([
+          getAddonFeaturesAction(serviceCategoryId, true),
+          getAddonCategoriesAction(serviceCategoryId, true),
+          getIndustriesAction(serviceCategoryId, true),
+          getServiceTypesAction(serviceCategoryId, true),
+        ]);
+
+        if (!isMounted) return;
+
+        if (addonsRes.success && addonsRes.data) {
+          setFeatures(addonsRes.data);
+          const newFeatureIds = addonsRes.data.map(f => f.id);
+          const currentSelected = useCalculatorStore.getState().selectedFeatureIds;
+          const validSelected = currentSelected.filter(id => newFeatureIds.includes(id));
+          if (validSelected.length !== currentSelected.length) {
+            updateFields({ selectedFeatureIds: validSelected });
+          }
+        }
+        if (addonCatsRes.success && addonCatsRes.data) {
+          setCategories(addonCatsRes.data);
+        }
+        if (indsRes.success && indsRes.data) {
+          setIndustries(indsRes.data);
+          const newIndIds = indsRes.data.map(i => i.id);
+          if (!newIndIds.includes(useCalculatorStore.getState().industryId)) {
+            updateFields({ industryId: indsRes.data[0]?.id || '' });
+          }
+        }
+        if (typesRes.success && typesRes.data) {
+          setServiceTypes(typesRes.data);
+          const newTypeIds = typesRes.data.map(t => t.id);
+          if (!newTypeIds.includes(useCalculatorStore.getState().websiteType)) {
+            updateFields({ websiteType: typesRes.data[0]?.id || '' });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching dynamic category data:', err);
+      } finally {
+        if (isMounted) setIsLoadingData(false);
+      }
+    }
+
+    loadCategoryData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [serviceCategoryId, serviceTypes, updateFields]);
+
+  // Effect to load packages when serviceCategoryId or websiteType (Service Type ID) changes
+  useEffect(() => {
+    if (!serviceCategoryId || !websiteType) {
+      setPackages([]);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoadingData(true);
+
+    async function loadPackages() {
+      try {
+        const pkgsRes = await getPackagesAction(serviceCategoryId, websiteType, true);
+        if (!isMounted) return;
+
+        if (pkgsRes.success && pkgsRes.data) {
+          setPackages(pkgsRes.data);
+          // Auto-select first package if current selection is invalid
+          const newPkgIds = pkgsRes.data.map(p => p.id);
+          if (!newPkgIds.includes(useCalculatorStore.getState().packageId) && pkgsRes.data.length > 0) {
+            updateFields({ packageId: pkgsRes.data[0].id });
+          }
+        }
+      } catch (err) {
+        console.error('Error loading packages for service type:', err);
+      } finally {
+        if (isMounted) setIsLoadingData(false);
+      }
+    }
+
+    loadPackages();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [serviceCategoryId, websiteType, updateFields]);
 
   const handleFinalize = async () => {
     if (isLoading) return;
@@ -56,6 +180,7 @@ export default function CalculatorWizard({
     setErrorMessage(null);
     try {
       const response = await createCalculationAction({
+        serviceCategoryId,
         businessName,
         businessEmail,
         businessPhone,
@@ -124,20 +249,33 @@ export default function CalculatorWizard({
     return subtotal;
   };
 
-  // Step flow: 1=Business, 2=Industry, 3=Package, 4=Features, 5=Delivery, 6=Summary
+  // Step flow: 1=Business, 2=ServiceCategory, 3=ServiceType, 4=Industry, 5=Package, 6=Features, 7=Delivery, 8=Summary
   const renderStepContent = () => {
+    if (isLoadingData) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 space-y-4">
+          <Loader2 className="w-10 h-10 animate-spin text-primary" />
+          <p className="text-xs text-muted-foreground font-semibold">Loading project specifications...</p>
+        </div>
+      );
+    }
+
     switch (currentStep) {
       case 1:
         return <BusinessDetailsStep />;
       case 2:
-        return <IndustryStep industries={industries} packages={packages} />;
+        return <ServiceCategoryStep categories={serviceCategories} />;
       case 3:
-        return <PackageStep packages={packages} />;
+        return <ServiceTypeStep serviceTypes={serviceTypes} />;
       case 4:
-        return <FeaturesStep categories={categories} features={features} packages={packages} />;
+        return <IndustryStep industries={industries} packages={packages} />;
       case 5:
-        return <DeliveryStep />;
+        return <PackageStep packages={packages} />;
       case 6:
+        return <FeaturesStep categories={categories} features={features} packages={packages} />;
+      case 7:
+        return <DeliveryStep />;
+      case 8:
         return (
           <SummaryStep
             packages={packages}
@@ -148,6 +286,7 @@ export default function CalculatorWizard({
             errorMessage={errorMessage}
             calcResult={calcResult}
             onFinalize={handleFinalize}
+            serviceTypes={serviceTypes}
           />
         );
       default:
@@ -174,7 +313,7 @@ export default function CalculatorWizard({
             </div>
             <div className="flex items-center gap-2.5 opacity-55">
               <div className="w-6 h-6 rounded border border-border flex items-center justify-center text-[10px] font-bold">2</div>
-              <span className="text-xs font-medium text-foreground">Industry & Package</span>
+              <span className="text-xs font-medium text-foreground">Service Selection</span>
             </div>
             <div className="flex items-center gap-2.5 opacity-55">
               <div className="w-6 h-6 rounded border border-border flex items-center justify-center text-[10px] font-bold">3</div>
@@ -202,8 +341,8 @@ export default function CalculatorWizard({
     );
   }
 
-  // Step 4: Two Column Layout with right Cost Summary sidebar card (Features)
-  if (currentStep === 4) {
+  // Step 6: Two Column Layout with right Cost Summary sidebar card (Features)
+  if (currentStep === 6) {
     const selectedPkg = packages.find((p) => p.id === packageId) || packages[0];
     const basePrice = selectedPkg?.basePrice || 0;
     const pagesIncluded = selectedPkg?.pagesIncluded || 0;
@@ -270,11 +409,11 @@ export default function CalculatorWizard({
           {/* Stepper Progress bar */}
           <div className="space-y-2 mb-4">
             <div className="flex justify-between items-center text-xs">
-              <span className="font-bold text-primary">Step 4 of 6</span>
+              <span className="font-bold text-primary">Step 6 of 8</span>
               <span className="text-muted-foreground font-semibold">Features Selection</span>
             </div>
             <div className="w-full h-1 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-primary rounded-full" style={{ width: '66.6%' }} />
+              <div className="h-full bg-primary rounded-full" style={{ width: '75%' }} />
             </div>
           </div>
 
@@ -352,25 +491,33 @@ export default function CalculatorWizard({
     );
   }
 
-  // Other Steps (2, 3, 5, 6): Centered single-column layout
+  // Other Steps (2, 3, 4, 5, 7, 8): Centered single-column layout
   let progressPct = '0%';
   let stepLabel = '';
   switch (currentStep) {
     case 2:
-      progressPct = '33.3%';
-      stepLabel = 'Step 2 of 6: Industry';
+      progressPct = '25%';
+      stepLabel = 'Step 2 of 8: Select Service';
       break;
     case 3:
+      progressPct = '37.5%';
+      stepLabel = 'Step 3 of 8: Select Type';
+      break;
+    case 4:
       progressPct = '50%';
-      stepLabel = 'Step 3 of 6: Base Package';
+      stepLabel = 'Step 4 of 8: Industry';
       break;
     case 5:
-      progressPct = '83.3%';
-      stepLabel = 'Step 5 of 6: Delivery Speed';
+      progressPct = '62.5%';
+      stepLabel = 'Step 5 of 8: Base Package';
       break;
-    case 6:
+    case 7:
+      progressPct = '87.5%';
+      stepLabel = 'Step 7 of 8: Delivery Speed';
+      break;
+    case 8:
       progressPct = '100%';
-      stepLabel = 'Step 6 of 6: Final Summary';
+      stepLabel = 'Step 8 of 8: Final Summary';
       break;
   }
 
@@ -389,7 +536,7 @@ export default function CalculatorWizard({
       </div>
 
       {/* Package step inline pricing indicator */}
-      {currentStep === 4 && packageId && (
+      {currentStep === 5 && packageId && (
         <div className="flex justify-between items-center max-w-xl mx-auto pt-4 border-t border-border">
           <div className="h-px bg-border flex-grow mr-4" />
           <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest shrink-0">
