@@ -24,7 +24,7 @@ export default function AppSidebar({ user }: AppSidebarProps) {
       : SIDEBAR.public;
 
   return (
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar collapsible="icon" variant="sidebar">
       <SidebarHeader className="border-b">
         <div className="flex h-16 items-center gap-3 px-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
