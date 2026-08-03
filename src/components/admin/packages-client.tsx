@@ -152,6 +152,13 @@ export default function PackagesClientPage({
       setPackages([]);
       return;
     }
+
+    // Verify that the selected service type actually belongs to the selected category
+    const currentServiceType = serviceTypes.find(t => t.id === selectedServiceTypeId);
+    if (!currentServiceType || currentServiceType.serviceCategoryId !== selectedCategoryId) {
+      return;
+    }
+
     startTransition(async () => {
       const res = await getPackagesAction(selectedCategoryId!, selectedServiceTypeId);
       if (res.success && res.data) {
@@ -160,7 +167,7 @@ export default function PackagesClientPage({
         setPackages([]);
       }
     });
-  }, [selectedCategoryId, selectedServiceTypeId]);
+  }, [selectedCategoryId, selectedServiceTypeId, serviceTypes]);
 
   const openCreateModal = (defaultServiceTypeId?: string) => {
     if (!selectedCategoryId) {

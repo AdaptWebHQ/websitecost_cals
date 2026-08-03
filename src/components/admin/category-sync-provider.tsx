@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useAdminCategoryStore } from '@/store/admin-category-store';
 import { getServiceCategoriesAction } from '@/actions/service-category';
@@ -10,6 +10,7 @@ export default function CategorySyncProvider({ children }: { children: React.Rea
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { categories, selectedCategoryId, setCategories, setSelectedCategoryId, setIsLoading } = useAdminCategoryStore();
+  const activeSlugRef = useRef<string | null>(null);
 
   // 1. Initial Load of categories
   useEffect(() => {
@@ -29,52 +30,55 @@ export default function CategorySyncProvider({ children }: { children: React.Rea
     loadCategories();
   }, [setCategories, setIsLoading]);
 
-  // 2. Synchronize URL param `category` and localStorage into store
+  // 2. Synchronize URL and Store Bidirectionally (Safely)
   useEffect(() => {
     if (categories.length === 0) return;
 
     const urlCategorySlug = searchParams.get('category');
-    const localStoredId = localStorage.getItem('admin_selected_category_id');
+    const currentStoreCat = categories.find(c => c.id === selectedCategoryId);
 
-    let targetId = selectedCategoryId;
-
-    if (urlCategorySlug) {
-      const match = categories.find(c => c.slug === urlCategorySlug);
-      if (match) {
-        targetId = match.id;
+    // Case 1: Store has a selected category that differs from our tracked active slug.
+    // (This is triggered when category is changed via the UI select dropdown).
+    if (currentStoreCat && currentStoreCat.slug !== activeSlugRef.current) {
+      activeSlugRef.current = currentStoreCat.slug;
+      
+      // Update the URL to match the store if it differs
+      if (urlCategorySlug !== currentStoreCat.slug) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('category', currentStoreCat.slug);
+        router.replace(`${pathname}?${params.toString()}`);
       }
-    } else if (localStoredId) {
-      const match = categories.find(c => c.id === localStoredId);
-      if (match) {
-        targetId = match.id;
+      return;
+    }
+
+    // Case 2: URL has a category slug that differs from our tracked active slug.
+    // (This is triggered on initial load with URL parameters or back/forward navigation).
+    if (urlCategorySlug && urlCategorySlug !== activeSlugRef.current) {
+      const matchedCat = categories.find(c => c.slug === urlCategorySlug);
+      if (matchedCat) {
+        activeSlugRef.current = urlCategorySlug;
+        if (selectedCategoryId !== matchedCat.id) {
+          setSelectedCategoryId(matchedCat.id);
+        }
+      }
+      return;
+    }
+
+    // Case 3: Initial fallback if neither store nor URL is tracked yet.
+    if (!selectedCategoryId && !urlCategorySlug) {
+      const localStoredId = localStorage.getItem('admin_selected_category_id');
+      const defaultCat = categories.find(c => c.id === localStoredId) || 
+                         categories.find(c => c.id === 'sc-website') || 
+                         categories[0];
+      if (defaultCat) {
+        activeSlugRef.current = defaultCat.slug;
+        setSelectedCategoryId(defaultCat.id);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('category', defaultCat.slug);
+        router.replace(`${pathname}?${params.toString()}`);
       }
     }
-
-    if (!targetId) {
-      const defaultCat = categories.find(c => c.id === 'sc-website') || categories[0];
-      targetId = defaultCat?.id || null;
-    }
-
-    if (targetId && targetId !== selectedCategoryId) {
-      setSelectedCategoryId(targetId);
-    }
-  }, [categories, searchParams, selectedCategoryId, setSelectedCategoryId]);
-
-  // 3. Synchronize store change back to URL parameter
-  useEffect(() => {
-    if (categories.length === 0 || !selectedCategoryId) return;
-
-    const currentCat = categories.find(c => c.id === selectedCategoryId);
-    if (!currentCat) return;
-
-    const urlCategorySlug = searchParams.get('category');
-
-    if (currentCat.slug !== urlCategorySlug) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('category', currentCat.slug);
-      router.replace(`${pathname}?${params.toString()}`);
-    }
-  }, [selectedCategoryId, categories, pathname, searchParams, router]);
+  }, [categories, selectedCategoryId, searchParams, pathname, router, setSelectedCategoryId]);
 
   return <>{children}</>;
 }
