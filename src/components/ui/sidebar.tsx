@@ -173,7 +173,7 @@ const Sidebar = React.forwardRef<
       return (
         <div
           className={cn(
-            "flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground",
+            "flex h-full w-[var(--sidebar-width)] flex-col bg-sidebar text-sidebar-foreground",
             className
           )}
           ref={ref}
@@ -190,7 +190,7 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+            className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
             side={side}
             style={
               {
@@ -219,24 +219,24 @@ const Sidebar = React.forwardRef<
       >
         <div
           className={cn(
-            "relative h-svh w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
-            "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
+            "relative h-svh w-[var(--sidebar-width)] bg-transparent transition-[width] duration-200 ease-linear",
+            "group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]",
             "group-data-[variant=floating]:w-[calc(var(--sidebar-width)+calc(var(--spacing)*4))]",
             "group-data-[variant=floating]:group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+calc(var(--spacing)*4))]"
           )}
         />
         <div
           className={cn(
-            "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
+            "fixed inset-y-0 z-10 hidden h-svh w-[var(--sidebar-width)] transition-[left,right,width] duration-200 ease-linear md:flex",
             side === "left"
-              ? "left-0 group-data-[collapsible=icon]:border-r group-data-[border=true]:border-r"
-              : "right-0 group-data-[collapsible=icon]:border-l group-data-[border=true]:border-l",
+              ? "left-0 border-r border-sidebar-border group-data-[collapsible=icon]:border-r group-data-[border=true]:border-r"
+              : "right-0 border-l border-sidebar-border group-data-[collapsible=icon]:border-l group-data-[border=true]:border-l",
             variant === "floating"
               ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+calc(var(--spacing)*4)+2px)]"
-              : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
+              : "group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]",
             variant === "inset"
               ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+calc(var(--spacing)*4)+2px)]"
-              : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
+              : "group-data-[collapsible=icon]:w-[var(--sidebar-width-icon)]",
             className
           )}
           {...props}

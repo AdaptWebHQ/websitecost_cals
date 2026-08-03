@@ -8,7 +8,7 @@ import {
   getUserIdToken,
   type FirebaseUser
 } from '@/firebase/auth';
-import { setSession, clearSession } from '@/actions/auth';
+import { setSession, clearSession, getServerUser } from '@/actions/auth';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import type { User } from '@/types';
 
@@ -45,14 +45,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
           }
         } else {
-          // Keep active mock sessions in dev instead of wiping them
-          const cookieToken = document.cookie.split('; ').find(row => row.startsWith('webcost_session_token='));
-          if (cookieToken && cookieToken.split('=')[1].startsWith('mock_')) {
-            // Already logged in with mock
-            return;
+          // Check if valid server user session exists before clearing
+          const serverUser = await getServerUser();
+          if (serverUser) {
+            setUser(serverUser);
+          } else {
+            await clearSession();
+            setUser(null);
           }
-          await clearSession();
-          setUser(null);
         }
       } catch (err) {
         console.error('Authentication sync error:', err);

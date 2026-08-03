@@ -99,16 +99,24 @@ export async function createPackage(
   const now = new Date();
 
   await adminDb.runTransaction(async (transaction) => {
-    // 1. Sync bidirectional relation to Package Features
     const includedFeatureIds = data.includedFeatureIds || [];
+
+    // 1. ALL READS FIRST
+    const featItems: { ref: FirebaseFirestore.DocumentReference; data?: PackageFeature }[] = [];
     for (const featId of includedFeatureIds) {
       const featRef = adminDb.collection(COLLECTIONS.PACKAGE_FEATURES).doc(featId);
       const featSnap = await transaction.get(featRef);
       if (featSnap.exists) {
-        const featData = featSnap.data() as PackageFeature;
-        const currentPackageIds = featData.packageIds || [];
+        featItems.push({ ref: featRef, data: featSnap.data() as PackageFeature });
+      }
+    }
+
+    // 2. ALL WRITES AFTER READS COMPLETE
+    for (const item of featItems) {
+      if (item.data) {
+        const currentPackageIds = item.data.packageIds || [];
         if (!currentPackageIds.includes(docRef.id)) {
-          transaction.update(featRef, {
+          transaction.update(item.ref, {
             packageIds: [...currentPackageIds, docRef.id],
             updatedAt: now,
           });
@@ -116,7 +124,7 @@ export async function createPackage(
       }
     }
 
-    // 2. Create the package document
+    // Create the package document
     transaction.set(docRef, {
       ...data,
       slug,
@@ -138,41 +146,64 @@ export async function updatePackage(
   const docRef = adminDb.collection(COLLECTIONS.PACKAGES).doc(id);
   const now = new Date();
 
+  // Check duplicate name BEFORE transaction if needed
+  const initialSnap = await docRef.get();
+  if (!initialSnap.exists) {
+    throw new Error('Package not found.');
+  }
+
+  const initialPackage = initialSnap.data() as Package;
+  const newName = data.name ?? initialPackage.name;
+  const serviceCategoryId = data.serviceCategoryId ?? initialPackage.serviceCategoryId;
+  const serviceTypeId = data.serviceTypeId ?? initialPackage.serviceTypeId;
+
+  if (newName !== initialPackage.name || serviceCategoryId !== initialPackage.serviceCategoryId || serviceTypeId !== initialPackage.serviceTypeId) {
+    const isDuplicate = await checkDuplicateName(serviceCategoryId, serviceTypeId, newName, id);
+    if (isDuplicate) {
+      throw new Error('A package with this name already exists in this category.');
+    }
+  }
+
   await adminDb.runTransaction(async (transaction) => {
+    // 1. READ package doc inside transaction
     const docSnap = await transaction.get(docRef);
     if (!docSnap.exists) {
       throw new Error('Package not found.');
     }
 
     const currentPackage = docSnap.data() as Package;
-    const newName = data.name ?? currentPackage.name;
-    const serviceCategoryId = data.serviceCategoryId ?? currentPackage.serviceCategoryId;
-    const serviceTypeId = data.serviceTypeId ?? currentPackage.serviceTypeId;
-
-    // Check duplicate name
-    if (newName !== currentPackage.name || serviceCategoryId !== currentPackage.serviceCategoryId || serviceTypeId !== currentPackage.serviceTypeId) {
-      const isDuplicate = await checkDuplicateName(serviceCategoryId, serviceTypeId, newName, id);
-      if (isDuplicate) {
-        throw new Error('A package with this name already exists in this category.');
-      }
-    }
-
-    const slug = slugify(newName);
     const newFeatureIds = data.includedFeatureIds ?? currentPackage.includedFeatureIds ?? [];
     const oldFeatureIds = currentPackage.includedFeatureIds ?? [];
 
     const addedFeatureIds = newFeatureIds.filter((fid) => !oldFeatureIds.includes(fid));
     const removedFeatureIds = oldFeatureIds.filter((fid) => !newFeatureIds.includes(fid));
 
-    // Add this package to newly added features
+    // 2. ALL READS FOR ADDED FEATURES
+    const addedItems: { ref: FirebaseFirestore.DocumentReference; data?: PackageFeature }[] = [];
     for (const featId of addedFeatureIds) {
       const featRef = adminDb.collection(COLLECTIONS.PACKAGE_FEATURES).doc(featId);
       const featSnap = await transaction.get(featRef);
       if (featSnap.exists) {
-        const featData = featSnap.data() as PackageFeature;
-        const currentPackageIds = featData.packageIds || [];
+        addedItems.push({ ref: featRef, data: featSnap.data() as PackageFeature });
+      }
+    }
+
+    // 3. ALL READS FOR REMOVED FEATURES
+    const removedItems: { ref: FirebaseFirestore.DocumentReference; data?: PackageFeature }[] = [];
+    for (const featId of removedFeatureIds) {
+      const featRef = adminDb.collection(COLLECTIONS.PACKAGE_FEATURES).doc(featId);
+      const featSnap = await transaction.get(featRef);
+      if (featSnap.exists) {
+        removedItems.push({ ref: featRef, data: featSnap.data() as PackageFeature });
+      }
+    }
+
+    // 4. NOW EXECUTE ALL WRITES AFTER READS
+    for (const item of addedItems) {
+      if (item.data) {
+        const currentPackageIds = item.data.packageIds || [];
         if (!currentPackageIds.includes(id)) {
-          transaction.update(featRef, {
+          transaction.update(item.ref, {
             packageIds: [...currentPackageIds, id],
             updatedAt: now,
           });
@@ -180,21 +211,17 @@ export async function updatePackage(
       }
     }
 
-    // Remove this package from removed features
-    for (const featId of removedFeatureIds) {
-      const featRef = adminDb.collection(COLLECTIONS.PACKAGE_FEATURES).doc(featId);
-      const featSnap = await transaction.get(featRef);
-      if (featSnap.exists) {
-        const featData = featSnap.data() as PackageFeature;
-        const currentPackageIds = featData.packageIds || [];
-        transaction.update(featRef, {
+    for (const item of removedItems) {
+      if (item.data) {
+        const currentPackageIds = item.data.packageIds || [];
+        transaction.update(item.ref, {
           packageIds: currentPackageIds.filter((pid) => pid !== id),
           updatedAt: now,
         });
       }
     }
 
-    // Update the package document itself
+    const slug = slugify(newName);
     transaction.update(docRef, {
       ...data,
       slug,
@@ -218,21 +245,31 @@ export async function deletePackage(id: string): Promise<void> {
     throw new Error('Cannot delete package because it is referenced in industries or calculations.');
   }
 
-  await adminDb.runTransaction(async (transaction) => {
-    // Find all package features referencing this package and remove it
-    const featuresSnap = await adminDb
-      .collection(COLLECTIONS.PACKAGE_FEATURES)
-      .where('packageIds', 'array-contains', id)
-      .get();
+  // Query referencing features BEFORE transaction
+  const featuresSnap = await adminDb
+    .collection(COLLECTIONS.PACKAGE_FEATURES)
+    .where('packageIds', 'array-contains', id)
+    .get();
 
+  await adminDb.runTransaction(async (transaction) => {
+    // 1. ALL READS FIRST
+    const items: { ref: FirebaseFirestore.DocumentReference; data?: PackageFeature }[] = [];
     for (const featDoc of featuresSnap.docs) {
-      const featRef = featDoc.ref;
-      const featData = featDoc.data() as PackageFeature;
-      const currentPackageIds = featData.packageIds || [];
-      transaction.update(featRef, {
-        packageIds: currentPackageIds.filter((pid) => pid !== id),
-        updatedAt: new Date(),
-      });
+      const featSnap = await transaction.get(featDoc.ref);
+      if (featSnap.exists) {
+        items.push({ ref: featDoc.ref, data: featSnap.data() as PackageFeature });
+      }
+    }
+
+    // 2. ALL WRITES AFTER READS
+    for (const item of items) {
+      if (item.data) {
+        const currentPackageIds = item.data.packageIds || [];
+        transaction.update(item.ref, {
+          packageIds: currentPackageIds.filter((pid) => pid !== id),
+          updatedAt: new Date(),
+        });
+      }
     }
 
     // Delete the package
@@ -257,10 +294,6 @@ export async function getPackagesByServiceType(
     return list;
   }
 
-  const cacheKey = `packages:category:${serviceCategoryId}:type:${serviceTypeId}:onlyActive:${onlyActive}`;
-  const cached = getCache<Package[]>(cacheKey);
-  if (cached) return cached;
-
   try {
     let query: FirebaseFirestore.Query = adminDb
       .collection(COLLECTIONS.PACKAGES)
@@ -275,12 +308,11 @@ export async function getPackagesByServiceType(
     const list = snap.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-      createdAt: doc.data().createdAt?.toDate(),
-      updatedAt: doc.data().updatedAt?.toDate(),
+      createdAt: doc.data().createdAt?.toDate ? doc.data().createdAt.toDate() : doc.data().createdAt,
+      updatedAt: doc.data().updatedAt?.toDate ? doc.data().updatedAt.toDate() : doc.data().updatedAt,
     })) as Package[];
 
     const sorted = list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    setCache(cacheKey, sorted, 3600);
     return sorted;
   } catch (error: unknown) {
     console.error(`Error fetching packages for category ${serviceCategoryId} and type ${serviceTypeId}:`, error);
