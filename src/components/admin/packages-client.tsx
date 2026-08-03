@@ -527,9 +527,9 @@ export default function PackagesClientPage({
 
       {/* dialog for add / edit */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[700px] border-border bg-popover text-popover-foreground rounded-2xl max-h-[85vh] overflow-y-auto">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <DialogHeader>
+        <DialogContent className="sm:max-w-[750px] border-border bg-popover text-popover-foreground rounded-2xl max-h-[90vh] overflow-hidden p-0 flex flex-col">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+            <DialogHeader className="p-6 pb-4 border-b border-border/40 shrink-0">
               <DialogTitle className="text-lg font-bold text-foreground">
                 {editingPackage ? 'Edit Package Offering' : 'Create Package Offering'}
               </DialogTitle>
@@ -538,180 +538,183 @@ export default function PackagesClientPage({
               </DialogDescription>
             </DialogHeader>
 
-            {errorMsg && (
-              <div className="p-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive rounded-xl">
-                {errorMsg}
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="pkg-name">Package Name</Label>
-                  <Input
-                    id="pkg-name"
-                    placeholder="e.g. Starter Package"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="bg-background border-border rounded-xl"
-                  />
+            {/* Scrollable Form Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
+              {errorMsg && (
+                <div className="p-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive rounded-xl">
+                  {errorMsg}
                 </div>
+              )}
 
-                <div className="space-y-1.5">
-                  <Label htmlFor="pkg-service-type">Service Type</Label>
-                  <select
-                    id="pkg-service-type"
-                    value={formServiceTypeId}
-                    onChange={(e) => setFormServiceTypeId(e.target.value)}
-                    className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary/50 text-foreground"
-                  >
-                    <option value="" disabled>Select Service Type</option>
-                    {serviceTypes.map((type) => (
-                      <option key={type.id} value={type.id}>
-                        {type.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="pkg-desc">Description</Label>
-                  <Textarea
-                    id="pkg-desc"
-                    placeholder="Brief package summary..."
-                    className="resize-none h-24 bg-background border-border rounded-xl"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="pkg-price">Base Price (₹)</Label>
+                    <Label htmlFor="pkg-name">Package Name</Label>
                     <Input
-                      id="pkg-price"
-                      type="number"
-                      value={basePrice}
-                      onChange={(e) => setBasePrice(Number(e.target.value))}
+                      id="pkg-name"
+                      placeholder="e.g. Starter Package"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       className="bg-background border-border rounded-xl"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="pkg-delivery">Delivery Days</Label>
-                    <Input
-                      id="pkg-delivery"
-                      type="number"
-                      value={deliveryDays}
-                      onChange={(e) => setDeliveryDays(Number(e.target.value))}
-                      className="bg-background border-border rounded-xl"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="page-limit-type">Pages Limit Type</Label>
+                    <Label htmlFor="pkg-service-type">Service Type</Label>
                     <select
-                      id="page-limit-type"
-                      value={pageLimitType}
-                      onChange={(e: any) => setPageLimitType(e.target.value)}
+                      id="pkg-service-type"
+                      value={formServiceTypeId}
+                      onChange={(e) => setFormServiceTypeId(e.target.value)}
                       className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary/50 text-foreground"
                     >
-                      <option value="custom">Fixed Count</option>
-                      <option value="unlimited">Unlimited / Dynamic</option>
+                      <option value="" disabled>Select Service Type</option>
+                      {serviceTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
-                  {pageLimitType === 'custom' && (
-                    <div className="space-y-1.5">
-                      <Label htmlFor="pkg-pages">Pages Included</Label>
-                      <Input
-                        id="pkg-pages"
-                        type="number"
-                        value={pagesIncluded}
-                        onChange={(e) => setPagesIncluded(Number(e.target.value))}
-                        className="bg-background border-border rounded-xl"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="pkg-revisions">Revisions</Label>
-                    <Input
-                      id="pkg-revisions"
-                      type="number"
-                      value={revisions}
-                      onChange={(e) => setRevisions(Number(e.target.value))}
-                      className="bg-background border-border rounded-xl"
+                    <Label htmlFor="pkg-desc">Description</Label>
+                    <Textarea
+                      id="pkg-desc"
+                      placeholder="Brief package summary..."
+                      className="resize-none h-24 bg-background border-border rounded-xl"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
                     />
                   </div>
 
-                  <div className="flex items-center gap-6 pt-7">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="pkg-popular"
-                        checked={isPopular}
-                        onCheckedChange={(checked) => setIsPopular(!!checked)}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="pkg-price">Base Price (₹)</Label>
+                      <Input
+                        id="pkg-price"
+                        type="number"
+                        value={basePrice}
+                        onChange={(e) => setBasePrice(Number(e.target.value))}
+                        className="bg-background border-border rounded-xl"
                       />
-                      <label htmlFor="pkg-popular" className="text-sm font-medium leading-none cursor-pointer">
-                        Featured / Popular
-                      </label>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="pkg-delivery">Delivery Days</Label>
+                      <Input
+                        id="pkg-delivery"
+                        type="number"
+                        value={deliveryDays}
+                        onChange={(e) => setDeliveryDays(Number(e.target.value))}
+                        className="bg-background border-border rounded-xl"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="page-limit-type">Pages Limit Type</Label>
+                      <select
+                        id="page-limit-type"
+                        value={pageLimitType}
+                        onChange={(e: any) => setPageLimitType(e.target.value)}
+                        className="w-full h-10 px-3 bg-background border border-border rounded-xl text-sm focus:outline-none focus:border-primary/50 text-foreground"
+                      >
+                        <option value="custom">Fixed Count</option>
+                        <option value="unlimited">Unlimited / Dynamic</option>
+                      </select>
+                    </div>
+
+                    {pageLimitType === 'custom' && (
+                      <div className="space-y-1.5">
+                        <Label htmlFor="pkg-pages">Pages Included</Label>
+                        <Input
+                          id="pkg-pages"
+                          type="number"
+                          value={pagesIncluded}
+                          onChange={(e) => setPagesIncluded(Number(e.target.value))}
+                          className="bg-background border-border rounded-xl"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="pkg-revisions">Revisions</Label>
+                      <Input
+                        id="pkg-revisions"
+                        type="number"
+                        value={revisions}
+                        onChange={(e) => setRevisions(Number(e.target.value))}
+                        className="bg-background border-border rounded-xl"
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-6 pt-7">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="pkg-popular"
+                          checked={isPopular}
+                          onCheckedChange={(checked) => setIsPopular(!!checked)}
+                        />
+                        <label htmlFor="pkg-popular" className="text-sm font-medium leading-none cursor-pointer">
+                          Featured / Popular
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Features library checklist selection section */}
-              <div className="space-y-3 border-t md:border-t-0 md:border-l border-border/80 pt-4 md:pt-0 md:pl-5">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
-                  Included Library Features
-                </span>
-                {isLoadingGlobal ? (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground py-6">
-                    <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                    Loading library features checklist...
-                  </div>
-                ) : globalCategories.length === 0 ? (
-                  <div className="text-xs text-muted-foreground py-6">
-                    No features configured in this category. Configure library features first.
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-[45vh] overflow-y-auto pr-1">
-                    {globalCategories.map(cat => {
-                      const catFeats = globalFeatures.filter(f => f.categoryId === cat.id);
-                      if (catFeats.length === 0) return null;
-                      return (
-                        <div key={cat.id} className="space-y-2">
-                          <span className="text-xs font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded-lg border border-border/40">
-                            {cat.name}
-                          </span>
-                          <div className="space-y-1.5 pl-2">
-                            {catFeats.map(feat => (
-                              <div key={feat.id} className="flex items-start space-x-2.5">
-                                <Checkbox
-                                  id={`feat-${feat.id}`}
-                                  checked={includedFeatureIds.includes(feat.id)}
-                                  onCheckedChange={() => handleFeatureToggle(feat.id)}
-                                  className="mt-0.5"
-                                />
-                                <label htmlFor={`feat-${feat.id}`} className="text-xs font-medium leading-tight text-muted-foreground cursor-pointer hover:text-foreground">
-                                  {feat.name}
-                                </label>
-                              </div>
-                            ))}
+                {/* Features library checklist selection section */}
+                <div className="space-y-3 border-t md:border-t-0 md:border-l border-border/80 pt-4 md:pt-0 md:pl-6">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+                    Included Library Features
+                  </span>
+                  {isLoadingGlobal ? (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground py-6">
+                      <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                      Loading library features checklist...
+                    </div>
+                  ) : globalCategories.length === 0 ? (
+                    <div className="text-xs text-muted-foreground py-6">
+                      No features configured in this category. Configure library features first.
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {globalCategories.map(cat => {
+                        const catFeats = globalFeatures.filter(f => f.categoryId === cat.id);
+                        if (catFeats.length === 0) return null;
+                        return (
+                          <div key={cat.id} className="space-y-2">
+                            <span className="text-xs font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded-lg border border-border/40">
+                              {cat.name}
+                            </span>
+                            <div className="space-y-1.5 pl-2">
+                              {catFeats.map(feat => (
+                                <div key={feat.id} className="flex items-start space-x-2.5">
+                                  <Checkbox
+                                    id={`feat-${feat.id}`}
+                                    checked={includedFeatureIds.includes(feat.id)}
+                                    onCheckedChange={() => handleFeatureToggle(feat.id)}
+                                    className="mt-0.5"
+                                  />
+                                  <label htmlFor={`feat-${feat.id}`} className="text-xs font-medium leading-tight text-muted-foreground cursor-pointer hover:text-foreground">
+                                    {feat.name}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-0 pt-4 border-t border-border/40">
+            <DialogFooter className="gap-2 sm:gap-0 p-6 pt-4 border-t border-border/40 shrink-0">
               <Button
                 type="button"
                 variant="ghost"
