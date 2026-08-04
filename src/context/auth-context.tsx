@@ -153,15 +153,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+const CATCHY_PHRASES = [
+  "Crafting high-performance digital experiences...",
+  "Transforming your bold ideas into clean, interactive code...",
+  "Designing pixel-perfect interfaces that inspire and engage...",
+  "Building ultra-fast, modern, and SEO-friendly websites...",
+  "Bringing your business online with premium responsive layouts...",
+  "Optimizing performance, speed, and overall user experience...",
+  "Developing cutting-edge, secure, and scalable web solutions...",
+  "Empowering your brand through state-of-the-art web design..."
+];
+
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { isLoading } = useAuth();
+  const [catchyPhrase, setCatchyPhrase] = useState('');
+
+  useEffect(() => {
+    if (isLoading) {
+      const randomIndex = Math.floor(Math.random() * CATCHY_PHRASES.length);
+      setCatchyPhrase(CATCHY_PHRASES[randomIndex]);
+    }
+  }, [isLoading]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 text-slate-400 font-sans">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
-          <p className="text-sm font-medium tracking-wide">Initializing session...</p>
+      <div className="min-h-screen w-full flex items-center justify-center bg-slate-50 text-slate-600 font-sans">
+        <div className="flex flex-col items-center gap-4 text-center max-w-sm px-4 animate-in fade-in-50 duration-500">
+          <img
+            src="/uploaded_logo.png"
+            alt="AdaptWeb Logo"
+            className="w-20 h-20 object-contain animate-pulse mb-1"
+          />
+          <h2 className="text-2xl font-extrabold text-slate-900 tracking-wider">AdaptWeb</h2>
+          <div className="w-12 h-1 bg-gradient-to-r from-indigo-600 to-indigo-500 rounded-full animate-pulse my-1" />
+          <p className="text-sm font-medium tracking-wide text-slate-500 italic animate-in fade-in duration-700">
+            {catchyPhrase || "Initializing session..."}
+          </p>
         </div>
       </div>
     );

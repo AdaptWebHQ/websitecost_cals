@@ -132,19 +132,25 @@ export default function SummaryStep({
           <PdfDownloadButton
             calculationId={calcResult.id}
             businessName={calcResult.businessName}
-            onDownloaded={reset}
           />
           
-          <button
-            onClick={() => {
-              reset();
-              router.push('/public/estimates');
-            }}
-            className="bg-primary hover:bg-primary/95 text-white rounded-lg h-9 w-full flex items-center justify-center gap-1.5 font-semibold shadow-sm cursor-pointer text-xs"
-          >
-            Go to My Estimates
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => {
+                reset();
+                router.push('/public/estimates');
+              }}
+              className="bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-xl h-10 w-full flex items-center justify-center gap-1 font-semibold shadow-sm cursor-pointer text-xs transition-colors border border-border"
+            >
+              Go to Estimates
+            </button>
+            <button
+              onClick={reset}
+              className="bg-primary hover:bg-primary/95 text-white rounded-xl h-10 w-full flex items-center justify-center gap-1 font-semibold shadow-sm cursor-pointer text-xs transition-colors"
+            >
+              Start New Estimate
+            </button>
+          </div>
         </div>
 
         {/* Send Inquiry — linked to this calculation, submitted to admin CRM */}
@@ -154,6 +160,8 @@ export default function SummaryStep({
             defaultName={businessName}
             defaultEmail={businessEmail}
             defaultPhone={businessPhone}
+            defaultBudget={calcResult.packageName ? `${calcResult.packageName} (${formatCurrency(calcResult.total)})` : formatCurrency(calcResult.total)}
+            onResetEstimate={reset}
           />
         </div>
       </div>

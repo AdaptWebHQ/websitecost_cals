@@ -10,13 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Loader2, MessageSquare, Send } from 'lucide-react';
 
 interface ContactInquiryFormProps {
@@ -25,6 +18,7 @@ interface ContactInquiryFormProps {
   defaultEmail?: string;
   defaultPhone?: string;
   defaultBudget?: string;
+  onResetEstimate?: () => void;
 }
 
 export default function ContactInquiryForm({
@@ -33,6 +27,7 @@ export default function ContactInquiryForm({
   defaultEmail = '',
   defaultPhone = '',
   defaultBudget = '',
+  onResetEstimate,
 }: ContactInquiryFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -41,8 +36,6 @@ export default function ContactInquiryForm({
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(contactFormSchema),
@@ -55,8 +48,6 @@ export default function ContactInquiryForm({
       message: '',
     },
   });
-
-  const selectedBudget = watch('budget');
 
   const onSubmit = async (data: unknown) => {
     const values = data as ContactFormData;
@@ -81,7 +72,7 @@ export default function ContactInquiryForm({
   if (successMessage) {
     return (
       <Card className="bg-emerald-50/50 dark:bg-emerald-500/5 border-emerald-200 dark:border-emerald-500/20 p-6 rounded-2xl text-center space-y-4">
-        <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+        <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto animate-pulse">
           <MessageSquare className="w-6 h-6" />
         </div>
         <div className="space-y-1">
@@ -90,6 +81,14 @@ export default function ContactInquiryForm({
             {successMessage}
           </p>
         </div>
+        {onResetEstimate && (
+          <button
+            onClick={onResetEstimate}
+            className="mt-4 w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl h-11 text-sm font-semibold transition-colors shadow-sm flex items-center justify-center cursor-pointer"
+          >
+            Start New Estimate
+          </button>
+        )}
       </Card>
     );
   }
@@ -156,26 +155,13 @@ export default function ContactInquiryForm({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="budget" className="text-xs text-slate-700 dark:text-slate-300">Approx. Budget</Label>
-          <Select
-            value={selectedBudget}
-            onValueChange={(val) => setValue('budget', val || '', { shouldValidate: true })}
-          >
-            <SelectTrigger className="w-full h-10 bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-3.5 text-sm focus:border-primary flex items-center justify-between data-[size=default]:h-10 data-[size=default]:w-full">
-              <SelectValue placeholder="Select budget..." />
-            </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 rounded-xl p-1 shadow-2xl text-slate-800 dark:text-slate-200">
-              {BUDGET_RANGES.map((r) => (
-                <SelectItem
-                  key={r}
-                  value={r}
-                  className="flex items-center w-full px-3.5 py-2.5 text-sm text-slate-700 dark:text-slate-300 rounded-lg cursor-pointer transition-colors"
-                >
-                  {r}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="budget" className="text-xs text-slate-700 dark:text-slate-300">Selected Package</Label>
+          <Input
+            id="budget"
+            className="bg-slate-100 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 rounded-xl h-10 text-sm focus:outline-none cursor-not-allowed select-none"
+            readOnly
+            {...register('budget')}
+          />
           {errors.budget && <p className="text-[10px] text-red-600 dark:text-red-400">{errors.budget.message}</p>}
         </div>
 

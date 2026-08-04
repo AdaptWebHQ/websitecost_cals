@@ -18,7 +18,8 @@ import {
   Calendar, 
   CreditCard,
   PlusCircle,
-  HelpCircle
+  HelpCircle,
+  Loader2
 } from 'lucide-react';
 
 interface FeaturesStepProps {
@@ -44,6 +45,18 @@ export default function FeaturesStep({ categories, features, packages }: Feature
   const [customPrice, setCustomPrice] = useState('');
 
   const selectedPackage = packages.find((p) => p.id === packageId) || packages[0];
+
+  if (!selectedPackage) {
+    return (
+      <div className="flex h-[40vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-xs text-muted-foreground">Loading package details...</p>
+        </div>
+      </div>
+    );
+  }
+
   const extraPageFeature = features.find((f) => f.id === 'feat-extra-page');
   const extraPagePrice = extraPageFeature ? extraPageFeature.price : 2000;
 

@@ -180,6 +180,7 @@ export default async function PublicEstimateDetailPage({ params }: EstimateDetai
               defaultName={calculation.businessName}
               defaultEmail={calculation.businessEmail}
               defaultPhone={calculation.businessPhone}
+              defaultBudget={calculation.packageName ? `${calculation.packageName} (${formatCurrency(calculation.total)})` : formatCurrency(calculation.total)}
             />
           </div>
         </div>
