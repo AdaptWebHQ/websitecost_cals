@@ -109,15 +109,37 @@ export async function exportInquiriesCsvAction(): Promise<ApiResponse<string>> {
       .orderBy('createdAt', 'desc')
       .get();
 
-    // Pre-fetch all calculations to link details
-    const calculationsSnapshot = await adminDb
-      .collection(COLLECTIONS.CALCULATIONS)
-      .get();
+    // Extract all unique non-null calculation IDs from inquiries
+    const inquiryDocs = snapshot.docs;
+    const calcIds = Array.from(
+      new Set(
+        inquiryDocs
+          .map((doc) => doc.data().calculationId)
+          .filter((id): id is string => !!id)
+      )
+    );
 
     const calculationsMap = new Map<string, any>();
-    calculationsSnapshot.forEach((doc) => {
-      calculationsMap.set(doc.id, doc.data());
-    });
+    if (calcIds.length > 0) {
+      // Chunk queries by 10 to satisfy Firestore limits for 'in' operator
+      const chunkSize = 10;
+      const chunks = [];
+      for (let i = 0; i < calcIds.length; i += chunkSize) {
+        chunks.push(calcIds.slice(i, i + chunkSize));
+      }
+      const queryPromises = chunks.map((chunk) =>
+        adminDb
+          .collection(COLLECTIONS.CALCULATIONS)
+          .where('__name__', 'in', chunk)
+          .get()
+      );
+      const querySnapshots = await Promise.all(queryPromises);
+      querySnapshots.forEach((snap) => {
+        snap.forEach((doc) => {
+          calculationsMap.set(doc.id, doc.data());
+        });
+      });
+    }
 
     const headers = [
       'Inquiry ID',

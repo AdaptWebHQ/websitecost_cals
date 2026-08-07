@@ -41,12 +41,14 @@ export async function getPriceConfig(): Promise<PriceConfig> {
     
     if (docSnap.exists) {
       const data = docSnap.data();
-      return {
+      const config = {
         id: 'global',
         ...data,
         createdAt: data?.createdAt?.toDate() || new Date(),
         updatedAt: data?.updatedAt?.toDate() || new Date(),
       } as PriceConfig;
+      setCache(cacheKey, config, 300);
+      return config;
     }
 
     // Initialize with default config if not found

@@ -157,13 +157,18 @@ export async function createCalculationAction(
 
     const now = new Date();
     
-    // Save generated calculation record in database
+    // Save generated calculation record in database with normalized client details at root and nested
     const newCalculation: Omit<Calculation, 'id'> = {
       userId: user?.id || null, // null if anonymous run before login
       serviceCategoryId,
       businessName: businessDetails.businessName,
       businessEmail: businessDetails.businessEmail,
-      businessPhone: businessDetails.businessPhone || undefined,
+      businessPhone: businessDetails.businessPhone || '',
+      businessDetails: {
+        businessName: businessDetails.businessName,
+        businessEmail: businessDetails.businessEmail,
+        businessPhone: businessDetails.businessPhone || '',
+      },
       industryId,
       industryName: industry.name,
       serviceTypeId,

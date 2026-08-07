@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const loginWithGoogle = async (isRegistering = false): Promise<{ success: boolean; error?: string }> => {
+  const loginWithGoogle = React.useCallback(async (isRegistering = false): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -91,9 +91,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       return { success: false, error: errorMessage };
     }
-  };
+  }, []);
 
-  const loginMock = async (role: 'admin' | 'public'): Promise<{ success: boolean; error?: string }> => {
+  const loginMock = React.useCallback(async (role: 'admin' | 'public'): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -119,9 +119,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       return { success: false, error: errorMessage };
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = React.useCallback(async () => {
     setIsLoading(true);
     try {
       await firebaseSignOut();
@@ -134,20 +134,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  // Performance: Memoize context value to prevent wasteful component re-renders
+  const contextValue = React.useMemo(
+    () => ({
+      user,
+      isLoading,
+      error,
+      setError,
+      loginWithGoogle,
+      loginMock,
+      logout,
+    }),
+    [user, isLoading, error, loginWithGoogle, loginMock, logout]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isLoading,
-        error,
-        setError,
-        loginWithGoogle,
-        loginMock,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

@@ -85,8 +85,11 @@ export async function getCalculationById(id: string): Promise<Calculation | null
     return {
       id: docSnap.id,
       ...data,
-      createdAt: data?.createdAt?.toDate(),
-      updatedAt: data?.updatedAt?.toDate(),
+      businessName: data?.businessName || data?.businessDetails?.businessName || '',
+      businessEmail: data?.businessEmail || data?.businessDetails?.businessEmail || '',
+      businessPhone: data?.businessPhone || data?.businessDetails?.businessPhone || '',
+      createdAt: data?.createdAt?.toDate ? data.createdAt.toDate() : data?.createdAt,
+      updatedAt: data?.updatedAt?.toDate ? data.updatedAt.toDate() : data?.updatedAt,
     } as Calculation;
   } catch (error: unknown) {
     // Quiet fallback

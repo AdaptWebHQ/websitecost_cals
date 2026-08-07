@@ -1,10 +1,21 @@
-import CalculationsChart from './calculations-chart';
+'use client';
+
+import dynamic from 'next/dynamic';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calculator, FileText, ChevronRight, Clock, Sparkles, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import type { Calculation, Inquiry } from '@/types';
+
+const CalculationsChart = dynamic(() => import('./calculations-chart'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-72 w-full flex items-center justify-center bg-card rounded-lg border border-border animate-pulse text-xs text-muted-foreground font-semibold">
+      Loading chart matrix...
+    </div>
+  ),
+});
 
 function getInitials(name: string) {
   return name

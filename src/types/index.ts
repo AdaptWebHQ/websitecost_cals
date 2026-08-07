@@ -229,6 +229,11 @@ export interface Calculation {
   businessName: string;
   businessEmail: string;
   businessPhone?: string;
+  businessDetails?: {
+    businessName?: string;
+    businessEmail?: string;
+    businessPhone?: string;
+  };
   industryId: string;
   serviceTypeId: string;
   packageId: string;

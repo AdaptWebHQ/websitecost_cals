@@ -151,17 +151,27 @@ export async function getIndustryById(id: string): Promise<Industry | null> {
     return DEFAULT_INDUSTRIES.find((i) => i.id === id) || null;
   }
 
+  const cacheKey = `industry:id:${id}`;
+  const cached = getCache<Industry | null>(cacheKey);
+  if (cached !== undefined) return cached;
+
   try {
     const docSnap = await adminDb.collection(COLLECTIONS.INDUSTRIES).doc(id).get();
-    if (!docSnap.exists) return null;
+    if (!docSnap.exists) {
+      setCache(cacheKey, null, 3600);
+      return null;
+    }
     
     const data = docSnap.data();
-    return {
+    const ind = {
       id: docSnap.id,
       ...data,
       createdAt: data?.createdAt?.toDate(),
       updatedAt: data?.updatedAt?.toDate(),
     } as Industry;
+
+    setCache(cacheKey, ind, 3600);
+    return ind;
   } catch (error) {
     console.error(`Error fetching industry by ID (${id}):`, error);
     return null;

@@ -1,4 +1,3 @@
-import { jsPDF } from 'jspdf';
 import type { Calculation, PriceConfig } from '@/types';
 import { formatDate } from '@/lib/utils';
 import { getPackageById } from '@/lib/packages';
@@ -8,6 +7,9 @@ export async function generateQuotationPdf(
   calculation: Calculation,
   priceConfig: PriceConfig
 ): Promise<string> {
+  // Code-splitting Optimization: Dynamic import jsPDF on demand to keep initial JS bundle small
+  const { jsPDF } = await import('jspdf');
+
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -123,17 +125,43 @@ export async function generateQuotationPdf(
   let col2Y = currentY;
   addText('PREPARED FOR CLIENT', 94, col2Y, 7.5, true, 'primary');
   col2Y += 5;
-  const clientNameLines: string[] = doc.splitTextToSize(calculation.businessName || 'Valued Client', 52);
+  const rawClientName = 
+    calculation.businessName || 
+    (calculation as any).businessDetails?.businessName || 
+    (calculation as any).clientName || 
+    'Valued Client';
+
+  const clientEmail = 
+    calculation.businessEmail || 
+    (calculation as any).businessDetails?.businessEmail || 
+    (calculation as any).email || 
+    '';
+
+  const clientPhone = 
+    calculation.businessPhone || 
+    (calculation as any).businessDetails?.businessPhone || 
+    (calculation as any).phone || 
+    '';
+
+  const formattedClientName = rawClientName.replace(/\b\w/g, (char: string) => char.toUpperCase());
+  console.log('[DEBUG] PDF Rendering - Final client details rendered in PDF:', {
+    name: formattedClientName,
+    email: clientEmail,
+    phone: clientPhone,
+  });
+  const clientNameLines: string[] = doc.splitTextToSize(formattedClientName, 52);
   clientNameLines.forEach((line) => {
     addText(line, 94, col2Y, 9.5, true, 'dark');
     col2Y += 4.5;
   });
-  if (calculation.businessEmail) {
-    addText(`Email: ${calculation.businessEmail}`, 94, col2Y, 7.5, false, 'secondary');
+  if (clientEmail) {
+    addText(`Email: ${clientEmail}`, 94, col2Y, 7.5, false, 'secondary');
     col2Y += 3.8;
   }
-  addText(`Phone: ${calculation.businessPhone || 'N/A'}`, 94, col2Y, 7.5, false, 'secondary');
-  col2Y += 3.8;
+  if (clientPhone) {
+    addText(`Phone: ${clientPhone}`, 94, col2Y, 7.5, false, 'secondary');
+    col2Y += 3.8;
+  }
 
   // --- Col 3: Details ---
   let col3Y = currentY;

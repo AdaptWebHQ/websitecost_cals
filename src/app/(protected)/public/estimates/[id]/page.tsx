@@ -79,30 +79,55 @@ export default async function PublicEstimateDetailPage({ params }: EstimateDetai
             Generated on {formatDate(calculation.createdAt)} for {calculation.businessName}.
           </p>
         </div>
-        <PdfDownloadButton calculationId={calculation.id} businessName={calculation.businessName} />
+        <PdfDownloadButton
+          calculationId={calculation.id}
+          businessName={calculation.businessName}
+          businessEmail={calculation.businessEmail}
+          businessPhone={calculation.businessPhone}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column: Project Config summary */}
         <div className="md:col-span-2 space-y-6">
-          <Card className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-foreground mb-4">Baseline Structure</h2>
-            <div className="grid grid-cols-2 gap-6 text-sm">
-              <div>
-                <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Website Type</span>
-                <span className="text-foreground font-semibold text-base mt-1 block capitalize">{calculation.websiteType}</span>
+          {/* Prepared For Client & Baseline Structure */}
+          <Card className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-6">
+            <div>
+              <h2 className="text-xs uppercase tracking-wider font-bold text-primary mb-3">Prepared For Client</h2>
+              <div className="bg-muted/30 border border-border/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="font-extrabold text-foreground text-lg block">{calculation.businessName || 'Valued Client'}</span>
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground mt-1">
+                    {calculation.businessEmail && (
+                      <span><strong className="text-foreground">Email:</strong> {calculation.businessEmail}</span>
+                    )}
+                    {calculation.businessPhone && (
+                      <span><strong className="text-foreground">Phone:</strong> {calculation.businessPhone}</span>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Predefined Package</span>
-                <span className="text-primary font-bold text-base mt-1 block">{calculation.packageName}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Target Sector</span>
-                <span className="text-foreground font-semibold text-base mt-1 block">{calculation.industryName}</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Configure Pages</span>
-                <span className="text-foreground font-semibold text-base mt-1 block">{calculation.pages} Pages</span>
+            </div>
+
+            <div className="border-t border-border pt-5">
+              <h2 className="text-lg font-bold text-foreground mb-4">Baseline Structure</h2>
+              <div className="grid grid-cols-2 gap-6 text-sm">
+                <div>
+                  <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Website Type</span>
+                  <span className="text-foreground font-semibold text-base mt-1 block capitalize">{calculation.websiteType}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Predefined Package</span>
+                  <span className="text-primary font-bold text-base mt-1 block">{calculation.packageName}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Target Sector</span>
+                  <span className="text-foreground font-semibold text-base mt-1 block">{calculation.industryName}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground text-xs block uppercase tracking-wider font-bold">Configure Pages</span>
+                  <span className="text-foreground font-semibold text-base mt-1 block">{calculation.pages} Pages</span>
+                </div>
               </div>
             </div>
           </Card>

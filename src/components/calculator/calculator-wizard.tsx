@@ -287,6 +287,7 @@ export default function CalculatorWizard({
             calcResult={calcResult}
             onFinalize={handleFinalize}
             serviceTypes={serviceTypes}
+            setCalcResult={setCalcResult}
           />
         );
       default:

@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // Safe fallbacks to prevent errors during Next.js build-time static page collection
@@ -16,7 +16,16 @@ const firebaseConfig = {
 // Initialize Firebase client-side singleton app
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
-const db = getFirestore(app);
+
+// Enable offline persistent cache to decrease read quota usage and enable instant local responses
+const db = getApps().length === 0
+  ? initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager(),
+      }),
+    })
+  : getFirestore(app);
+
 const storage = getStorage(app);
 
 export { app, auth, db, storage };
