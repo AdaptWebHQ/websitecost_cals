@@ -183,7 +183,7 @@ export interface AddonFeature {
 /** Price configuration document scoped to a service category */
 export interface PriceConfig {
   id: string;
-  
+  serviceCategoryId?: string;
   currency: string;
   currencySymbol: string;
   gstPercentage: number;

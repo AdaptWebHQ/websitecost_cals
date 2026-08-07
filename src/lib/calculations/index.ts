@@ -1,6 +1,6 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
-import { buildPagedQuery, formatPageResult, PaginationFilters } from '@/lib/firestore-pagination';
+import { buildPagedQuery, executePagedQuery, formatPageResult, PaginationFilters } from '@/lib/firestore-pagination';
 import type { Calculation } from '@/types';
 
 export async function getCalculations(userId?: string): Promise<Calculation[]> {
@@ -11,19 +11,33 @@ export async function getCalculations(userId?: string): Promise<Calculation[]> {
       queryRef = queryRef.where('userId', '==', userId);
     }
     
-    queryRef = queryRef.orderBy('createdAt', 'desc').limit(100);
-    
-    const snap = await queryRef.get();
+    let snap: FirebaseFirestore.QuerySnapshot;
+    try {
+      snap = await queryRef.orderBy('createdAt', 'desc').limit(100).get();
+    } catch (err: any) {
+      if (err?.code === 9 || err?.status === 9 || (typeof err?.message === 'string' && err.message.includes('index'))) {
+        console.warn('⚠️ Firestore Composite Index Missing for getCalculations, falling back to un-ordered query.');
+        snap = await queryRef.limit(100).get();
+      } else {
+        throw err;
+      }
+    }
     
     const list = snap.docs.map((doc) => {
       const data = doc.data();
       return {
         id: doc.id,
         ...data,
-        createdAt: data.createdAt?.toDate(),
-        updatedAt: data.updatedAt?.toDate(),
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : data.createdAt,
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : data.updatedAt,
       };
     }) as Calculation[];
+
+    list.sort((a, b) => {
+      const timeA = new Date(a.createdAt || 0).getTime();
+      const timeB = new Date(b.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
 
     return list;
   } catch (error: unknown) {
@@ -40,15 +54,12 @@ export async function getCalculationsPage(
     const combinedFilters = { ...(options.filters || {}) } as Record<string, unknown>;
     if (options.userId) combinedFilters.userId = options.userId;
 
-    const query = buildPagedQuery(
+    const page = await executePagedQuery<Calculation>(
       collectionRef,
       { page: 1, limit: options.limit ?? 25, cursor: options.cursor, filters: combinedFilters },
       'createdAt',
       'desc'
     );
-
-    const snap = await query.get();
-    const page = formatPageResult<Calculation>(snap.docs, options.limit ?? 25);
 
     return {
       ...page,

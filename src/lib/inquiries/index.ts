@@ -1,6 +1,6 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
-import { buildPagedQuery, formatPageResult, PaginationFilters } from '@/lib/firestore-pagination';
+import { buildPagedQuery, executePagedQuery, formatPageResult, PaginationFilters } from '@/lib/firestore-pagination';
 import type { Inquiry, InquiryActivity } from '@/types';
 
 /** Fetch all CRM inquiries, sorted by newest first */
@@ -49,15 +49,12 @@ export async function getInquiriesPage(
     const collectionRef = adminDb.collection(COLLECTIONS.INQUIRIES);
     const combinedFilters = { ...(options.filters || {}) } as Record<string, unknown>;
 
-    const query = buildPagedQuery(
+    const page = await executePagedQuery<Inquiry>(
       collectionRef,
       { page: 1, limit: options.limit ?? 25, cursor: options.cursor, filters: combinedFilters },
       'createdAt',
       'desc'
     );
-
-    const snap = await query.get();
-    const page = formatPageResult<Inquiry>(snap.docs, options.limit ?? 25);
 
     return {
       ...page,

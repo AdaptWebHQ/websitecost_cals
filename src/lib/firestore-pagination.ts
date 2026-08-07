@@ -97,3 +97,58 @@ export function formatPageResult<T>(
     nextCursor: hasMore ? nextCursor : undefined,
   };
 }
+
+export async function executePagedQuery<T>(
+  collectionRef: admin.firestore.CollectionReference,
+  options: PaginationOptions,
+  orderByField = 'createdAt',
+  orderDirection: 'asc' | 'desc' = 'desc'
+): Promise<PageResult<T>> {
+  try {
+    const query = buildPagedQuery(collectionRef, options, orderByField, orderDirection);
+    const snap = await query.get();
+    return formatPageResult<T>(snap.docs, options.limit ?? 25, orderByField);
+  } catch (error: any) {
+    const isIndexError =
+      error?.code === 9 ||
+      error?.status === 9 ||
+      (typeof error?.message === 'string' &&
+        (error.message.includes('requires an index') || error.message.includes('FAILED_PRECONDITION')));
+
+    if (isIndexError) {
+      console.warn(
+        '⚠️ Firestore Composite Index Missing. Falling back to in-memory filter & sort:',
+        error?.message || error
+      );
+
+      let fallbackQuery: admin.firestore.Query = collectionRef;
+
+      if (options.filters) {
+        Object.entries(options.filters).forEach(([key, value]) => {
+          if (value === undefined || value === null || value === '') return;
+          if (Array.isArray(value)) {
+            fallbackQuery = fallbackQuery.where(key, 'in', value as unknown[]);
+          } else {
+            fallbackQuery = fallbackQuery.where(key, '==', value);
+          }
+        });
+      }
+
+      const snap = await fallbackQuery.limit(200).get();
+      let docs = snap.docs;
+
+      docs.sort((a, b) => {
+        const valA = a.data()[orderByField];
+        const valB = b.data()[orderByField];
+        const timeA = valA?.toMillis ? valA.toMillis() : new Date(valA || 0).getTime();
+        const timeB = valB?.toMillis ? valB.toMillis() : new Date(valB || 0).getTime();
+
+        return orderDirection === 'desc' ? timeB - timeA : timeA - timeB;
+      });
+
+      return formatPageResult<T>(docs, options.limit ?? 25, orderByField);
+    }
+
+    throw error;
+  }
+}
