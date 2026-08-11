@@ -71,6 +71,26 @@ export async function createInquiryAction(
     const docRef = await adminDb.collection(COLLECTIONS.INQUIRIES).add(newInquiry);
     const inquiryId = docRef.id;
 
+    // Update the parent calculation document with the newly submitted client contact details
+    if (calculationId) {
+      try {
+        const calcRef = adminDb.collection(COLLECTIONS.CALCULATIONS).doc(calculationId);
+        await calcRef.update({
+          businessName: company || name || 'Valued Client',
+          businessEmail: email,
+          businessPhone: phone || '',
+          businessDetails: {
+            businessName: company || name || 'Valued Client',
+            businessEmail: email,
+            businessPhone: phone || '',
+          },
+          updatedAt: now,
+        });
+      } catch (updateErr) {
+        console.error('Failed to update calculation with inquiry client details:', updateErr);
+      }
+    }
+
     // Log initial activity event
     const initialActivity: Omit<InquiryActivity, 'id'> = {
       inquiryId,

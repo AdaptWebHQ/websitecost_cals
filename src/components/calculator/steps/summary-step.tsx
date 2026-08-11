@@ -19,6 +19,7 @@ interface SummaryStepProps {
   calcResult: Calculation | null;
   onFinalize: () => void;
   serviceTypes: ServiceType[];
+  setCalcResult: React.Dispatch<React.SetStateAction<Calculation | null>>;
 }
 
 export default function SummaryStep({
@@ -31,6 +32,7 @@ export default function SummaryStep({
   calcResult,
   onFinalize,
   serviceTypes,
+  setCalcResult,
 }: SummaryStepProps) {
   const router = useRouter();
 
@@ -132,6 +134,8 @@ export default function SummaryStep({
           <PdfDownloadButton
             calculationId={calcResult.id}
             businessName={calcResult.businessName}
+            businessEmail={calcResult.businessEmail}
+            businessPhone={calcResult.businessPhone}
           />
           
           <div className="grid grid-cols-2 gap-2">
@@ -162,6 +166,9 @@ export default function SummaryStep({
             defaultPhone={businessPhone}
             defaultBudget={calcResult.packageName ? `${calcResult.packageName} (${formatCurrency(calcResult.total)})` : formatCurrency(calcResult.total)}
             onResetEstimate={reset}
+            onInquirySubmitted={(details) => {
+              setCalcResult((prev) => prev ? { ...prev, ...details } : null);
+            }}
           />
         </div>
       </div>

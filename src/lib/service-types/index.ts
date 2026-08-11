@@ -157,16 +157,26 @@ export async function getServiceTypeById(id: string): Promise<ServiceType | null
     return DEFAULT_SERVICE_TYPES.find((st) => st.id === id) || null;
   }
 
+  const cacheKey = `service_type:id:${id}`;
+  const cached = getCache<ServiceType | null>(cacheKey);
+  if (cached !== undefined) return cached;
+
   try {
     const docSnap = await adminDb.collection(COLLECTIONS.SERVICE_TYPES).doc(id).get();
-    if (!docSnap.exists) return null;
+    if (!docSnap.exists) {
+      setCache(cacheKey, null, 3600);
+      return null;
+    }
     const data = docSnap.data();
-    return {
+    const st = {
       id: docSnap.id,
       ...data,
       createdAt: data?.createdAt?.toDate(),
       updatedAt: data?.updatedAt?.toDate(),
     } as ServiceType;
+
+    setCache(cacheKey, st, 3600);
+    return st;
   } catch (error) {
     console.error(`Error fetching service type by ID (${id}):`, error);
     return null;

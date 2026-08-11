@@ -19,13 +19,55 @@ const CATCHY_PHRASES = [
 interface PdfDownloadButtonProps {
   calculationId: string;
   businessName?: string;
+  businessEmail?: string;
+  businessPhone?: string;
   onDownloaded?: () => void;
 }
 
-export default function PdfDownloadButton({ calculationId, businessName, onDownloaded }: PdfDownloadButtonProps) {
+export default function PdfDownloadButton({
+  calculationId,
+  businessName,
+  businessEmail,
+  businessPhone,
+  onDownloaded,
+}: PdfDownloadButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [catchyPhrase, setCatchyPhrase] = useState('');
+
+  // Local state to hold the live clientDetails from form events
+  const [clientDetails, setClientDetails] = useState({
+    businessName,
+    businessEmail,
+    businessPhone,
+  });
+
+  useEffect(() => {
+    // Keep local state in sync when initial props change
+    setClientDetails({
+      businessName,
+      businessEmail,
+      businessPhone,
+    });
+  }, [businessName, businessEmail, businessPhone]);
+
+  useEffect(() => {
+    // Listen for real-time updates from form inputs
+    const handleDetailsChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      if (customEvent.detail) {
+        console.log('[DEBUG] PdfDownloadButton - Received live form details update:', customEvent.detail);
+        setClientDetails((prev) => ({
+          ...prev,
+          ...customEvent.detail,
+        }));
+      }
+    };
+    window.addEventListener('clientDetailsChange', handleDetailsChange);
+    return () => {
+      window.removeEventListener('clientDetailsChange', handleDetailsChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (isLoading) {
@@ -38,7 +80,8 @@ export default function PdfDownloadButton({ calculationId, businessName, onDownl
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const response = await getCalculationPdfAction(calculationId);
+      console.log('[DEBUG] PdfDownloadButton - Requesting PDF with clientDetails:', clientDetails);
+      const response = await getCalculationPdfAction(calculationId, clientDetails);
       if (response.success && response.data) {
         // Open PDF base64 dynamic frame or download directly
         const base64Data = response.data;
@@ -48,9 +91,8 @@ export default function PdfDownloadButton({ calculationId, businessName, onDownl
         link.href = base64Data;
         
         // Sanitize business name for safe file system names
-        const nameSlug = businessName
-          ? businessName.trim().replace(/[^a-zA-Z0-9\s-]/g, '').replace(/[\s-]+/g, '_')
-          : calculationId;
+        const finalName = clientDetails.businessName || businessName || calculationId;
+        const nameSlug = finalName.trim().replace(/[^a-zA-Z0-9\s-]/g, '').replace(/[\s-]+/g, '_');
           
         link.download = `Project_Quotation_${nameSlug}.pdf`;
         document.body.appendChild(link);

@@ -294,6 +294,10 @@ export async function getPackagesByServiceType(
     return list;
   }
 
+  const cacheKey = `packages:category:${serviceCategoryId}:type:${serviceTypeId}:onlyActive:${onlyActive}`;
+  const cached = getCache<Package[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     let query: FirebaseFirestore.Query = adminDb
       .collection(COLLECTIONS.PACKAGES)
@@ -313,6 +317,7 @@ export async function getPackagesByServiceType(
     })) as Package[];
 
     const sorted = list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    setCache(cacheKey, sorted, 3600);
     return sorted;
   } catch (error: unknown) {
     console.error(`Error fetching packages for category ${serviceCategoryId} and type ${serviceTypeId}:`, error);
@@ -326,17 +331,27 @@ export async function getPackageById(id: string): Promise<Package | null> {
     return DEFAULT_PACKAGES.find((p) => p.id === id) || null;
   }
 
+  const cacheKey = `package:id:${id}`;
+  const cached = getCache<Package | null>(cacheKey);
+  if (cached !== undefined) return cached;
+
   try {
     const docSnap = await adminDb.collection(COLLECTIONS.PACKAGES).doc(id).get();
-    if (!docSnap.exists) return null;
+    if (!docSnap.exists) {
+      setCache(cacheKey, null, 3600);
+      return null;
+    }
     
     const data = docSnap.data();
-    return {
+    const pkg = {
       id: docSnap.id,
       ...data,
       createdAt: data?.createdAt?.toDate(),
       updatedAt: data?.updatedAt?.toDate(),
     } as Package;
+
+    setCache(cacheKey, pkg, 3600);
+    return pkg;
   } catch (error) {
     console.error(`Error fetching package by ID (${id}):`, error);
     return null;

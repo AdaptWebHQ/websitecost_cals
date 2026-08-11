@@ -1,4 +1,3 @@
-import { jsPDF } from 'jspdf';
 import type { Calculation, PriceConfig } from '@/types';
 import { formatDate } from '@/lib/utils';
 import { getPackageById } from '@/lib/packages';
@@ -8,6 +7,9 @@ export async function generateQuotationPdf(
   calculation: Calculation,
   priceConfig: PriceConfig
 ): Promise<string> {
+  // Code-splitting Optimization: Dynamic import jsPDF on demand to keep initial JS bundle small
+  const { jsPDF } = await import('jspdf');
+
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -90,65 +92,158 @@ export async function generateQuotationPdf(
   // 3. Three-column Metadata Block with Left Accents
   let currentY = 37;
   
-  // Col 1: Provider
-  doc.setFillColor(27, 107, 74);
-  doc.rect(20, currentY - 1, 1, 19, 'F'); // Left vertical green bar
-  addText('SERVICE PROVIDER', 24, currentY, 7.5, true, 'primary');
-  addText(priceConfig.companyName, 24, currentY + 5, 9.5, true, 'dark');
-  addText(priceConfig.companyAddress || 'Bangalore, Karnataka', 24, currentY + 9, 7.5, false, 'secondary');
-  addText(`Email: ${priceConfig.companyEmail}`, 24, currentY + 13, 7.5, false, 'secondary');
-  addText('Phone: +919342624226, +918072268570', 24, currentY + 17, 7.5, false, 'secondary');
+  // --- Col 1: Provider ---
+  let col1Y = currentY;
+  addText('SERVICE PROVIDER', 24, col1Y, 7.5, true, 'primary');
+  col1Y += 5;
+  addText(priceConfig.companyName || 'AdaptWeb IT Solutions', 24, col1Y, 9.5, true, 'dark');
+  col1Y += 4.5;
 
-  // Col 2: Client
-  doc.setFillColor(27, 107, 74);
-  doc.rect(90, currentY - 1, 1, 19, 'F'); // Left vertical green bar
-  addText('PREPARED FOR CLIENT', 94, currentY, 7.5, true, 'primary');
-  addText(calculation.businessName, 94, currentY + 5, 9.5, true, 'dark');
-  addText(`Email: ${calculation.businessEmail}`, 94, currentY + 9, 7.5, false, 'secondary');
-  addText(`Phone: ${calculation.businessPhone || 'N/A'}`, 94, currentY + 13, 7.5, false, 'secondary');
+  const rawAddress = priceConfig.companyAddress || 'Bangalore, Karnataka';
+  const addressLines: string[] = rawAddress
+    .split('\n')
+    .flatMap((line) => doc.splitTextToSize(line.trim(), 60));
 
-  // Col 3: Details
-  doc.setFillColor(27, 107, 74);
-  doc.rect(150, currentY - 1, 1, 19, 'F'); // Left vertical green bar
-  addText('ESTIMATE DETAILS', 154, currentY, 7.5, true, 'primary');
-  addText(`Date: ${formatDate(calculation.createdAt)}`, 154, currentY + 5, 8, false, 'dark');
-  
+  addressLines.forEach((line) => {
+    if (line) {
+      addText(line, 24, col1Y, 7.5, false, 'secondary');
+      col1Y += 3.8;
+    }
+  });
+
+  if (priceConfig.companyEmail) {
+    addText(`Email: ${priceConfig.companyEmail}`, 24, col1Y, 7.5, false, 'secondary');
+    col1Y += 3.8;
+  }
+  const companyPhone = priceConfig.companyPhone || '+91 9342624226, +91 8072268570';
+  if (companyPhone) {
+    addText(`Phone: ${companyPhone}`, 24, col1Y, 7.5, false, 'secondary');
+    col1Y += 3.8;
+  }
+
+  // --- Col 2: Client ---
+  let col2Y = currentY;
+  addText('PREPARED FOR CLIENT', 94, col2Y, 7.5, true, 'primary');
+  col2Y += 5;
+  const rawClientName = 
+    calculation.businessName || 
+    (calculation as any).businessDetails?.businessName || 
+    (calculation as any).clientName || 
+    'Valued Client';
+
+  const clientEmail = 
+    calculation.businessEmail || 
+    (calculation as any).businessDetails?.businessEmail || 
+    (calculation as any).email || 
+    '';
+
+  const clientPhone = 
+    calculation.businessPhone || 
+    (calculation as any).businessDetails?.businessPhone || 
+    (calculation as any).phone || 
+    '';
+
+  const formattedClientName = rawClientName.replace(/\b\w/g, (char: string) => char.toUpperCase());
+  console.log('[DEBUG] PDF Rendering - Final client details rendered in PDF:', {
+    name: formattedClientName,
+    email: clientEmail,
+    phone: clientPhone,
+  });
+  const clientNameLines: string[] = doc.splitTextToSize(formattedClientName, 52);
+  clientNameLines.forEach((line) => {
+    addText(line, 94, col2Y, 9.5, true, 'dark');
+    col2Y += 4.5;
+  });
+  if (clientEmail) {
+    addText(`Email: ${clientEmail}`, 94, col2Y, 7.5, false, 'secondary');
+    col2Y += 3.8;
+  }
+  if (clientPhone) {
+    addText(`Phone: ${clientPhone}`, 94, col2Y, 7.5, false, 'secondary');
+    col2Y += 3.8;
+  }
+
+  // --- Col 3: Details ---
+  let col3Y = currentY;
+  addText('ESTIMATE DETAILS', 154, col3Y, 7.5, true, 'primary');
+  col3Y += 5;
+  addText(`Date: ${formatDate(calculation.createdAt)}`, 154, col3Y, 8, false, 'dark');
+  col3Y += 4;
   const validityDate = new Date(calculation.createdAt);
-  validityDate.setDate(validityDate.getDate() + priceConfig.quotationValidityDays);
-  addText(`Expires: ${formatDate(validityDate)}`, 154, currentY + 9, 8, false, 'dark');
-  addText('Status: Active Quotation', 154, currentY + 13, 8, true, 'primary');
+  validityDate.setDate(validityDate.getDate() + (priceConfig.quotationValidityDays || 30));
+  addText(`Expires: ${formatDate(validityDate)}`, 154, col3Y, 8, false, 'dark');
+  col3Y += 4;
+  addText('Status: Active Quotation', 154, col3Y, 8, true, 'primary');
+  col3Y += 3.8;
 
-  // Divider line
+  // Find maximum bottom Y coordinate among the 3 columns
+  const maxColY = Math.max(col1Y, col2Y, col3Y);
+  const blockHeight = maxColY - currentY;
+
+  // Render vertical left accent bars matching actual column height
+  doc.setFillColor(27, 107, 74);
+  doc.rect(20, currentY - 1, 1, blockHeight, 'F');
+  doc.rect(90, currentY - 1, 1, blockHeight, 'F');
+  doc.rect(150, currentY - 1, 1, blockHeight, 'F');
+
+  // Divider line after metadata block
+  const metadataDividerY = maxColY + 2;
   doc.setDrawColor(226, 232, 240);
-  doc.line(20, 62, 190, 62);
+  doc.setLineWidth(0.4);
+  doc.line(20, metadataDividerY, 190, metadataDividerY);
 
   // 4. Project Parameter Highlights (Styled grid card)
-  doc.setFillColor(248, 250, 252); // Very soft gray/blue (slate-50)
-  doc.rect(20, 66, 170, 17, 'F');
+  const cardTopY = metadataDividerY + 4;
+  doc.setFillColor(248, 250, 252); // slate-50
+  doc.rect(20, cardTopY, 170, 17, 'F');
   doc.setDrawColor(226, 232, 240);
-  doc.rect(20, 66, 170, 17, 'D'); // border
+  doc.rect(20, cardTopY, 170, 17, 'D'); // border
 
-  addText('WEBSITE ARCHITECTURE', 24, 71, 7, true, 'muted');
-  addText((calculation.websiteType || '').toUpperCase(), 24, 76.5, 9, true, 'dark');
+  // Helper to render parameter cells safely with auto font-scaling and text wrapping
+  const renderParamCell = (label: string, rawValue: string, startX: number, maxWidth: number) => {
+    addText(label, startX, cardTopY + 5, 7, true, 'muted');
+    const value = rawValue || '';
 
-  addText('INDUSTRY SECTOR', 70, 71, 7, true, 'muted');
-  addText(calculation.industryName || '', 70, 76.5, 9, true, 'dark');
+    // Determine optimal font size based on text width
+    let fontSize = 9;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(fontSize);
+    let textWidth = doc.getTextWidth(value);
 
-  addText('ESTIMATE TIER', 120, 71, 7, true, 'muted');
-  addText(calculation.packageName || '', 120, 76.5, 9, true, 'dark');
+    if (textWidth > maxWidth) {
+      fontSize = 8;
+      doc.setFontSize(fontSize);
+      textWidth = doc.getTextWidth(value);
+    }
+    if (textWidth > maxWidth) {
+      fontSize = 7;
+      doc.setFontSize(fontSize);
+    }
 
-  addText('TOTAL PAGES', 160, 71, 7, true, 'muted');
-  addText(calculation.pages === -1 ? 'Unlimited' : `${calculation.pages} Pages`, 160, 76.5, 9, true, 'dark');
+    // Wrap or split if necessary
+    const lines: string[] = doc.splitTextToSize(value, maxWidth);
+    if (lines.length > 1) {
+      addText(lines[0], startX, cardTopY + 9.5, fontSize, true, 'dark');
+      addText(lines[1], startX, cardTopY + 13, fontSize, true, 'dark');
+    } else {
+      addText(value, startX, cardTopY + 10.5, fontSize, true, 'dark');
+    }
+  };
+
+  renderParamCell('WEBSITE ARCHITECTURE', (calculation.websiteType || '').toUpperCase(), 24, 50);
+  renderParamCell('INDUSTRY SECTOR', calculation.industryName || '', 78, 40);
+  renderParamCell('ESTIMATE TIER', calculation.packageName || '', 122, 38);
+  renderParamCell('TOTAL PAGES', calculation.pages === -1 ? 'Unlimited' : `${calculation.pages} Pages`, 164, 22);
 
   // 5. Line Items Table (Boxed Grid Layout with Zebra Rows)
-  currentY = 91;
+  currentY = cardTopY + 22;
   const headerHeight = 9;
   
   // Table Header Row
   doc.setFillColor(27, 107, 74); // Brand Green Header
   doc.rect(20, currentY, 170, headerHeight, 'F');
   addText('DESCRIPTION', 24, currentY + 6, 8.5, true, 'light');
-  addText('BILLING MODEL', 115, currentY + 6, 8.5, true, 'light');
+  addText('BILLING MODEL', 108, currentY + 6, 8.5, true, 'light');
   addText('INVESTMENT COST', 186, currentY + 6, 8.5, true, 'light', 'right');
 
   let itemY = currentY + headerHeight;
@@ -170,13 +265,17 @@ export async function generateQuotationPdf(
 
   // Row 0: Base Package
   drawRowBackground(itemY, 0);
+  const baseBillingLabel = pagesIncluded === -1 
+    ? 'Fixed Base (Unlimited Pages)' 
+    : `Fixed Base (${pagesIncluded} Pages)`;
+
   addText(`${calculation.packageName || ''} Package Baseline`, 24, itemY + 5.5, 8.5, true, 'dark');
-  addText(pagesIncluded === -1 ? 'Fixed Base Tier (Includes unlimited pages)' : `Fixed Base Tier (Includes ${pagesIncluded} pages)`, 115, itemY + 5.5, 8, false, 'secondary');
+  addText(baseBillingLabel, 108, itemY + 5.5, 8, false, 'secondary');
   addText(formatPdfCurrency(calculation.basePrice || 0), 186, itemY + 5.5, 8.5, true, 'dark', 'right');
   drawRowDivider(itemY);
   itemY += rowHeight;
 
-  let tableStartPageY = 91;
+  let tableStartPageY = currentY;
 
   // Row 1+: Dynamic selected features
   calculation.selectedFeatures.forEach((feat, index) => {
@@ -206,7 +305,7 @@ export async function generateQuotationPdf(
       doc.setFillColor(27, 107, 74); // Brand Green Header
       doc.rect(20, itemY, 170, headerHeight, 'F');
       addText('DESCRIPTION', 24, itemY + 6, 8.5, true, 'light');
-      addText('BILLING MODEL', 115, itemY + 6, 8.5, true, 'light');
+      addText('BILLING MODEL', 108, itemY + 6, 8.5, true, 'light');
       addText('INVESTMENT COST', 186, itemY + 6, 8.5, true, 'light', 'right');
       
       itemY += headerHeight;
@@ -225,7 +324,7 @@ export async function generateQuotationPdf(
       rateLabel = `${feat.unitPrice}% of Package Base`;
     }
 
-    addText(rateLabel, 115, itemY + 5.5, 8, false, 'secondary');
+    addText(rateLabel, 108, itemY + 5.5, 8, false, 'secondary');
     addText(formatPdfCurrency(feat.calculatedPrice || 0), 186, itemY + 5.5, 8.5, false, 'dark', 'right');
     drawRowDivider(itemY);
     itemY += rowHeight;
@@ -295,23 +394,27 @@ export async function generateQuotationPdf(
 
   // 7. Terms & Project Agreement Card
   let bottomY = totalY + 6;
-  
-  // Wrap Terms & Project Agreement in a light bordered container
-  doc.setFillColor(250, 250, 250);
-  doc.setDrawColor(241, 245, 249);
-  doc.rect(20, bottomY - 1, 170, 23, 'F');
-  doc.rect(20, bottomY - 1, 170, 23, 'D');
-
-  addText('TERMS & PROJECT AGREEMENT', 23, bottomY + 3.5, 7.5, true, 'primary');
 
   const termsText = priceConfig.termsAndConditions || '1. All pricing estimations are estimates subject to review.\n2. Invoices are subject to GST registration outlines.\n3. Content and branding assets are to be provided by the client.';
   doc.setFontSize(6.5);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139); // slate-500
-  const lines = doc.splitTextToSize(termsText, 164);
+  const lines: string[] = doc.splitTextToSize(termsText, 164);
+  const termsBoxHeight = Math.max(20, lines.length * 3.2 + 8);
+  
+  // Wrap Terms & Project Agreement in a light bordered container
+  doc.setFillColor(250, 250, 250);
+  doc.setDrawColor(241, 245, 249);
+  doc.rect(20, bottomY - 1, 170, termsBoxHeight, 'F');
+  doc.rect(20, bottomY - 1, 170, termsBoxHeight, 'D');
+
+  addText('TERMS & PROJECT AGREEMENT', 23, bottomY + 3.5, 7.5, true, 'primary');
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
   doc.text(lines, 23, bottomY + 8);
 
-  bottomY += 27;
+  bottomY += termsBoxHeight + 4;
 
   // Signatures sign-off block
   doc.setDrawColor(203, 213, 225); // slate-300

@@ -8,17 +8,14 @@ import type { ApiResponse } from '@/types';
 
 /** Server Action generating Quotation PDF on demand. Keeps calculations server-authoritative. */
 export async function getCalculationPdfAction(
-  calculationId: string
+  calculationId: string,
+  clientDetails?: {
+    businessName?: string;
+    businessEmail?: string;
+    businessPhone?: string;
+  }
 ): Promise<ApiResponse<string>> {
   try {
-    const user = await getServerUser();
-    if (!user) {
-      return {
-        success: false,
-        error: 'Unauthorized. Please sign in.',
-      };
-    }
-
     const [calculation, priceConfig] = await Promise.all([
       getCalculationById(calculationId),
       getPriceConfig(),
@@ -31,15 +28,22 @@ export async function getCalculationPdfAction(
       };
     }
 
-    // Verify ownership: Admin/Super Admin can see all estimates, public user can only see their own
-    if (user.role === 'public' && calculation.userId !== user.id) {
-      return {
-        success: false,
-        error: 'Forbidden. You do not own this quotation.',
-      };
+    // Merge live clientDetails if passed from the active form state
+    if (clientDetails) {
+      console.log('[DEBUG] PDF Action - Merging live form clientDetails:', clientDetails);
+      if (clientDetails.businessName) calculation.businessName = clientDetails.businessName;
+      if (clientDetails.businessEmail) calculation.businessEmail = clientDetails.businessEmail;
+      if (clientDetails.businessPhone) calculation.businessPhone = clientDetails.businessPhone;
     }
 
-    // Compile quotation PDF
+    console.log('[DEBUG] PDF Action - Final data passed to PDF generator:', {
+      id: calculation.id,
+      businessName: calculation.businessName,
+      businessEmail: calculation.businessEmail,
+      businessPhone: calculation.businessPhone,
+    });
+
+    // Compile quotation PDF with client details
     const base64Pdf = await generateQuotationPdf(calculation, priceConfig);
 
     return {

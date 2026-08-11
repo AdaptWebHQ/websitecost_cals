@@ -157,9 +157,9 @@ export type IndustryFormData = z.infer<typeof industrySchema>;
 // ============================================================================
 
 export const priceConfigSchema = z.object({
-  serviceCategoryId: serviceCategoryIdSchema,
-  currency: z.string().min(1, 'Currency is required'),
-  currencySymbol: z.string().min(1, 'Currency symbol is required'),
+  serviceCategoryId: serviceCategoryIdSchema.optional().default('sc-website'),
+  currency: z.string().min(1, 'Currency is required').default('INR'),
+  currencySymbol: z.string().min(1, 'Currency symbol is required').default('₹'),
   gstPercentage: z.coerce.number().min(0).max(100),
   minimumProjectPrice: z.coerce.number().min(0),
   rushDeliveryPercentage: z.coerce.number().min(0).max(100),

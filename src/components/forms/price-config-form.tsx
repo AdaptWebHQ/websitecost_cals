@@ -33,6 +33,7 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
   } = useForm({
     resolver: zodResolver(priceConfigSchema),
     defaultValues: {
+      serviceCategoryId: initialData.serviceCategoryId || 'sc-website',
       currency: initialData.currency || 'INR',
       currencySymbol: initialData.currencySymbol || '₹',
       gstPercentage: initialData.gstPercentage ?? 18,
@@ -52,6 +53,16 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
   });
 
   const isCalculatorEnabledValue = watch('isCalculatorEnabled');
+
+  const onInvalid = (formErrors: Record<string, any>) => {
+    console.error('PriceConfigForm Validation Errors:', formErrors);
+    const firstErr = Object.values(formErrors)[0];
+    if (firstErr?.message) {
+      setErrorMessage(`Validation Error: ${firstErr.message}`);
+    } else {
+      setErrorMessage('Please fix validation errors before saving.');
+    }
+  };
 
   const onSubmit = async (data: unknown) => {
     const values = data as PriceConfigFormData;
@@ -75,7 +86,7 @@ export default function PriceConfigForm({ initialData }: PriceConfigFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-4xl">
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8 max-w-4xl">
       {errorMessage && (
         <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm font-medium">
           {errorMessage}

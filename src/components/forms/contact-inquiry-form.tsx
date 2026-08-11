@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { contactFormSchema, type ContactFormData } from '@/schemas';
@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Loader2, MessageSquare, Send } from 'lucide-react';
 
+import { useRouter } from 'next/navigation';
+
 interface ContactInquiryFormProps {
   calculationId?: string;
   defaultName?: string;
@@ -19,6 +21,7 @@ interface ContactInquiryFormProps {
   defaultPhone?: string;
   defaultBudget?: string;
   onResetEstimate?: () => void;
+  onInquirySubmitted?: (updatedDetails: { businessName: string; businessEmail: string; businessPhone: string }) => void;
 }
 
 export default function ContactInquiryForm({
@@ -28,7 +31,9 @@ export default function ContactInquiryForm({
   defaultPhone = '',
   defaultBudget = '',
   onResetEstimate,
+  onInquirySubmitted,
 }: ContactInquiryFormProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -36,6 +41,7 @@ export default function ContactInquiryForm({
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(contactFormSchema),
@@ -49,15 +55,36 @@ export default function ContactInquiryForm({
     },
   });
 
+  const formValues = watch();
+
+  useEffect(() => {
+    const event = new CustomEvent('clientDetailsChange', {
+      detail: {
+        businessName: formValues.company || formValues.name || '',
+        businessEmail: formValues.email || '',
+        businessPhone: formValues.phone || '',
+      },
+    });
+    window.dispatchEvent(event);
+  }, [formValues.company, formValues.name, formValues.email, formValues.phone]);
+
   const onSubmit = async (data: unknown) => {
     const values = data as ContactFormData;
+    console.log('[DEBUG] Inquiry Form Submission - values:', values);
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
       const response = await createInquiryAction(values, calculationId);
       if (response.success) {
+        console.log('[DEBUG] Inquiry Form Submission - successfully saved to database');
         setSuccessMessage('Inquiry submitted successfully! A consultant will contact you shortly.');
+        onInquirySubmitted?.({
+          businessName: values.company || values.name,
+          businessEmail: values.email,
+          businessPhone: values.phone,
+        });
+        router.refresh();
       } else {
         setErrorMessage(response.error || 'Failed to submit inquiry.');
       }

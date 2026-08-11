@@ -1,14 +1,20 @@
 import { adminDb } from '@/firebase/admin';
 import { COLLECTIONS } from '@/constants';
+import { getCache, setCache } from '@/lib/server-cache';
 import type { DashboardStats, ChartDataPoint, MonthlyData } from '@/types';
 
+// ============================================================================
+// Analytics Aggregation Services (Cached for 300 seconds / 5 minutes)
+// ============================================================================
 
-// ============================================================================
-// Analytics Aggregation Services
-// ============================================================================
+const CACHE_TTL = 300; // 5 minutes
 
 /** Fetch high-level summary KPIs for the admin dashboard */
 export async function getDashboardStats(): Promise<DashboardStats> {
+  const cacheKey = 'analytics:dashboard_stats';
+  const cached = getCache<DashboardStats>(cacheKey);
+  if (cached) return cached;
+
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     const inquiriesSnap = await adminDb.collection(COLLECTIONS.INQUIRIES).get();
@@ -17,7 +23,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     const totalLeads = inquiriesSnap.size;
 
     if (totalCalculations === 0) {
-      return {
+      const emptyStats = {
         totalCalculations: 0,
         todayCalculations: 0,
         totalLeads: 0,
@@ -30,6 +36,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         hotLeads: 0,
         coldLeads: 0,
       };
+      setCache(cacheKey, emptyStats, CACHE_TTL);
+      return emptyStats;
     }
 
     // Filter calculations created today
@@ -74,7 +82,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
     const averageProjectValue = bookedProjects > 0 ? Math.round(bookedTotalValue / bookedProjects) : 0;
 
-    return {
+    const stats: DashboardStats = {
       totalCalculations,
       todayCalculations,
       totalLeads,
@@ -87,6 +95,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       hotLeads,
       coldLeads,
     };
+
+    setCache(cacheKey, stats, CACHE_TTL);
+    return stats;
   } catch (error) {
     return {
       totalCalculations: 0,
@@ -106,9 +117,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
 /** Fetch data points for monthly calculations and revenues */
 export async function getMonthlyCalculations(): Promise<MonthlyData[]> {
+  const cacheKey = 'analytics:monthly_calculations';
+  const cached = getCache<MonthlyData[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     if (calculationsSnap.empty) {
+      setCache(cacheKey, [], CACHE_TTL);
       return [];
     }
 
@@ -138,18 +154,23 @@ export async function getMonthlyCalculations(): Promise<MonthlyData[]> {
         revenue: monthlyMap[m].revenue,
       }));
 
+    setCache(cacheKey, result, CACHE_TTL);
     return result;
   } catch (error) {
-    // Quiet fallback
     return [];
   }
 }
 
 /** Fetch lead distribution by status */
 export async function getLeadStatusDistribution(): Promise<ChartDataPoint[]> {
+  const cacheKey = 'analytics:lead_status_distribution';
+  const cached = getCache<ChartDataPoint[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const inquiriesSnap = await adminDb.collection(COLLECTIONS.INQUIRIES).get();
     if (inquiriesSnap.empty) {
+      setCache(cacheKey, [], CACHE_TTL);
       return [];
     }
 
@@ -169,22 +190,29 @@ export async function getLeadStatusDistribution(): Promise<ChartDataPoint[]> {
       lost: '#EF4444',
     };
 
-    return Object.entries(counts).map(([status, val]) => ({
+    const result = Object.entries(counts).map(([status, val]) => ({
       label: status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
       value: val,
       color: colors[status] || '#64748B',
     }));
+
+    setCache(cacheKey, result, CACHE_TTL);
+    return result;
   } catch (error) {
-    // Quiet fallback
     return [];
   }
 }
 
 /** Fetch calculations distribution by industry */
 export async function getIndustryDistribution(): Promise<ChartDataPoint[]> {
+  const cacheKey = 'analytics:industry_distribution';
+  const cached = getCache<ChartDataPoint[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     if (calculationsSnap.empty) {
+      setCache(cacheKey, [], CACHE_TTL);
       return [];
     }
 
@@ -196,22 +224,29 @@ export async function getIndustryDistribution(): Promise<ChartDataPoint[]> {
 
     const colorPalette = ['#6366F1', '#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
 
-    return Object.entries(counts).map(([ind, val], idx) => ({
+    const result = Object.entries(counts).map(([ind, val], idx) => ({
       label: ind,
       value: val,
       color: colorPalette[idx % colorPalette.length],
     }));
+
+    setCache(cacheKey, result, CACHE_TTL);
+    return result;
   } catch (error) {
-    // Quiet fallback
     return [];
   }
 }
 
 /** Fetch package popularity statistics */
 export async function getPackagePopularity(): Promise<ChartDataPoint[]> {
+  const cacheKey = 'analytics:package_popularity';
+  const cached = getCache<ChartDataPoint[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     if (calculationsSnap.empty) {
+      setCache(cacheKey, [], CACHE_TTL);
       return [];
     }
 
@@ -223,22 +258,29 @@ export async function getPackagePopularity(): Promise<ChartDataPoint[]> {
 
     const colorPalette = ['#3B82F6', '#8B5CF6', '#06B6D4', '#10B981'];
 
-    return Object.entries(counts).map(([pack, val], idx) => ({
+    const result = Object.entries(counts).map(([pack, val], idx) => ({
       label: pack,
       value: val,
       color: colorPalette[idx % colorPalette.length],
     }));
+
+    setCache(cacheKey, result, CACHE_TTL);
+    return result;
   } catch (error) {
-    // Quiet fallback
     return [];
   }
 }
 
 /** Fetch feature usage counts */
 export async function getFeatureUsage(): Promise<ChartDataPoint[]> {
+  const cacheKey = 'analytics:feature_usage';
+  const cached = getCache<ChartDataPoint[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     if (calculationsSnap.empty) {
+      setCache(cacheKey, [], CACHE_TTL);
       return [];
     }
 
@@ -257,32 +299,39 @@ export async function getFeatureUsage(): Promise<ChartDataPoint[]> {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 6);
 
-    return sorted.map(([feat, val], idx) => ({
+    const result = sorted.map(([feat, val], idx) => ({
       label: feat,
       value: val,
       color: colorPalette[idx % colorPalette.length],
     }));
+
+    setCache(cacheKey, result, CACHE_TTL);
+    return result;
   } catch (error) {
-    // Quiet fallback
     return [];
   }
 }
 
 /** Fetch conversion funnel stages statistics */
 export async function getConversionFunnel(): Promise<ChartDataPoint[]> {
+  const cacheKey = 'analytics:conversion_funnel';
+  const cached = getCache<ChartDataPoint[]>(cacheKey);
+  if (cached) return cached;
+
   try {
     const calculationsSnap = await adminDb.collection(COLLECTIONS.CALCULATIONS).get();
     const inquiriesSnap = await adminDb.collection(COLLECTIONS.INQUIRIES).get();
 
     if (calculationsSnap.empty) {
-      return [
+      const emptyFunnel = [
         { label: 'Calculations', value: 0 },
         { label: 'Leads', value: 0 },
         { label: 'Contacted', value: 0 },
         { label: 'Booked', value: 0 },
       ];
+      setCache(cacheKey, emptyFunnel, CACHE_TTL);
+      return emptyFunnel;
     }
-
 
     const totalCalculations = calculationsSnap.size;
     const totalLeads = inquiriesSnap.size;
@@ -291,14 +340,16 @@ export async function getConversionFunnel(): Promise<ChartDataPoint[]> {
     const contacted = inquiries.filter((l) => l.status !== 'new' && l.status !== 'inquired').length;
     const booked = inquiries.filter((l) => l.status === 'booked').length;
 
-    return [
+    const funnel = [
       { label: 'Calculations', value: totalCalculations },
       { label: 'Leads', value: totalLeads },
       { label: 'Contacted', value: contacted },
       { label: 'Booked', value: booked },
     ];
+
+    setCache(cacheKey, funnel, CACHE_TTL);
+    return funnel;
   } catch (error) {
-    // Quiet fallback
     return [
       { label: 'Calculations', value: 0 },
       { label: 'Leads', value: 0 },
