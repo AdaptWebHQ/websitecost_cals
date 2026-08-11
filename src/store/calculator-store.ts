@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface CalculatorState {
   currentStep: number;
@@ -74,6 +74,7 @@ export const useCalculatorStore = create<CalculatorState>()(
     }),
     {
       name: 'website-calculator-storage',
+      storage: createJSONStorage(() => sessionStorage),
     }
   )
 );
