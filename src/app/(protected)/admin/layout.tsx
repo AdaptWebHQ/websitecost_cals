@@ -1,6 +1,4 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
-import { getServerUser } from '@/actions/auth';
 import CategorySyncProvider from '@/components/admin/category-sync-provider';
 
 export const metadata: Metadata = {
@@ -11,17 +9,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getServerUser();
-
-  if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
-    redirect('/unauthorized');
-  }
-
   return <CategorySyncProvider>{children}</CategorySyncProvider>;
 }
+
 
