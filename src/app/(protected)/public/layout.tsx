@@ -9,7 +9,7 @@ export default async function PublicLayout({
   const user = await getServerUser();
 
   if (!user || user.role === 'admin' || user.role === 'super_admin') {
-    redirect('/dashboard');
+    redirect('/unauthorized');
   }
 
   return <>{children}</>;
